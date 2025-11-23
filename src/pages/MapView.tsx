@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import { useDevicesStore } from '../store/devicesStore';
 import { devicesAPI } from '../api/devices';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, MapPin } from 'lucide-react';
 
 // Fix Leaflet marker icon issue
 const defaultIcon = L.icon({
@@ -131,8 +131,9 @@ export const MapView = () => {
                   View on Google Maps →
                 </a>
               </div>
-              <p className="text-xs text-gray-500 mt-2">
-                📍 {device.latitude?.toFixed(6)}, {device.longitude?.toFixed(6)}
+              <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                <MapPin size={14} />
+                {device.latitude?.toFixed(6)}, {device.longitude?.toFixed(6)}
               </p>
             </div>
           ))}

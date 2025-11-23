@@ -51,7 +51,7 @@ export const StatsCard = ({ title, value, icon, color }: StatsCardProps) => {
 
   return (
     <div className={`${colorClasses[color]} border rounded-lg p-6 flex items-center gap-4`}>
-      <div className="text-4xl">{icon}</div>
+      <div>{icon}</div>
       <div>
         <p className="text-gray-600 text-sm font-medium">{title}</p>
         <p className="text-2xl font-bold">{value}</p>

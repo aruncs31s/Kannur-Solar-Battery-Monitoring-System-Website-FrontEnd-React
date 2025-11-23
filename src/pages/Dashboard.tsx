@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useDevicesStore } from '../store/devicesStore';
 import { devicesAPI } from '../api/devices';
 import { StatsCard, StatusBadge } from '../components/Cards';
-import { Activity, AlertCircle } from 'lucide-react';
+import { Activity, AlertCircle, Package, CheckCircle, AlertTriangle, Zap, MapPin, User } from 'lucide-react';
 
 export const Dashboard = () => {
   const { devices, setDevices, setLoading, setError } = useDevicesStore();
@@ -67,25 +67,25 @@ export const Dashboard = () => {
         <StatsCard
           title="Total Devices"
           value={devices.length}
-          icon="📦"
+          icon={<Package size={32} />}
           color="blue"
         />
         <StatsCard
           title="Active Devices"
           value={activeDevices}
-          icon="✅"
+          icon={<CheckCircle size={32} />}
           color="green"
         />
         <StatsCard
           title="Inactive Devices"
           value={inactiveDevices}
-          icon="⚠️"
+          icon={<AlertTriangle size={32} />}
           color="yellow"
         />
         <StatsCard
           title="Avg Voltage"
           value={`${avgVoltage}V`}
-          icon="⚡"
+          icon={<Zap size={32} />}
           color="blue"
         />
       </div>
@@ -151,8 +151,14 @@ export const Dashboard = () => {
                 <StatusBadge status={device.status} />
               </div>
               <div className="space-y-2 text-sm text-gray-600">
-                <p>📍 {device.installedLocation || 'Not specified'}</p>
-                <p>👤 {device.installedBy}</p>
+                <p className="flex items-center gap-2">
+                  <MapPin size={16} />
+                  {device.installedLocation || 'Not specified'}
+                </p>
+                <p className="flex items-center gap-2">
+                  <User size={16} />
+                  {device.installedBy}
+                </p>
               </div>
             </div>
           ))}

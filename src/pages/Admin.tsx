@@ -6,6 +6,9 @@ import {
   Package,
   Activity,
   Settings,
+  CheckCircle,
+  AlertTriangle,
+  XCircle,
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -77,25 +80,25 @@ export const Admin = () => {
         <StatsCard
           title="Total Devices"
           value={stats.totalDevices}
-          icon="📦"
+          icon={<Package size={32} />}
           color="blue"
         />
         <StatsCard
           title="Active"
           value={stats.activeDevices}
-          icon="✅"
+          icon={<CheckCircle size={32} />}
           color="green"
         />
         <StatsCard
           title="Inactive"
           value={stats.inactiveDevices}
-          icon="⚠️"
+          icon={<AlertTriangle size={32} />}
           color="yellow"
         />
         <StatsCard
           title="Errors"
           value={stats.errorDevices}
-          icon="❌"
+          icon={<XCircle size={32} />}
           color="red"
         />
       </div>
@@ -194,11 +197,11 @@ export const Admin = () => {
           </div>
           <div className="space-y-2 text-sm text-green-800">
             <p>
-              ✓ {Math.round((stats.activeDevices / (stats.totalDevices || 1)) * 100)}% devices
+              • {Math.round((stats.activeDevices / (stats.totalDevices || 1)) * 100)}% devices
               operational
             </p>
-            <p>✓ API connection active</p>
-            <p>✓ Database synchronized</p>
+            <p>• API connection active</p>
+            <p>• Database synchronized</p>
           </div>
         </div>
 

@@ -80,9 +80,9 @@ export const Profile = () => {
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
         <h3 className="font-semibold text-blue-900 mb-2">Security Tip</h3>
         <ul className="text-sm text-blue-800 space-y-1">
-          <li>✓ Use a strong password with uppercase, lowercase, numbers, and symbols</li>
-          <li>✓ Change your password regularly</li>
-          <li>✓ Never share your login credentials with anyone</li>
+          <li>• Use a strong password with uppercase, lowercase, numbers, and symbols</li>
+          <li>• Change your password regularly</li>
+          <li>• Never share your login credentials with anyone</li>
         </ul>
       </div>
     </div>
