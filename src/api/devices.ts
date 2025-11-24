@@ -9,4 +9,8 @@ export const devicesAPI = {
   createDevice: async (data: CreateDeviceDTO): Promise<Device> => {
     return await container.getCreateDeviceUseCase().execute(data);
   },
+
+  searchDevices: async (query: string): Promise<Device[]> => {
+    return await container.getSearchDevicesUseCase().execute(query);
+  },
 };

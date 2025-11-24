@@ -42,4 +42,20 @@ export class DeviceRepository implements IDeviceRepository {
       longitude: dto.longitude,
     };
   }
+
+  async search(query: string): Promise<Device[]> {
+    const dtos = await httpClient.get<any[]>(`/esp/devices/search?q=${encodeURIComponent(query)}`);
+    return dtos.map(dto => ({
+      id: dto.id,
+      name: dto.device_name || dto.name,
+      mac: dto.mac_id || dto.mac,
+      installedLocation: dto.location || dto.installed_location || '',
+      status: dto.status,
+      installedBy: dto.user_id || dto.installed_by || 'Unknown',
+      createdAt: dto.created_at || 0,
+      updatedAt: dto.updated_at || 0,
+      latitude: dto.latitude,
+      longitude: dto.longitude,
+    }));
+  }
 }

@@ -5,6 +5,7 @@ import { LoginUseCase } from '../usecases/auth/LoginUseCase';
 import { LogoutUseCase } from '../usecases/auth/LogoutUseCase';
 import { GetAllDevicesUseCase } from '../usecases/devices/GetAllDevicesUseCase';
 import { CreateDeviceUseCase } from '../usecases/devices/CreateDeviceUseCase';
+import { SearchDevicesUseCase } from '../usecases/devices/SearchDevicesUseCase';
 
 class DIContainer {
   private authRepository = new AuthRepository();
@@ -25,6 +26,10 @@ class DIContainer {
 
   getCreateDeviceUseCase() {
     return new CreateDeviceUseCase(this.deviceRepository);
+  }
+
+  getSearchDevicesUseCase() {
+    return new SearchDevicesUseCase(this.deviceRepository);
   }
 
   getAuthRepository() {
