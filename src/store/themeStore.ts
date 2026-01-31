@@ -21,7 +21,7 @@ export const useThemeStore = create<ThemeStore>()(
         }
         return { isDark: newIsDark };
       }),
-      setTheme: (isDark: boolean) => set((state) => {
+      setTheme: (isDark: boolean) => set((_state) => {
         // Apply theme immediately
         if (isDark) {
           document.documentElement.classList.add('dark');

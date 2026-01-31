@@ -6,9 +6,12 @@ import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { Dashboard } from './pages/Dashboard';
 import { Devices } from './pages/Devices';
+import { DeviceDetail } from './pages/DeviceDetail';
+import { AllReadings } from './pages/AllReadings';
 import { MapView } from './pages/MapView';
 import { Profile } from './pages/Profile';
 import { Admin } from './pages/Admin';
+import { AuditLogs } from './pages/AuditLogs';
 import { Layout } from './components/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
@@ -54,6 +57,26 @@ function App() {
           }
         />
         <Route
+          path="/devices/:id"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <DeviceDetail />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/readings"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <AllReadings />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/map"
           element={
             <ProtectedRoute>
@@ -79,6 +102,16 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <Admin />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/audit"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <AuditLogs />
               </Layout>
             </ProtectedRoute>
           }

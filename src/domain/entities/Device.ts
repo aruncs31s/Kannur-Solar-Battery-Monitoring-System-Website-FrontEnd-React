@@ -11,7 +11,7 @@ export interface Device {
   longitude?: number;
 }
 
-export type DeviceStatus = "active" | "inactive" | "error";
+export type DeviceStatus = "active" | "inactive" | "error" | "maintenance" | "decommissioned" | "unknown";
 
 export interface CreateDeviceDTO {
   name: string;
