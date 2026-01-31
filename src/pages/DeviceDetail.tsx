@@ -173,7 +173,7 @@ export const DeviceDetail = () => {
       <div>
         <button
           onClick={() => navigate('/devices')}
-          className="text-blue-600 dark:text-blue-400 hover:underline mb-4"
+          className="text-nord-8 hover:text-nord-9 hover:underline mb-4"
         >
           ← Back to Devices
         </button>
@@ -183,7 +183,7 @@ export const DeviceDetail = () => {
 
       {/* Control Message */}
       {controlMessage && (
-        <div className={`p-4 rounded-lg ${controlMessage.includes('success') || controlMessage.includes('turned') ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-200' : 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200'}`}>
+        <div className={`p-4 rounded-lg ${controlMessage.includes('success') || controlMessage.includes('turned') ? 'bg-success/10 text-success' : 'bg-error/10 text-error'}`}>
           {controlMessage}
         </div>
       )}
@@ -229,7 +229,7 @@ export const DeviceDetail = () => {
             <button
               onClick={() => controlDevice(4)}
               disabled={device.device_state === 1}
-              className="flex flex-col items-center justify-center p-4 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+              className="flex flex-col items-center justify-center p-4 bg-success hover:bg-success/80 disabled:bg-nord-3 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
             >
               <Power size={24} />
               <span className="mt-2 text-sm font-medium">Turn On</span>
@@ -237,7 +237,7 @@ export const DeviceDetail = () => {
             <button
               onClick={() => controlDevice(5)}
               disabled={device.device_state === 2}
-              className="flex flex-col items-center justify-center p-4 bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+              className="flex flex-col items-center justify-center p-4 bg-error hover:bg-error/80 disabled:bg-nord-3 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
             >
               <PowerOff size={24} />
               <span className="mt-2 text-sm font-medium">Turn Off</span>
@@ -245,7 +245,7 @@ export const DeviceDetail = () => {
             <button
               onClick={() => controlDevice(6)}
               disabled={device.device_state === 3 || device.device_state === 4}
-              className="flex flex-col items-center justify-center p-4 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+              className="flex flex-col items-center justify-center p-4 bg-nord-8 hover:bg-nord-9 disabled:bg-nord-3 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
             >
               <Settings size={24} />
               <span className="mt-2 text-sm font-medium">Configure</span>
@@ -269,16 +269,16 @@ export const DeviceDetail = () => {
           {latestReading ? (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Voltage</span>
-                <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">{(latestReading.voltage ?? 0).toFixed(2)}V</span>
+                <span className="text-nord-3 dark:text-nord-4">Voltage</span>
+                <span className="text-2xl font-bold text-nord-8">{(latestReading.voltage ?? 0).toFixed(2)}V</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Current</span>
-                <span className="text-2xl font-bold text-green-600 dark:text-green-400">{(latestReading.current ?? 0).toFixed(2)}A</span>
+                <span className="text-nord-3 dark:text-nord-4">Current</span>
+                <span className="text-2xl font-bold text-success">{(latestReading.current ?? 0).toFixed(2)}A</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Power</span>
-                <span className="text-2xl font-bold text-purple-600 dark:text-purple-400">{(latestReading.power ?? 0).toFixed(2)}W</span>
+                <span className="text-nord-3 dark:text-nord-4">Power</span>
+                <span className="text-2xl font-bold text-nord-15">{(latestReading.power ?? 0).toFixed(2)}W</span>
               </div>
               {latestReading.temperature && (
                 <div className="flex items-center justify-between">
@@ -299,28 +299,28 @@ export const DeviceDetail = () => {
       {/* Averages */}
       {readings.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg shadow p-6">
+          <div className="bg-gradient-to-br from-nord-9 to-nord-8 text-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-100 text-sm">Average Voltage</p>
+                <p className="text-nord-4 text-sm">Average Voltage</p>
                 <p className="text-3xl font-bold mt-1">{averages.voltage.toFixed(2)}V</p>
               </div>
-              <Activity size={40} className="text-blue-200" />
+              <Activity size={40} className="text-nord-5" />
             </div>
           </div>
-          <div className="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-lg shadow p-6">
+          <div className="bg-gradient-to-br from-success to-nord-14 text-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-green-100 text-sm">Average Current</p>
+                <p className="text-nord-4 text-sm">Average Current</p>
                 <p className="text-3xl font-bold mt-1">{averages.current.toFixed(2)}A</p>
               </div>
-              <TrendingUp size={40} className="text-green-200" />
+              <TrendingUp size={40} className="text-nord-5" />
             </div>
           </div>
-          <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-lg shadow p-6">
+          <div className="bg-gradient-to-br from-nord-15 to-nord-9 text-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-100 text-sm">Average Power</p>
+                <p className="text-nord-4 text-sm">Average Power</p>
                 <p className="text-3xl font-bold mt-1">{averages.power.toFixed(2)}W</p>
               </div>
               <AlertCircle size={40} className="text-purple-200" />
@@ -385,13 +385,13 @@ export const DeviceDetail = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                       {new Date(reading.timestamp).toLocaleString()}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 dark:text-blue-400">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-nord-8">
                       {(reading.voltage ?? 0).toFixed(2)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600 dark:text-green-400">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-success">
                       {(reading.current ?? 0).toFixed(2)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-purple-600 dark:text-purple-400">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-nord-15">
                       {(reading.power ?? 0).toFixed(2)}
                     </td>
                     {reading.temperature && (

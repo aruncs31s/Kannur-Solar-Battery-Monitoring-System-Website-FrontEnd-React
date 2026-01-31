@@ -8,37 +8,37 @@ interface StatusBadgeProps {
 export const StatusBadge = ({ status }: StatusBadgeProps) => {
   const configs = {
     active: {
-      bg: 'bg-gradient-to-r from-green-500 to-emerald-500',
+      bg: 'bg-gradient-to-r from-success to-nord-14',
       text: 'text-white',
       icon: CheckCircle,
       pulse: true,
     },
     inactive: {
-      bg: 'bg-gradient-to-r from-yellow-500 to-orange-500',
+      bg: 'bg-gradient-to-r from-warning to-nord-13',
       text: 'text-white',
       icon: AlertTriangle,
       pulse: false,
     },
     error: {
-      bg: 'bg-gradient-to-r from-red-500 to-pink-500',
+      bg: 'bg-gradient-to-r from-error to-nord-11',
       text: 'text-white',
       icon: AlertCircle,
       pulse: true,
     },
     maintenance: {
-      bg: 'bg-gradient-to-r from-blue-500 to-cyan-500',
+      bg: 'bg-gradient-to-r from-nord-8 to-nord-7',
       text: 'text-white',
       icon: Settings,
       pulse: false,
     },
     decommissioned: {
-      bg: 'bg-gradient-to-r from-gray-400 to-gray-500',
-      text: 'text-white',
+      bg: 'bg-gradient-to-r from-nord-3 to-nord-2',
+      text: 'text-nord-0',
       icon: XCircle,
       pulse: false,
     },
     unknown: {
-      bg: 'bg-gradient-to-r from-purple-500 to-indigo-500',
+      bg: 'bg-gradient-to-r from-nord-15 to-nord-9',
       text: 'text-white',
       icon: HelpCircle,
       pulse: false,
@@ -74,34 +74,34 @@ interface StatsCardProps {
 export const StatsCard = ({ title, value, icon, color, trend, subtitle }: StatsCardProps) => {
   const colorClasses = {
     blue: {
-      gradient: 'from-blue-500 to-cyan-500',
-      glow: 'shadow-blue-500/20',
-      icon: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
+      gradient: 'from-nord-9 to-nord-8',
+      glow: 'shadow-nord-9/20',
+      icon: 'bg-nord-9/10 text-nord-9',
     },
     green: {
-      gradient: 'from-green-500 to-emerald-500',
-      glow: 'shadow-green-500/20',
-      icon: 'bg-green-500/10 text-green-600 dark:text-green-400',
+      gradient: 'from-success to-nord-14',
+      glow: 'shadow-success/20',
+      icon: 'bg-success/10 text-success',
     },
     yellow: {
-      gradient: 'from-yellow-500 to-orange-500',
-      glow: 'shadow-yellow-500/20',
-      icon: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400',
+      gradient: 'from-warning to-nord-13',
+      glow: 'shadow-warning/20',
+      icon: 'bg-warning/10 text-warning',
     },
     red: {
-      gradient: 'from-red-500 to-pink-500',
-      glow: 'shadow-red-500/20',
-      icon: 'bg-red-500/10 text-red-600 dark:text-red-400',
+      gradient: 'from-error to-nord-11',
+      glow: 'shadow-error/20',
+      icon: 'bg-error/10 text-error',
     },
     purple: {
-      gradient: 'from-purple-500 to-pink-500',
-      glow: 'shadow-purple-500/20',
-      icon: 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
+      gradient: 'from-nord-15 to-nord-9',
+      glow: 'shadow-nord-15/20',
+      icon: 'bg-nord-15/10 text-nord-15',
     },
     indigo: {
-      gradient: 'from-indigo-500 to-purple-500',
-      glow: 'shadow-indigo-500/20',
-      icon: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400',
+      gradient: 'from-nord-10 to-nord-9',
+      glow: 'shadow-nord-10/20',
+      icon: 'bg-nord-10/10 text-nord-10',
     },
   };
 

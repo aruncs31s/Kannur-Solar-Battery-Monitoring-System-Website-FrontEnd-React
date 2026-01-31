@@ -16,22 +16,22 @@
 @layer utilities {
   /* Glassmorphism effect */
   .glass {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(46, 52, 64, 0.8);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(136, 192, 208, 0.2);
   }
   
   .glass-dark {
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(46, 52, 64, 0.9);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(136, 192, 208, 0.1);
   }
 
   /* Gradient text */
   .gradient-text {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-nord-8 to-nord-10;
   }
 
   /* Custom scrollbar */
@@ -41,16 +41,16 @@
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
-    @apply bg-gray-100 dark:bg-gray-800 rounded-lg;
+    @apply bg-nord-1 rounded-lg;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-gray-300 dark:bg-gray-600 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500;
+    @apply bg-nord-3 rounded-lg hover:bg-nord-4;
   }
 
   /* Animated gradient background */
   .animated-gradient {
-    background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+    background: linear-gradient(-45deg, #2E3440, #3B4252, #88C0D0, #81A1C1);
     background-size: 400% 400%;
     animation: gradient 15s ease infinite;
   }
