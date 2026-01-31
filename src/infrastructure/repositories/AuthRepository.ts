@@ -33,6 +33,7 @@ export class AuthRepository implements IAuthRepository {
     });
     return {
       id: response.id.toString(),
+      username: response.username,
       name: response.name,
       email: response.email,
       role: 'user'

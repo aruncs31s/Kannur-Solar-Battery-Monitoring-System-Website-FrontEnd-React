@@ -1,5 +1,5 @@
 import { IUserRepository } from '../../domain/repositories/IUserRepository';
-import { User } from '../../domain/entities/User';
+import { CreateUserDTO, User } from '../../domain/entities/User';
 import { httpClient } from '../http/HttpClient';
 
 export class UserRepository implements IUserRepository {
@@ -7,6 +7,7 @@ export class UserRepository implements IUserRepository {
     const response = await httpClient.get<any>(`/users/${id}`);
     return {
       id: response.id.toString(),
+      username: response.username,
       name: response.name,
       email: response.email,
       role: response.role || 'user'
@@ -19,12 +20,13 @@ export class UserRepository implements IUserRepository {
     if (!token) {
       throw new Error('Not authenticated');
     }
-    // For now, return a placeholder
+    const response = await httpClient.get<any>('/me');
     return {
-      id: '1',
-      name: 'Current User',
-      email: 'user@example.com',
-      role: 'user'
+      id: response.id.toString(),
+      username: response.username,
+      name: response.name,
+      email: response.email,
+      role: response.role || 'user'
     };
   }
 
@@ -37,9 +39,44 @@ export class UserRepository implements IUserRepository {
     });
     return {
       id: response.id.toString(),
+      username: response.username,
       name: response.name,
       email: response.email || '',
       role: response.role || 'user'
     };
+  }
+
+  async getAll(): Promise<User[]> {
+    const response = await httpClient.get<any[]>('/users');
+    return response.map(dto => ({
+      id: dto.id.toString(),
+      name: dto.name,
+      username: dto.username,
+      email: dto.email,
+      role: dto.role || 'user'
+    }));
+  }
+
+  async create(data: Omit<CreateUserDTO, 'id'>): Promise<User> {
+    const requestData = {
+      name: data.name || '',
+      username: data.UserCredentials.username,
+      email: data.email || '',
+      password: data.UserCredentials.password,
+      role: data.role || 'user'
+    };
+    console.log('Sending user creation request:', requestData);
+    const response = await httpClient.post<any>('/users', requestData);
+    return {
+      id: response.id.toString(),
+      username: response.username,
+      name: response.name,
+      email: response.email,
+      role: response.role || 'user'
+    };
+  }
+
+  async delete(id: number): Promise<void> {
+    await httpClient.delete(`/users/${id}`);
   }
 }

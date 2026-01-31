@@ -106,19 +106,19 @@ export const Dashboard = () => {
             {readings.length > 0 ? (
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <motion.div whileHover={{ scale: 1.05 }} className="relative overflow-hidden bg-primary-200 text-text-primary rounded-2xl p-6 shadow-lg">
+                  <motion.div whileHover={{ scale: 1.01 }} className="relative overflow-hidden bg-primary-200 text-text-primary rounded-2xl p-6 shadow-lg">
                     <div className="absolute top-0 right-0 w-24 h-24 bg-primary-100/10 rounded-full blur-2xl" />
                     <Zap size={32} className="mb-2 opacity-80" />
                     <p className="text-primary-600 text-sm font-medium">Voltage</p>
                     <p className="text-4xl font-bold mt-1">{readings[0].voltage.toFixed(2)}V</p>
                   </motion.div>
-                  <motion.div whileHover={{ scale: 1.05 }} className="relative overflow-hidden bg-success text-text-primary rounded-2xl p-6 shadow-lg">
+                  <motion.div whileHover={{ scale: 1.01 }} className="relative overflow-hidden bg-success text-text-primary rounded-2xl p-6 shadow-lg">
                     <div className="absolute top-0 right-0 w-24 h-24 bg-success/10 rounded-full blur-2xl" />
                     <Activity size={32} className="mb-2 opacity-80" />
                     <p className="text-success/80 text-sm font-medium">Current</p>
                     <p className="text-4xl font-bold mt-1">{readings[0].current.toFixed(2)}A</p>
                   </motion.div>
-                  <motion.div whileHover={{ scale: 1.05 }} className="relative overflow-hidden bg-primary-300 text-text-primary rounded-2xl p-6 shadow-lg">
+                  <motion.div whileHover={{ scale: 1.01 }} className="relative overflow-hidden bg-primary-300 text-text-primary rounded-2xl p-6 shadow-lg">
                     <div className="absolute top-0 right-0 w-24 h-24 bg-primary-200/10 rounded-full blur-2xl" />
                     <Battery size={32} className="mb-2 opacity-80" />
                     <p className="text-primary-500 text-sm font-medium">Power</p>
@@ -137,8 +137,8 @@ export const Dashboard = () => {
                         <AreaChart data={chartData}>
                           <defs>
                             <linearGradient id="colorVoltage" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="var(--primary-200)" stopOpacity={0.8}/>
-                              <stop offset="95%" stopColor="var(--primary-200)" stopOpacity={0.1}/>
+                              <stop offset="5%" stopColor="var(--primary-200)" stopOpacity={0.8} />
+                              <stop offset="95%" stopColor="var(--primary-200)" stopOpacity={0.1} />
                             </linearGradient>
                           </defs>
                           <CartesianGrid strokeDasharray="3 3" stroke="var(--border-primary)" />

@@ -10,6 +10,9 @@ import { CreateDeviceUseCase } from '../usecases/devices/CreateDeviceUseCase';
 import { SearchDevicesUseCase } from '../usecases/devices/SearchDevicesUseCase';
 import { GetDeviceReadingsUseCase, GetReadingsByDateRangeUseCase } from '../usecases/readings/GetReadingsUseCase';
 import { GetAuditLogsUseCase } from '../usecases/audit/GetAuditLogsUseCase';
+import { GetUsersUseCase } from '../usecases/users/GetUsersUseCase';
+// import { CreateUserUseCase } from '../usecases/users/CreateUserUseCase';
+import { DeleteUserUseCase } from '../usecases/users/DeleteUserUseCase';
 
 class DIContainer {
   private authRepository = new AuthRepository();
@@ -48,6 +51,18 @@ class DIContainer {
 
   getGetAuditLogsUseCase() {
     return new GetAuditLogsUseCase(this.auditRepository);
+  }
+
+  getGetUsersUseCase() {
+    return new GetUsersUseCase(this.userRepository);
+  }
+
+  // getCreateUserUseCase() {
+  //   return new CreateUserUseCase(this.userRepository);
+  // }
+
+  getDeleteUserUseCase() {
+    return new DeleteUserUseCase(this.userRepository);
   }
 
   getAuthRepository() {

@@ -95,7 +95,7 @@ export const Navigation = () => {
               <div className="p-1.5 bg-primary-200 rounded-lg">
                 <User size={14} className="text-text-primary" />
               </div>
-              <span className="text-sm font-semibold text-text-primary">{user?.name || 'User'}</span>
+              <span className="text-sm font-semibold text-text-primary">{user?.username || 'User'}</span>
             </div>
             
             <motion.button

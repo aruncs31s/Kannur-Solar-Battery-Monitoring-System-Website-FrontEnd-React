@@ -113,20 +113,20 @@ export const StatsCard = ({ title, value, icon, color, trend, subtitle }: StatsC
       animate={{ y: 0, opacity: 1 }}
       whileHover={{ y: -4, scale: 1.02 }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      className={`relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl ${config.glow} hover:shadow-2xl transition-all duration-300 border border-gray-100 dark:border-gray-700`}
+      className={`relative overflow-hidden bg-surface-primary rounded-2xl p-6 shadow-xl ${config.glow} hover:shadow-2xl transition-all duration-300 border border-border-primary`}
     >
       {/* Gradient overlay */}
       <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${config.gradient} opacity-10 rounded-full blur-2xl`} />
       
       <div className="relative flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-gray-600 dark:text-gray-400 text-sm font-medium mb-2">{title}</p>
-          <p className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{value}</p>
+          <p className="text-text-tertiary text-sm font-medium mb-2">{title}</p>
+          <p className="text-3xl font-bold text-text-primary mb-1">{value}</p>
           {subtitle && (
-            <p className="text-xs text-gray-500 dark:text-gray-400">{subtitle}</p>
+            <p className="text-xs text-text-secondary">{subtitle}</p>
           )}
           {trend !== undefined && (
-            <div className={`flex items-center gap-1 mt-2 text-sm font-semibold ${trend >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <div className={`flex items-center gap-1 mt-2 text-sm font-semibold ${trend >= 0 ? 'text-success' : 'text-error'}`}>
               {trend >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
               <span>{Math.abs(trend)}%</span>
             </div>

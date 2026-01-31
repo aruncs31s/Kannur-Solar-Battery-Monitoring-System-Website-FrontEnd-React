@@ -4,8 +4,8 @@ import { httpClient } from '../http/HttpClient';
 
 export class AuditRepository implements IAuditRepository {
   async getAll(): Promise<AuditLog[]> {
-    const response = await httpClient.get<any[]>('/audit');
-    return response.map(dto => ({
+    const response = await httpClient.get<{ logs: any[] }>('/audit');
+    return response.logs.map(dto => ({
       id: dto.id.toString(),
       userId: dto.user_id.toString(),
       username: dto.username,
