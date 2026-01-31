@@ -61,12 +61,12 @@ export const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-nord-0 via-nord-1 to-nord-2 flex items-center justify-center px-4 py-12 relative overflow-hidden">
+    <div className="min-h-screen bg-background-primary flex items-center justify-center px-4 py-12 relative overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-nord-8/10 rounded-full blur-3xl animate-blob" />
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-nord-9/20 rounded-full blur-3xl animate-blob animation-delay-2000" />
-        <div className="absolute -bottom-8 left-1/3 w-96 h-96 bg-nord-7/20 rounded-full blur-3xl animate-blob animation-delay-4000" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary-200/10 rounded-full blur-3xl animate-blob" />
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-primary-300/20 rounded-full blur-3xl animate-blob animation-delay-2000" />
+        <div className="absolute -bottom-8 left-1/3 w-96 h-96 bg-secondary-200/20 rounded-full blur-3xl animate-blob animation-delay-4000" />
       </div>
 
       <motion.div
@@ -164,7 +164,7 @@ export const Login = () => {
               whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-nord-8 to-nord-10 text-white py-3 rounded-xl font-semibold hover:from-nord-9 hover:to-nord-8 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 text-lg"
+              className="w-full bg-primary-200 text-text-primary py-3 rounded-xl font-semibold hover:bg-primary-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 text-lg"
             >
               {loading ? (
                 <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />

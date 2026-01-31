@@ -4,16 +4,16 @@ import { httpClient } from '../http/HttpClient';
 
 export class ReadingRepository implements IReadingRepository {
   async getByDevice(deviceId: string): Promise<Reading[]> {
-    const response = await httpClient.get<any[]>(`/devices/${deviceId}/readings`);
-    return response.map(dto => ({
+    const response = await httpClient.get<{ readings: any[]; latest: any }>(`/devices/${deviceId}/readings`);
+    return response.readings.map(dto => ({
       id: dto.id.toString(),
       deviceId: dto.device_id.toString(),
       voltage: dto.voltage,
       current: dto.current,
-      power: dto.power,
-      temperature: dto.temperature,
-      humidity: dto.humidity,
-      timestamp: new Date(dto.timestamp).getTime(),
+      power: dto.voltage && dto.current ? dto.voltage * dto.current : undefined,
+      temperature: undefined, // Not available in backend
+      humidity: undefined,    // Not available in backend
+      timestamp: new Date(dto.created_at).getTime(),
     }));
   }
 

@@ -14,10 +14,12 @@ export const Devices = () => {
   const [success, setSuccess] = useState('');
   const [formData, setFormData] = useState({
     name: '',
-    mac: '',
-    installedLocation: '',
-    status: 'active' as const,
-    installedBy: '',
+    type: 1,
+    ip_address: '',
+    mac_address: '',
+    firmware_version_id: 1,
+    address: '',
+    city: '',
   });
 
   useEffect(() => {
@@ -50,7 +52,7 @@ export const Devices = () => {
     setError('');
     setSuccess('');
 
-    if (!formData.name || !formData.mac || !formData.installedLocation) {
+    if (!formData.name || !formData.mac_address || !formData.address) {
       setError('Please fill in all required fields');
       return;
     }
@@ -61,10 +63,12 @@ export const Devices = () => {
       setSuccess('Device added successfully');
       setFormData({
         name: '',
-        mac: '',
-        installedLocation: '',
-        status: 'active',
-        installedBy: '',
+        type: 1,
+        ip_address: '',
+        mac_address: '',
+        firmware_version_id: 1,
+        address: '',
+        city: '',
       });
       setShowForm(false);
       setTimeout(() => setSuccess(''), 3000);
@@ -97,7 +101,7 @@ export const Devices = () => {
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
+          className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
         >
           <Plus size={20} />
           Add Device
@@ -109,8 +113,8 @@ export const Devices = () => {
 
       {/* Add Device Form */}
       {showForm && (
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">Add New Device</h2>
+        <div className="bg-surface-primary rounded-lg shadow-md p-6">
+          <h2 className="text-2xl font-bold text-text-primary mb-6">Add New Device</h2>
           <form onSubmit={handleAddDevice} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
@@ -123,54 +127,61 @@ export const Devices = () => {
               />
               <FormField
                 label="MAC Address"
-                name="mac"
-                value={formData.mac}
+                name="mac_address"
+                value={formData.mac_address}
                 onChange={handleInputChange}
                 placeholder="AA:BB:CC:DD:EE:FF"
                 required
               />
               <FormField
-                label="Installed Location"
-                name="installedLocation"
-                value={formData.installedLocation}
+                label="IP Address"
+                name="ip_address"
+                value={formData.ip_address}
+                onChange={handleInputChange}
+                placeholder="192.168.1.100"
+              />
+              <FormField
+                label="Address"
+                name="address"
+                value={formData.address}
                 onChange={handleInputChange}
                 placeholder="Roof Panel 1"
                 required
               />
               <FormField
-                label="Installed By"
-                name="installedBy"
-                value={formData.installedBy}
+                label="City"
+                name="city"
+                value={formData.city}
                 onChange={handleInputChange}
-                placeholder="Technician Name"
+                placeholder="Kannur"
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Status
-              </label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="error">Error</option>
-              </select>
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-2">
+                  Device Type
+                </label>
+                <select
+                  name="type"
+                  value={formData.type}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  required
+                >
+                  <option value={1}>Sensor</option>
+                  <option value={2}>Actuator</option>
+                </select>
+              </div>
             </div>
             <div className="flex gap-4">
               <button
                 type="submit"
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                className="bg-success hover:bg-success-hover text-white px-6 py-2 rounded-lg font-medium transition-colors"
               >
                 Add Device
               </button>
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                className="bg-surface-secondary hover:bg-surface-tertiary text-text-primary px-6 py-2 rounded-lg font-medium transition-colors"
               >
                 Cancel
               </button>
@@ -184,27 +195,29 @@ export const Devices = () => {
         {devices.map((device) => (
           <div
             key={device.id}
-            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+            className="bg-surface-primary rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
           >
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h3 className="text-2xl font-bold text-gray-800">{device.name}</h3>
-                <p className="text-sm text-gray-600 font-mono">{device.mac}</p>
+                <h3 className="text-2xl font-bold text-text-primary">{device.name}</h3>
+                <p className="text-sm text-text-secondary font-mono">{device.mac_address}</p>
               </div>
-              <StatusBadge status={device.status} />
+              <StatusBadge status={device.device_state === 1 ? 'active' : device.device_state === 2 ? 'inactive' : 'unknown'} />
             </div>
 
-            <div className="space-y-2 text-gray-700 mb-6">
+            <div className="space-y-2 text-text-primary mb-6">
               <p>
-                <span className="font-semibold">Location:</span> {device.installedLocation || 'Not specified'}
+                <span className="font-semibold">Type:</span> {device.type}
               </p>
               <p>
-                <span className="font-semibold">Installed By:</span> {device.installedBy}
+                <span className="font-semibold">Address:</span> {device.address || 'Not specified'}
               </p>
-              {device.createdAt && (
-                <p className="text-sm text-gray-600">
-                  <span className="font-semibold">Added:</span>{' '}
-                  {new Date(device.createdAt * 1000).toLocaleDateString()}
+              <p>
+                <span className="font-semibold">IP Address:</span> {device.ip_address || 'Not assigned'}
+              </p>
+              {device.city && (
+                <p>
+                  <span className="font-semibold">City:</span> {device.city}
                 </p>
               )}
             </div>
@@ -212,7 +225,7 @@ export const Devices = () => {
             <div className="flex gap-3">
               <Link
                 to={`/devices/${device.id}`}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
+                className="flex-1 bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
               >
                 <ExternalLink size={18} />
                 View Details
@@ -220,7 +233,7 @@ export const Devices = () => {
               <button
                 onClick={() => handleDeleteDevice(device.id)}
                 disabled
-                className="bg-gray-400 text-gray-600 px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 cursor-not-allowed"
+                className="bg-surface-secondary text-text-secondary px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 cursor-not-allowed"
                 title="Device deletion is not yet implemented in the backend"
               >
                 <Trash2 size={18} />
@@ -231,9 +244,9 @@ export const Devices = () => {
       </div>
 
       {devices.length === 0 && !showForm && (
-        <div className="bg-white rounded-lg shadow-md p-12 text-center">
-          <p className="text-gray-600 text-lg">No devices found.</p>
-          <p className="text-gray-500 mt-2">Click "Add Device" to register your first ESP32.</p>
+        <div className="bg-surface-primary rounded-lg shadow-md p-12 text-center">
+          <p className="text-text-secondary text-lg">No devices found.</p>
+          <p className="text-text-tertiary mt-2">Click "Add Device" to register your first ESP32.</p>
         </div>
       )}
     </div>

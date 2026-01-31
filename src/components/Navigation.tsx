@@ -31,7 +31,7 @@ export const Navigation = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 backdrop-blur-xl bg-nord-6/80 dark:bg-nord-1/80 border-b border-nord-4/50 dark:border-nord-3/50 shadow-lg">
+    <nav className="sticky top-0 z-50 backdrop-blur-xl bg-surface-primary/80 border-b border-border-primary/50 shadow-lg">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -39,15 +39,17 @@ export const Navigation = () => {
             <motion.div
               whileHover={{ rotate: 360 }}
               transition={{ duration: 0.5 }}
-              className="p-2 bg-gradient-to-br from-nord-8 to-nord-10 rounded-xl"
+              className="p-2 bg-primary-200 rounded-xl"
             >
-              <Zap className="text-white" size={24} />
+              <Zap className="text-text-primary" size={24} />
             </motion.div>
-            <div>
-              <span className="font-bold text-xl bg-gradient-to-r from-nord-8 to-nord-10 bg-clip-text text-transparent">
-                SKVMS
+            <div className="flex flex-col leading-tight">
+              <span className="font-bold text-xl text-text-primary">
+                Kannur Solar
               </span>
-              <p className="text-xs text-nord-3 dark:text-nord-4">Solar Monitor</p>
+              <span className="text-xs text-text-tertiary -mt-1">
+                Battery Monitor
+              </span>
             </div>
           </Link>
 
@@ -61,15 +63,15 @@ export const Navigation = () => {
               >
                 <span className={`relative z-10 ${
                   isActivePath(item.path)
-                    ? 'text-white'
-                    : 'text-nord-0 dark:text-nord-4 hover:text-nord-8 dark:hover:text-nord-8'
+                    ? 'text-text-primary'
+                    : 'text-text-secondary hover:text-text-accent'
                 }`}>
                   {item.name}
                 </span>
                 {isActivePath(item.path) && (
                   <motion.div
                     layoutId="activeTab"
-                    className="absolute inset-0 bg-gradient-to-r from-nord-8 to-nord-10 rounded-xl"
+                    className="absolute inset-0 bg-primary-200 rounded-xl"
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                   />
                 )}
@@ -83,24 +85,24 @@ export const Navigation = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={toggleTheme}
-              className="p-2.5 rounded-xl bg-gradient-to-br from-nord-4 to-nord-5 dark:from-nord-2 dark:to-nord-3 text-nord-0 dark:text-nord-4 hover:from-nord-5 hover:to-nord-6 dark:hover:from-nord-3 dark:hover:to-nord-4 transition-all shadow-md"
+              className="p-2.5 rounded-xl bg-surface-secondary text-text-secondary hover:bg-surface-tertiary transition-all shadow-md"
               aria-label="Toggle dark mode"
             >
               {isDark ? <Sun size={18} /> : <Moon size={18} />}
             </motion.button>
             
-            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-br from-nord-5 to-nord-6 dark:from-nord-2 dark:to-nord-3 border border-nord-4 dark:border-nord-3">
-              <div className="p-1.5 bg-gradient-to-br from-nord-8 to-nord-10 rounded-lg">
-                <User size={14} className="text-white" />
+            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-surface-secondary border border-border-primary">
+              <div className="p-1.5 bg-primary-200 rounded-lg">
+                <User size={14} className="text-text-primary" />
               </div>
-              <span className="text-sm font-semibold text-nord-0 dark:text-nord-4">{user?.name || 'User'}</span>
+              <span className="text-sm font-semibold text-text-primary">{user?.name || 'User'}</span>
             </div>
             
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-br from-nord-11 to-nord-12 text-white hover:from-nord-11 hover:to-nord-11 transition-all font-semibold text-sm shadow-lg"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-error text-text-primary hover:bg-error/80 transition-all font-semibold text-sm shadow-lg"
             >
               <LogOut size={18} />
               Logout
@@ -112,7 +114,7 @@ export const Navigation = () => {
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={toggleTheme}
-              className="p-2 rounded-xl bg-nord-4 dark:bg-nord-2 text-nord-0 dark:text-nord-4 hover:bg-nord-5 dark:hover:bg-nord-3 transition-colors"
+              className="p-2 rounded-xl bg-surface-secondary text-text-secondary hover:bg-surface-tertiary transition-colors"
               aria-label="Toggle dark mode"
             >
               {isDark ? <Sun size={20} /> : <Moon size={20} />}
@@ -120,7 +122,7 @@ export const Navigation = () => {
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2 rounded-xl bg-gradient-to-br from-nord-8 to-nord-10 text-white"
+              className="p-2 rounded-xl bg-primary-200 text-text-primary"
             >
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </motion.button>
@@ -134,7 +136,7 @@ export const Navigation = () => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="md:hidden overflow-hidden border-t border-nord-4 dark:border-nord-3"
+              className="md:hidden overflow-hidden border-t border-border-primary"
             >
               <div className="py-4 space-y-2">
                 {navItems.map((item, idx) => (
@@ -148,8 +150,8 @@ export const Navigation = () => {
                       to={item.path}
                       className={`block px-4 py-3 rounded-xl font-medium text-sm transition-all ${
                         isActivePath(item.path)
-                          ? 'bg-gradient-to-r from-nord-8 to-nord-10 text-white shadow-lg'
-                          : 'text-nord-0 dark:text-nord-4 hover:bg-nord-5 dark:hover:bg-nord-2'
+                          ? 'bg-primary-200 text-text-primary shadow-lg'
+                          : 'text-text-secondary hover:bg-surface-secondary'
                       }`}
                       onClick={() => setIsOpen(false)}
                     >
@@ -161,15 +163,15 @@ export const Navigation = () => {
                   initial={{ x: -20, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
                   transition={{ delay: navItems.length * 0.05 }}
-                  className="pt-4 border-t border-nord-4 dark:border-nord-3"
+                  className="pt-4 border-t border-border-primary"
                 >
-                  <div className="flex items-center gap-2 px-4 py-2 mb-2 rounded-xl bg-nord-5 dark:bg-nord-2">
-                    <User size={18} className="text-nord-8 dark:text-nord-8" />
-                    <span className="text-sm font-semibold text-nord-0 dark:text-nord-4">{user?.name || 'User'}</span>
+                  <div className="flex items-center gap-2 px-4 py-2 mb-2 rounded-xl bg-surface-secondary">
+                    <User size={18} className="text-text-accent" />
+                    <span className="text-sm font-semibold text-text-primary">{user?.name || 'User'}</span>
                   </div>
                   <button
                     onClick={handleLogout}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-nord-11 to-nord-12 text-white hover:from-nord-11 hover:to-nord-11 transition-all font-semibold text-sm"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-error text-text-primary hover:bg-error/80 transition-all font-semibold text-sm"
                   >
                     <LogOut size={18} />
                     Logout

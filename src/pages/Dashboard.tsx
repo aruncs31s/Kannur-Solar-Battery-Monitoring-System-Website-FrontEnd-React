@@ -6,7 +6,7 @@ import { useDevicesStore } from '../store/devicesStore';
 import { devicesAPI } from '../api/devices';
 import { readingsAPI } from '../api/readings';
 import { StatsCard, StatusBadge } from '../components/Cards';
-import { Activity, AlertCircle, Package, CheckCircle, Zap, MapPin, User, TrendingUp, Battery, Cpu, Signal } from 'lucide-react';
+import { Activity, AlertCircle, Package, CheckCircle, Zap, MapPin, TrendingUp, Battery, Cpu } from 'lucide-react';
 
 export const Dashboard = () => {
   const { devices, setDevices, setLoading, setError } = useDevicesStore();
@@ -52,7 +52,7 @@ export const Dashboard = () => {
     }
   }, [selectedDeviceId]);
 
-  const activeDevices = devices.filter((d) => d.status === 'active').length;
+  const activeDevices = devices.filter((d) => d.device_state === 1).length;
   const avgVoltage =
     readings.length > 0
       ? (readings.reduce((sum, r) => sum + r.voltage, 0) / readings.length).toFixed(2)
@@ -71,28 +71,6 @@ export const Dashboard = () => {
 
   return (
     <div className="space-y-6 pb-8">
-      <motion.div
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        className="relative overflow-hidden bg-gradient-to-r from-nord-8 via-nord-9 to-nord-10 rounded-3xl p-8 text-white shadow-2xl"
-      >
-        <div className="absolute top-0 right-0 w-96 h-96 bg-nord-4/10 rounded-full blur-3xl" />
-        <div className="relative">
-          <h1 className="text-5xl font-bold mb-2">Dashboard</h1>
-          <p className="text-nord-4 text-lg">Real-time monitoring of your solar battery system</p>
-          <div className="flex gap-4 mt-4">
-            <div className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-semibold">
-              <Signal size={16} className="inline mr-2" />
-              {devices.length} Devices
-            </div>
-            <div className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-semibold">
-              <Activity size={16} className="inline mr-2" />
-              Live Monitoring
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard title="Total Devices" value={devices.length} icon={<Package size={28} />} color="blue" subtitle="Connected devices" />
         <StatsCard title="Active Devices" value={activeDevices} icon={<CheckCircle size={28} />} color="green" subtitle="Currently online" trend={activeDevices > 0 ? 5 : 0} />
@@ -102,9 +80,9 @@ export const Dashboard = () => {
 
       <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }} className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 border border-gray-100 dark:border-gray-700">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-nord-0 dark:text-white flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-nord-8 to-nord-10 rounded-xl">
-              <Activity className="text-white" size={24} />
+          <h2 className="text-2xl font-bold text-text-primary flex items-center gap-3">
+            <div className="p-2 bg-primary-200 rounded-xl">
+              <Activity className="text-text-primary" size={24} />
             </div>
             Live Readings
           </h2>
@@ -120,7 +98,7 @@ export const Dashboard = () => {
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Select Device</label>
               <select value={selectedDeviceId || ''} onChange={(e) => setSelectedDeviceId(Number(e.target.value))} className="w-full md:w-96 px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-medium transition-all">
                 {devices.map((device) => (
-                  <option key={device.id} value={device.id}>{device.name} - {device.installedLocation}</option>
+                  <option key={device.id} value={device.id}>{device.name} - {device.address}</option>
                 ))}
               </select>
             </div>
@@ -128,22 +106,22 @@ export const Dashboard = () => {
             {readings.length > 0 ? (
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <motion.div whileHover={{ scale: 1.05 }} className="relative overflow-hidden bg-gradient-to-br from-nord-9 to-nord-8 text-white rounded-2xl p-6 shadow-lg">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-nord-4/10 rounded-full blur-2xl" />
+                  <motion.div whileHover={{ scale: 1.05 }} className="relative overflow-hidden bg-primary-200 text-text-primary rounded-2xl p-6 shadow-lg">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-primary-100/10 rounded-full blur-2xl" />
                     <Zap size={32} className="mb-2 opacity-80" />
-                    <p className="text-nord-4 text-sm font-medium">Voltage</p>
+                    <p className="text-primary-600 text-sm font-medium">Voltage</p>
                     <p className="text-4xl font-bold mt-1">{readings[0].voltage.toFixed(2)}V</p>
                   </motion.div>
-                  <motion.div whileHover={{ scale: 1.05 }} className="relative overflow-hidden bg-gradient-to-br from-success to-nord-14 text-white rounded-2xl p-6 shadow-lg">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-nord-4/10 rounded-full blur-2xl" />
+                  <motion.div whileHover={{ scale: 1.05 }} className="relative overflow-hidden bg-success text-text-primary rounded-2xl p-6 shadow-lg">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-success/10 rounded-full blur-2xl" />
                     <Activity size={32} className="mb-2 opacity-80" />
-                    <p className="text-nord-4 text-sm font-medium">Current</p>
+                    <p className="text-success/80 text-sm font-medium">Current</p>
                     <p className="text-4xl font-bold mt-1">{readings[0].current.toFixed(2)}A</p>
                   </motion.div>
-                  <motion.div whileHover={{ scale: 1.05 }} className="relative overflow-hidden bg-gradient-to-br from-nord-15 to-nord-9 text-white rounded-2xl p-6 shadow-lg">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-nord-4/10 rounded-full blur-2xl" />
+                  <motion.div whileHover={{ scale: 1.05 }} className="relative overflow-hidden bg-primary-300 text-text-primary rounded-2xl p-6 shadow-lg">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-primary-200/10 rounded-full blur-2xl" />
                     <Battery size={32} className="mb-2 opacity-80" />
-                    <p className="text-nord-4 text-sm font-medium">Power</p>
+                    <p className="text-primary-500 text-sm font-medium">Power</p>
                     <p className="text-4xl font-bold mt-1">{readings[0].power.toFixed(2)}W</p>
                   </motion.div>
                 </div>
@@ -151,40 +129,40 @@ export const Dashboard = () => {
                 {chartData.length > 1 && (
                   <div className="space-y-4">
                     <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
-                      <h3 className="font-bold text-nord-0 dark:text-white mb-4 flex items-center gap-2">
-                        <TrendingUp size={20} className="text-nord-8" />
+                      <h3 className="font-bold text-text-primary mb-4 flex items-center gap-2">
+                        <TrendingUp size={20} className="text-primary-400" />
                         Voltage Trend
                       </h3>
                       <ResponsiveContainer width="100%" height={200}>
                         <AreaChart data={chartData}>
                           <defs>
                             <linearGradient id="colorVoltage" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#81A1C1" stopOpacity={0.8}/>
-                              <stop offset="95%" stopColor="#81A1C1" stopOpacity={0.1}/>
+                              <stop offset="5%" stopColor="var(--primary-200)" stopOpacity={0.8}/>
+                              <stop offset="95%" stopColor="var(--primary-200)" stopOpacity={0.1}/>
                             </linearGradient>
                           </defs>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#D8DEE9" />
-                          <XAxis dataKey="time" stroke="#4C566A" style={{ fontSize: '12px' }} />
-                          <YAxis stroke="#4C566A" style={{ fontSize: '12px' }} />
-                          <Tooltip contentStyle={{ backgroundColor: 'rgba(46, 52, 64, 0.95)', border: 'none', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', color: '#D8DEE9' }} />
-                          <Area type="monotone" dataKey="voltage" stroke="#81A1C1" strokeWidth={3} fillOpacity={1} fill="url(#colorVoltage)" />
+                          <CartesianGrid strokeDasharray="3 3" stroke="var(--border-primary)" />
+                          <XAxis dataKey="time" stroke="var(--text-tertiary)" style={{ fontSize: '12px' }} />
+                          <YAxis stroke="var(--text-tertiary)" style={{ fontSize: '12px' }} />
+                          <Tooltip contentStyle={{ backgroundColor: 'var(--surface-primary)', border: 'none', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', color: 'var(--text-primary)' }} />
+                          <Area type="monotone" dataKey="voltage" stroke="var(--primary-200)" strokeWidth={3} fillOpacity={1} fill="url(#colorVoltage)" />
                         </AreaChart>
                       </ResponsiveContainer>
                     </div>
                     <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
-                      <h3 className="font-bold text-nord-0 dark:text-white mb-4 flex items-center gap-2">
+                      <h3 className="font-bold text-text-primary mb-4 flex items-center gap-2">
                         <Activity size={20} className="text-success" />
                         Power &amp; Current
                       </h3>
                       <ResponsiveContainer width="100%" height={200}>
                         <LineChart data={chartData}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#D8DEE9" />
-                          <XAxis dataKey="time" stroke="#4C566A" style={{ fontSize: '12px' }} />
-                          <YAxis stroke="#4C566A" style={{ fontSize: '12px' }} />
-                          <Tooltip contentStyle={{ backgroundColor: 'rgba(46, 52, 64, 0.95)', border: 'none', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', color: '#D8DEE9' }} />
+                          <CartesianGrid strokeDasharray="3 3" stroke="var(--border-primary)" />
+                          <XAxis dataKey="time" stroke="var(--text-tertiary)" style={{ fontSize: '12px' }} />
+                          <YAxis stroke="var(--text-tertiary)" style={{ fontSize: '12px' }} />
+                          <Tooltip contentStyle={{ backgroundColor: 'var(--surface-primary)', border: 'none', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', color: 'var(--text-primary)' }} />
                           <Legend />
-                          <Line type="monotone" dataKey="current" stroke="#A3BE8C" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-                          <Line type="monotone" dataKey="power" stroke="#B48EAD" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                          <Line type="monotone" dataKey="current" stroke="var(--success)" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                          <Line type="monotone" dataKey="power" stroke="var(--primary-300)" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
@@ -192,7 +170,7 @@ export const Dashboard = () => {
                 )}
 
                 <div className="mt-6 text-center">
-                  <Link to={`/devices/${selectedDeviceId}`} className="inline-flex items-center gap-2 bg-gradient-to-r from-nord-8 to-nord-10 text-white px-6 py-3 rounded-xl font-semibold hover:from-nord-9 hover:to-nord-8 transition-all shadow-lg hover:shadow-xl">
+                  <Link to={`/devices/${selectedDeviceId}`} className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl">
                     View Full Device Dashboard
                     <TrendingUp size={18} />
                   </Link>
@@ -234,18 +212,18 @@ export const Dashboard = () => {
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
                     <h3 className="font-bold text-lg text-nord-0 dark:text-white mb-1">{device.name}</h3>
-                    <p className="text-xs text-nord-3 dark:text-nord-4 font-mono">{device.mac}</p>
+                    <p className="text-xs text-nord-3 dark:text-nord-4 font-mono">{device.mac_address}</p>
                   </div>
-                  <StatusBadge status={device.status} />
+                  <StatusBadge status={device.device_state === 1 ? 'active' : device.device_state === 2 ? 'inactive' : 'unknown'} />
                 </div>
                 <div className="space-y-2.5 text-sm text-nord-3 dark:text-nord-4">
                   <div className="flex items-center gap-2 bg-nord-5 dark:bg-nord-2 rounded-lg px-3 py-2">
                     <MapPin size={16} className="text-nord-8" />
-                    <span className="font-medium">{device.installedLocation || 'Not specified'}</span>
+                    <span className="font-medium">{device.address || 'Not specified'}</span>
                   </div>
                   <div className="flex items-center gap-2 bg-nord-5 dark:bg-nord-2 rounded-lg px-3 py-2">
-                    <User size={16} className="text-success" />
-                    <span className="font-medium">{device.installedBy}</span>
+                    <Cpu size={16} className="text-success" />
+                    <span className="font-medium">{device.type}</span>
                   </div>
                 </div>
               </Link>

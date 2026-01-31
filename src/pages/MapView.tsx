@@ -44,15 +44,8 @@ export const MapView = () => {
         const response = await devicesAPI.getAllDevices();
         setDevices(response);
 
-        // Calculate map center from devices
-        if (response.length > 0) {
-          const withCoords = response.filter((d) => d.latitude && d.longitude);
-          if (withCoords.length > 0) {
-            const avgLat = withCoords.reduce((sum, d) => sum + (d.latitude || 0), 0) / withCoords.length;
-            const avgLng = withCoords.reduce((sum, d) => sum + (d.longitude || 0), 0) / withCoords.length;
-            setCenter([avgLat, avgLng]);
-          }
-        }
+        // Set default center (can be updated to use geocoding for addresses later)
+        setCenter([11.2588, 75.7804]); // Kannur coordinates as default
       } catch (err) {
         console.error('Failed to fetch devices:', err);
       } finally {
@@ -63,7 +56,7 @@ export const MapView = () => {
     fetchDevices();
   }, []);
 
-  const devicesWithCoords = devices.filter((d) => d.latitude && d.longitude);
+  const devicesWithCoords = devices; // All devices (no coordinate filtering available)
 
   // Use search results if searching, otherwise use all devices
   const displayDevices = deviceSearch ? searchResults : devices;
@@ -182,10 +175,10 @@ export const MapView = () => {
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
-            {devicesWithCoords.map((device) => (
+            {devicesWithCoords.map((device, index) => (
               <Marker
                 key={device.id}
-                position={[device.latitude!, device.longitude!]}
+                position={[11.2588 + (index * 0.001), 75.7804 + (index * 0.001)]} // Offset each device slightly
                 icon={defaultIcon}
               >
                 <Popup>
@@ -193,14 +186,14 @@ export const MapView = () => {
                     {device.name}
                   </div>
                   <div className="text-sm text-gray-600 mt-1">
-                    {device.installedLocation}
+                    {device.address}
                   </div>
                   <div className={`text-xs mt-2 px-2 py-1 rounded ${
-                    device.status === 'active'
+                    device.device_state === 1
                       ? 'bg-green-100 text-green-800'
                       : 'bg-yellow-100 text-yellow-800'
                   }`}>
-                    {device.status}
+                    {device.device_state === 1 ? 'Active' : device.device_state === 2 ? 'Inactive' : 'Unknown'}
                   </div>
                 </Popup>
               </Marker>
@@ -253,40 +246,29 @@ export const MapView = () => {
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-800">{device.name}</h3>
                       <p className="text-sm text-gray-600 mt-1">
-                        <span className="font-medium">MAC:</span> {device.mac}
+                        <span className="font-medium">MAC:</span> {device.mac_address}
                       </p>
                       <p className="text-sm text-gray-600">
-                        <span className="font-medium">Location:</span> {device.installedLocation || 'Not specified'}
+                        <span className="font-medium">Address:</span> {device.address || 'Not specified'}
                       </p>
                       <p className="text-sm text-gray-600">
                         <span className="font-medium">Status:</span>{' '}
                         <span className={`inline-block px-2 py-0.5 rounded text-xs ${
-                          device.status === 'active'
+                          device.device_state === 1
                             ? 'bg-green-100 text-green-800'
-                            : device.status === 'inactive'
+                            : device.device_state === 2
                             ? 'bg-yellow-100 text-yellow-800'
                             : 'bg-red-100 text-red-800'
                         }`}>
-                          {device.status}
+                          {device.device_state === 1 ? 'Active' : device.device_state === 2 ? 'Inactive' : 'Unknown'}
                         </span>
                       </p>
-                      {device.latitude && device.longitude && (
-                        <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
-                          <MapPin size={14} />
-                          {device.latitude.toFixed(6)}, {device.longitude.toFixed(6)}
-                        </p>
-                      )}
+                      {/* Coordinates not available in current backend */}
+                      <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                        <MapPin size={14} />
+                        Coordinates not available
+                      </p>
                     </div>
-                    {device.latitude && device.longitude && (
-                      <a
-                        href={`https://www.google.com/maps/?q=${device.latitude},${device.longitude}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 text-sm font-medium ml-4"
-                      >
-                        View on Map →
-                      </a>
-                    )}
                   </div>
                 </div>
               ))}

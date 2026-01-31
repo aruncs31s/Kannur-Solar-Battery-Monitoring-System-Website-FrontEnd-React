@@ -8,54 +8,77 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Nord color palette
+        // Nord color palette as CSS custom properties
         nord: {
-          0: '#2E3440', // Darkest
-          1: '#3B4252', // Dark
-          2: '#434C5E', // Dark gray
-          3: '#4C566A', // Gray
-          4: '#D8DEE9', // Light gray
-          5: '#E5E9F0', // Lighter gray
-          6: '#ECEFF4', // Lightest
-          7: '#8FBCBB', // Frost cyan
-          8: '#88C0D0', // Cyan
-          9: '#81A1C1', // Blue
-          10: '#5E81AC', // Dark blue
-          11: '#BF616A', // Red
-          12: '#D08770', // Orange
-          13: '#EBCB8B', // Yellow
-          14: '#A3BE8C', // Green
-          15: '#B48EAD', // Purple
+          0: 'var(--nord-0)',
+          1: 'var(--nord-1)',
+          2: 'var(--nord-2)',
+          3: 'var(--nord-3)',
+          4: 'var(--nord-4)',
+          5: 'var(--nord-5)',
+          6: 'var(--nord-6)',
+          7: 'var(--nord-7)',
+          8: 'var(--nord-8)',
+          9: 'var(--nord-9)',
+          10: 'var(--nord-10)',
+          11: 'var(--nord-11)',
+          12: 'var(--nord-12)',
+          13: 'var(--nord-13)',
+          14: 'var(--nord-14)',
+          15: 'var(--nord-15)',
         },
-        // Semantic colors using Nord
+        // Semantic colors using CSS custom properties
         primary: {
-          50: '#ECEFF4',
-          100: '#D8DEE9',
-          200: '#88C0D0',
-          300: '#81A1C1',
-          400: '#5E81AC',
-          500: '#5E81AC',
-          600: '#4C566A',
-          700: '#434C5E',
-          800: '#3B4252',
-          900: '#2E3440',
+          50: 'var(--primary-50)',
+          100: 'var(--primary-100)',
+          200: 'var(--primary-200)',
+          300: 'var(--primary-300)',
+          400: 'var(--primary-400)',
+          500: 'var(--primary-500)',
+          600: 'var(--primary-600)',
+          700: 'var(--primary-700)',
+          800: 'var(--primary-800)',
+          900: 'var(--primary-900)',
         },
         secondary: {
-          50: '#ECEFF4',
-          100: '#E5E9F0',
-          200: '#8FBCBB',
-          300: '#88C0D0',
-          400: '#81A1C1',
-          500: '#81A1C1',
-          600: '#5E81AC',
-          700: '#4C566A',
-          800: '#434C5E',
-          900: '#3B4252',
+          50: 'var(--secondary-50)',
+          100: 'var(--secondary-100)',
+          200: 'var(--secondary-200)',
+          300: 'var(--secondary-300)',
+          400: 'var(--secondary-400)',
+          500: 'var(--secondary-500)',
+          600: 'var(--secondary-600)',
+          700: 'var(--secondary-700)',
+          800: 'var(--secondary-800)',
+          900: 'var(--secondary-900)',
         },
-        success: '#A3BE8C',
-        warning: '#EBCB8B',
-        error: '#BF616A',
-        info: '#88C0D0',
+        success: 'var(--success)',
+        warning: 'var(--warning)',
+        error: 'var(--error)',
+        info: 'var(--info)',
+        // Background and surface colors
+        background: {
+          primary: 'var(--bg-primary)',
+          secondary: 'var(--bg-secondary)',
+          tertiary: 'var(--bg-tertiary)',
+        },
+        surface: {
+          primary: 'var(--surface-primary)',
+          secondary: 'var(--surface-secondary)',
+          tertiary: 'var(--surface-tertiary)',
+        },
+        // Text colors
+        text: {
+          primary: 'var(--text-primary)',
+          secondary: 'var(--text-secondary)',
+          tertiary: 'var(--text-tertiary)',
+          accent: 'var(--text-accent)',
+        },
+        // Border colors
+        border: {
+          primary: 'var(--border-primary)',
+          secondary: 'var(--border-secondary)',
+        },
       },
     },
   },

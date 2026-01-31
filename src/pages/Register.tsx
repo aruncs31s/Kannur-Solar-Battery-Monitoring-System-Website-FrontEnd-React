@@ -79,10 +79,10 @@ export const Register = () => {
           </div>
         </div>
 
-        <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">
+        <h1 className="text-3xl font-bold text-center text-text-primary mb-2">
           Create Account
         </h1>
-        <p className="text-center text-gray-600 mb-8">
+        <p className="text-center text-text-secondary mb-8">
           Join Solar Monitor to get started
         </p>
 
@@ -149,18 +149,18 @@ export const Register = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-400 text-white font-bold py-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
+            className="w-full bg-primary-500 hover:bg-primary-600 disabled:bg-surface-secondary disabled:text-text-secondary text-white font-bold py-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
           >
             {loading ? "Creating Account..." : "Sign Up"}
             {!loading && <UserPlus size={20} />}
           </button>
         </form>
 
-        <p className="text-center text-gray-600 mt-6">
+        <p className="text-center text-text-secondary mt-6">
           Already have an account?{" "}
           <Link
             to="/login"
-            className="text-blue-600 hover:text-blue-700 font-semibold"
+            className="text-primary-500 hover:text-primary-600 font-semibold"
           >
             Sign in here
           </Link>

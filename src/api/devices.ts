@@ -1,16 +1,16 @@
 import { container } from '../application/di/container';
-import { Device, CreateDeviceDTO } from '../domain/entities/Device';
+import { CreateDeviceDTO, DeviceResponseDTO } from '../domain/entities/Device';
 
 export const devicesAPI = {
-  getAllDevices: async (): Promise<Device[]> => {
+  getAllDevices: async (): Promise<DeviceResponseDTO[]> => {
     return await container.getGetAllDevicesUseCase().execute();
   },
 
-  createDevice: async (data: CreateDeviceDTO): Promise<Device> => {
+  createDevice: async (data: CreateDeviceDTO): Promise<DeviceResponseDTO> => {
     return await container.getCreateDeviceUseCase().execute(data);
   },
 
-  searchDevices: async (query: string): Promise<Device[]> => {
+  searchDevices: async (query: string): Promise<DeviceResponseDTO[]> => {
     return await container.getSearchDevicesUseCase().execute(query);
   },
 };
