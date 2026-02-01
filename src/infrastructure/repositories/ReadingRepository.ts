@@ -22,18 +22,20 @@ export class ReadingRepository implements IReadingRepository {
     if (filters.startDate) params.append('start_date', filters.startDate);
     if (filters.endDate) params.append('end_date', filters.endDate);
     
-    const response = await httpClient.get<any[]>(
+    const response = await httpClient.get<{ readings: any[]; stats?: any }>(
       `/devices/${filters.deviceId}/readings/range?${params.toString()}`
     );
-    return response.map(dto => ({
+    
+    // Backend returns { readings: [...], stats: {...} }
+    return response.readings.map(dto => ({
       id: dto.id.toString(),
       deviceId: dto.device_id.toString(),
       voltage: dto.voltage,
       current: dto.current,
-      power: dto.power,
-      temperature: dto.temperature,
-      humidity: dto.humidity,
-      timestamp: new Date(dto.timestamp).getTime(),
+      power: dto.voltage && dto.current ? dto.voltage * dto.current : undefined,
+      temperature: undefined,
+      humidity: undefined,
+      timestamp: new Date(dto.created_at).getTime(),
     }));
   }
 }

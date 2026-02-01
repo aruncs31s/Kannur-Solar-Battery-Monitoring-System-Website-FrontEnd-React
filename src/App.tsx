@@ -7,6 +7,8 @@ import { Register } from './pages/Register';
 import { Dashboard } from './pages/Dashboard';
 import { Devices } from './pages/Devices';
 import { DeviceDetail } from './pages/DeviceDetail';
+import { DeviceReadingsHistory } from './pages/DeviceReadingsHistory';
+import { DeviceStateHistory } from './pages/DeviceStateHistory';
 import { AllReadings } from './pages/AllReadings';
 import { MapView } from './pages/MapView';
 import { Profile } from './pages/Profile';
@@ -62,6 +64,26 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <DeviceDetail />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/devices/:id/history"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <DeviceReadingsHistory />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/devices/:id/state-history"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <DeviceStateHistory />
               </Layout>
             </ProtectedRoute>
           }

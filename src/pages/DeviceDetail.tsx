@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Power, PowerOff, Settings, RefreshCw, Activity, AlertCircle, TrendingUp } from 'lucide-react';
+import { Power, PowerOff, Settings, RefreshCw, Activity, AlertCircle, TrendingUp, Calendar, History } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
 import { readingsAPI } from '../api/readings';
 import { StatusBadge } from '../components/Cards';
 import { Reading } from '../domain/entities/Reading';
@@ -26,6 +27,21 @@ export const DeviceDetail = () => {
   const [error, setError] = useState('');
   const [controlMessage, setControlMessage] = useState('');
   const [readingsLimit, setReadingsLimit] = useState(20);
+  
+  // Date picker state - default to today
+  const getDefaultDates = () => {
+    const today = new Date();
+    return {
+      start: today.toISOString().split('T')[0],
+      end: today.toISOString().split('T')[0]
+    };
+  };
+  
+  const defaultDates = getDefaultDates();
+  const [startDate, setStartDate] = useState(defaultDates.start);
+  const [endDate, setEndDate] = useState(defaultDates.end);
+  const [useDateFilter, setUseDateFilter] = useState(false); // Default to disabled to show all readings
+  const [allReadings, setAllReadings] = useState<Reading[]>([]); // Store all readings for breakdown
 
   useEffect(() => {
     if (id) {
@@ -40,7 +56,7 @@ export const DeviceDetail = () => {
       
       return () => clearInterval(interval);
     }
-  }, [id, readingsLimit]);
+  }, [id, readingsLimit, startDate, endDate, useDateFilter]);
 
   const loadDeviceData = async () => {
     try {
@@ -66,10 +82,45 @@ export const DeviceDetail = () => {
     if (!id) return;
     
     try {
-      const data = await readingsAPI.getByDevice(id);
+      let data: Reading[];
+      
+      if (useDateFilter) {
+        // Fetch readings by date range for display
+        console.log('Fetching readings for date range:', startDate, 'to', endDate);
+        data = await readingsAPI.getByDateRange({
+          deviceId: id,
+          startDate: startDate,
+          endDate: endDate
+        });
+        console.log('Received readings:', data.length);
+      } else {
+        // Fetch all readings
+        console.log('Fetching all readings');
+        data = await readingsAPI.getByDevice(id);
+        console.log('Received readings:', data.length);
+      }
+      
       // Sort by timestamp descending (newest first)
       const sortedReadings = data.sort((a, b) => b.timestamp - a.timestamp).slice(0, readingsLimit);
       setReadings(sortedReadings);
+
+      // Also fetch last 7 days for breakdown charts
+      const last7DaysEnd = new Date();
+      last7DaysEnd.setDate(last7DaysEnd.getDate() + 1); // Include tomorrow to be safe
+      const last7DaysStart = new Date();
+      last7DaysStart.setDate(last7DaysStart.getDate() - 7);
+      
+      console.log('Fetching breakdown data from:', last7DaysStart.toISOString().split('T')[0], 'to:', last7DaysEnd.toISOString().split('T')[0]);
+      const breakdownData = await readingsAPI.getByDateRange({
+        deviceId: id,
+        startDate: last7DaysStart.toISOString().split('T')[0],
+        endDate: last7DaysEnd.toISOString().split('T')[0]
+      });
+      console.log('Breakdown data (last 7 days):', breakdownData.length);
+      if (breakdownData.length > 0) {
+        console.log('Sample breakdown data:', breakdownData.slice(0, 3));
+      }
+      setAllReadings(breakdownData);
     } catch (err) {
       console.error('Failed to load readings:', err);
     }
@@ -148,6 +199,70 @@ export const DeviceDetail = () => {
     };
   };
 
+  // Prepare data for main aggregate chart
+  const getAggregateChartData = () => {
+    return readings
+      .slice(0, 100) // Limit to 100 most recent readings for better performance
+      .reverse() // Show oldest to newest
+      .map(reading => ({
+        time: new Date(reading.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        voltage: reading.voltage ?? 0,
+        current: reading.current ?? 0,
+        power: reading.power ?? 0,
+        timestamp: reading.timestamp
+      }));
+  };
+
+  // Group readings by day for breakdown charts
+  const getDailyBreakdown = () => {
+    const dailyData: { [key: string]: Reading[] } = {};
+    
+    // Use allReadings (last 7 days) for breakdown
+    allReadings.forEach(reading => {
+      const date = new Date(reading.timestamp).toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+      if (!dailyData[date]) {
+        dailyData[date] = [];
+      }
+      dailyData[date].push(reading);
+    });
+    
+    // Generate all 7 days, even if no data
+    const result = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateString = date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+      
+      const readings = dailyData[dateString] || [];
+      result.push({
+        date: dateString,
+        readings: readings.sort((a, b) => a.timestamp - b.timestamp),
+        chartData: readings
+          .sort((a, b) => a.timestamp - b.timestamp)
+          .map(r => ({
+            time: new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            voltage: r.voltage ?? 0,
+            current: r.current ?? 0,
+            power: r.power ?? 0
+          })),
+        avgVoltage: readings.length > 0 ? readings.reduce((sum, r) => sum + (r.voltage ?? 0), 0) / readings.length : 0,
+        avgCurrent: readings.length > 0 ? readings.reduce((sum, r) => sum + (r.current ?? 0), 0) / readings.length : 0,
+        avgPower: readings.length > 0 ? readings.reduce((sum, r) => sum + (r.power ?? 0), 0) / readings.length : 0,
+        count: readings.length
+      });
+    }
+    
+    return result;
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -220,6 +335,13 @@ export const DeviceDetail = () => {
               <p className="text-gray-900 dark:text-white font-medium">{device.address}, {device.city}</p>
             </div>
           </div>
+          <button
+            onClick={() => navigate(`/devices/${id}/state-history`)}
+            className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2 bg-nord-8 hover:bg-nord-9 text-white rounded-lg transition-colors"
+          >
+            <History size={16} />
+            View State History
+          </button>
         </div>
 
         {/* Control Panel */}
@@ -289,6 +411,13 @@ export const DeviceDetail = () => {
               <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                 {new Date(latestReading.timestamp).toLocaleString()}
               </div>
+              <button
+                onClick={() => navigate(`/devices/${id}/history`)}
+                className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors"
+              >
+                <Activity size={16} />
+                See Older Readings
+              </button>
             </div>
           ) : (
             <div className="text-gray-500 dark:text-gray-400">No readings available</div>
@@ -329,10 +458,224 @@ export const DeviceDetail = () => {
         </div>
       )}
 
+      {/* Main Aggregate Chart */}
+      {readings.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Aggregate Performance Chart</h2>
+          <ResponsiveContainer width="100%" height={400}>
+            <AreaChart data={getAggregateChartData()}>
+              <defs>
+                <linearGradient id="colorVoltage" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#5E81AC" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#5E81AC" stopOpacity={0.1}/>
+                </linearGradient>
+                <linearGradient id="colorCurrent" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#A3BE8C" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#A3BE8C" stopOpacity={0.1}/>
+                </linearGradient>
+                <linearGradient id="colorPower" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#B48EAD" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#B48EAD" stopOpacity={0.1}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-primary)" />
+              <XAxis 
+                dataKey="time" 
+                stroke="var(--text-tertiary)"
+                tick={{ fill: 'var(--text-tertiary)' }}
+              />
+              <YAxis 
+                stroke="var(--text-tertiary)"
+                tick={{ fill: 'var(--text-tertiary)' }}
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'var(--surface-primary)', 
+                  border: 'none', 
+                  borderRadius: '12px', 
+                  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                  color: 'var(--text-primary)'
+                }} 
+              />
+              <Legend />
+              <Area 
+                type="monotone" 
+                dataKey="voltage" 
+                stroke="#5E81AC" 
+                fillOpacity={1}
+                fill="url(#colorVoltage)" 
+                name="Voltage (V)"
+              />
+              <Area 
+                type="monotone" 
+                dataKey="current" 
+                stroke="#A3BE8C" 
+                fillOpacity={1}
+                fill="url(#colorCurrent)" 
+                name="Current (A)"
+              />
+              <Area 
+                type="monotone" 
+                dataKey="power" 
+                stroke="#B48EAD" 
+                fillOpacity={1}
+                fill="url(#colorPower)" 
+                name="Power (W)"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Daily Breakdown Charts */}
+      {allReadings.length > 0 && (
+        <div className="space-y-6">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Daily Breakdown (Last 7 Days)</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            {getDailyBreakdown().map((day, index) => (
+              <div key={day.date} className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">{day.date}</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{day.count} readings</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Avg: {day.avgVoltage.toFixed(1)}V</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{day.avgCurrent.toFixed(2)}A</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{day.avgPower.toFixed(1)}W</p>
+                  </div>
+                </div>
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={day.chartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-primary)" />
+                    <XAxis 
+                      dataKey="time" 
+                      stroke="var(--text-tertiary)"
+                      tick={{ fill: 'var(--text-tertiary)', fontSize: 10 }}
+                    />
+                    <YAxis 
+                      stroke="var(--text-tertiary)"
+                      tick={{ fill: 'var(--text-tertiary)', fontSize: 10 }}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'var(--surface-primary)', 
+                        border: 'none', 
+                        borderRadius: '8px', 
+                        boxShadow: '0 2px 4px rgb(0 0 0 / 0.1)',
+                        color: 'var(--text-primary)',
+                        fontSize: '12px'
+                      }} 
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="voltage" 
+                      stroke="#5E81AC" 
+                      strokeWidth={2}
+                      dot={false}
+                      name="V"
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="current" 
+                      stroke="#A3BE8C" 
+                      strokeWidth={2}
+                      dot={false}
+                      name="A"
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="power" 
+                      stroke="#B48EAD" 
+                      strokeWidth={2}
+                      dot={false}
+                      name="W"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Date Filter */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="flex items-center gap-4 flex-wrap">
+          <div className="flex items-center gap-2">
+            <Calendar className="text-primary-500" size={20} />
+            <span className="text-sm font-medium text-gray-900 dark:text-white">Date Range:</span>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="useDateFilter"
+              checked={useDateFilter}
+              onChange={(e) => setUseDateFilter(e.target.checked)}
+              className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+            />
+            <label htmlFor="useDateFilter" className="text-sm text-gray-700 dark:text-gray-300">
+              Enable Date Filter
+            </label>
+          </div>
+          
+          {useDateFilter && (
+            <>
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-gray-600 dark:text-gray-400">From:</label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                />
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-gray-600 dark:text-gray-400">To:</label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                />
+              </div>
+              
+              <button
+                onClick={() => {
+                  const dates = getDefaultDates();
+                  setStartDate(dates.start);
+                  setEndDate(dates.end);
+                }}
+                className="px-3 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors"
+              >
+                Last 7 Days
+              </button>
+              
+              <button
+                onClick={() => {
+                  const endDate = new Date();
+                  const startDate = new Date();
+                  startDate.setDate(startDate.getDate() - 30);
+                  setStartDate(startDate.toISOString().split('T')[0]);
+                  setEndDate(endDate.toISOString().split('T')[0]);
+                }}
+                className="px-3 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors"
+              >
+                Last 30 Days
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
       {/* Readings Table */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
         <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Recent Readings</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            {useDateFilter ? `Readings (${startDate} to ${endDate})` : 'Recent Readings'}
+          </h2>
           <div className="flex items-center gap-4">
             <label className="text-sm text-gray-600 dark:text-gray-400">
               Show:
@@ -345,6 +688,7 @@ export const DeviceDetail = () => {
                 <option value={20}>20</option>
                 <option value={50}>50</option>
                 <option value={100}>100</option>
+                <option value={500}>500</option>
               </select>
             </label>
           </div>
