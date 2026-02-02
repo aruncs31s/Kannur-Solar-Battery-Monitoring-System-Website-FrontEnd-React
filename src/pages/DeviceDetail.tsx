@@ -20,6 +20,26 @@ interface DeviceInfo {
   device_state: number;
 }
 
+interface DeviceType {
+  id: number;
+  name: string;
+  features: {
+    can_control: boolean;
+  };
+}
+
+interface ConnectedDevice {
+  id: number;
+  name: string;
+  type: string;
+  ip_address: string;
+  mac_address: string;
+  firmware_version: string;
+  address: string;
+  city: string;
+  device_state: number;
+}
+
 export const DeviceDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -46,6 +66,10 @@ export const DeviceDetail = () => {
   });
   const [updateMessage, setUpdateMessage] = useState('');
   const [deviceTypes, setDeviceTypes] = useState<Array<{ id: number; name: string }>>([]);
+  const [deviceType, setDeviceType] = useState<DeviceType | null>(null);
+  const [connectedDevices, setConnectedDevices] = useState<ConnectedDevice[]>([]);
+  const [showAddConnectedModal, setShowAddConnectedModal] = useState(false);
+  const [newConnectedDeviceId, setNewConnectedDeviceId] = useState('');
   
   // Date picker state - default to today
   const getDefaultDates = () => {
@@ -61,12 +85,16 @@ export const DeviceDetail = () => {
   const [endDate, setEndDate] = useState(defaultDates.end);
   const [useDateFilter, setUseDateFilter] = useState(false); // Default to disabled to show all readings
   const [allReadings, setAllReadings] = useState<Reading[]>([]); // Store all readings for breakdown
+  const [selectedDay, setSelectedDay] = useState<string | null>(null); // For zooming into daily view
+  const [selectedMetric, setSelectedMetric] = useState<'all' | 'voltage' | 'current' | 'power'>('all'); // For filtering chart by metric
 
   useEffect(() => {
     if (id) {
       loadDeviceData();
       loadReadings();
       loadDeviceTypes();
+      loadDeviceType();
+      loadConnectedDevices();
       
       // Auto-refresh every 30 seconds
       const interval = setInterval(() => {
@@ -84,6 +112,80 @@ export const DeviceDetail = () => {
       setDeviceTypes(deviceTypes);
     } catch (err) {
       console.error('Failed to load device types:', err);
+    }
+  };
+
+  const loadDeviceType = async () => {
+    if (!id) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:8080/api/devices/${id}/type`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      
+      if (!response.ok) throw new Error('Failed to load device type');
+      
+      const data = await response.json();
+      setDeviceType(data.device_type);
+    } catch (err) {
+      console.error('Failed to load device type:', err);
+    }
+  };
+
+  const loadConnectedDevices = async () => {
+    if (!id) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:8080/api/devices/${id}/connected`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      
+      if (!response.ok) throw new Error('Failed to load connected devices');
+      
+      const data = await response.json();
+      setConnectedDevices(data.connected_devices || []);
+    } catch (err) {
+      console.error('Failed to load connected devices:', err);
+    }
+  };
+
+  const addConnectedDevice = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!id || !newConnectedDeviceId) return;
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setControlMessage('Please login to add connected devices');
+      setTimeout(() => setControlMessage(''), 3000);
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:8080/api/devices/${id}/connected`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ child_id: parseInt(newConnectedDeviceId) }),
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        setControlMessage('Connected device added successfully!');
+        setNewConnectedDeviceId('');
+        setShowAddConnectedModal(false);
+        loadConnectedDevices(); // Refresh the list
+        setTimeout(() => setControlMessage(''), 3000);
+      } else {
+        setControlMessage(data.error || 'Failed to add connected device');
+      }
+    } catch (err) {
+      setControlMessage('Failed to add connected device');
+      console.error(err);
     }
   };
 
@@ -338,7 +440,7 @@ export const DeviceDetail = () => {
 
   // Prepare data for main aggregate chart
   const getAggregateChartData = () => {
-    return readings
+    const chartData = readings
       .slice(0, 100) // Limit to 100 most recent readings for better performance
       .reverse() // Show oldest to newest
       .map(reading => ({
@@ -348,6 +450,38 @@ export const DeviceDetail = () => {
         power: reading.power ?? 0,
         timestamp: reading.timestamp
       }));
+    
+    // Add average lines if a specific metric is selected
+    if (selectedMetric !== 'all') {
+      const avgValue = selectedMetric === 'voltage' ? averages.voltage : 
+                      selectedMetric === 'current' ? averages.current : averages.power;
+      chartData.forEach(dataPoint => {
+        dataPoint[`${selectedMetric}Avg`] = avgValue;
+      });
+    }
+    
+    return chartData;
+  };
+
+  // Prepare data for detailed daily chart
+  const getDetailedChartData = () => {
+    if (!selectedDay) return [];
+    
+    const dayData = getDailyBreakdown().find(day => day.date === selectedDay);
+    if (!dayData) return [];
+    
+    const chartData = dayData.chartData;
+    
+    // Add average lines if a specific metric is selected
+    if (selectedMetric !== 'all') {
+      const avgValue = selectedMetric === 'voltage' ? dayData.avgVoltage : 
+                      selectedMetric === 'current' ? dayData.avgCurrent : dayData.avgPower;
+      chartData.forEach(dataPoint => {
+        dataPoint[`${selectedMetric}Avg`] = avgValue;
+      });
+    }
+    
+    return chartData;
   };
 
   // Group readings by day for breakdown charts
@@ -809,29 +943,53 @@ export const DeviceDetail = () => {
       {/* Averages */}
       {readings.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-gradient-to-br from-nord-9 to-nord-8 text-white rounded-lg shadow p-6">
+          <div 
+            className={`bg-gradient-to-br from-nord-9 to-nord-8 text-white rounded-lg shadow p-6 cursor-pointer transition-all duration-200 ${
+              selectedMetric === 'voltage' ? 'ring-2 ring-blue-400 scale-105' : 'hover:scale-105'
+            }`}
+            onClick={() => setSelectedMetric(selectedMetric === 'voltage' ? 'all' : 'voltage')}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-nord-4 text-sm">Average Voltage</p>
                 <p className="text-3xl font-bold mt-1">{averages.voltage.toFixed(2)}V</p>
+                {selectedMetric === 'voltage' && (
+                  <p className="text-xs text-blue-200 mt-1">Click to show all metrics</p>
+                )}
               </div>
               <Activity size={40} className="text-nord-5" />
             </div>
           </div>
-          <div className="bg-gradient-to-br from-success to-nord-14 text-white rounded-lg shadow p-6">
+          <div 
+            className={`bg-gradient-to-br from-success to-nord-14 text-white rounded-lg shadow p-6 cursor-pointer transition-all duration-200 ${
+              selectedMetric === 'current' ? 'ring-2 ring-blue-400 scale-105' : 'hover:scale-105'
+            }`}
+            onClick={() => setSelectedMetric(selectedMetric === 'current' ? 'all' : 'current')}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-nord-4 text-sm">Average Current</p>
                 <p className="text-3xl font-bold mt-1">{averages.current.toFixed(2)}A</p>
+                {selectedMetric === 'current' && (
+                  <p className="text-xs text-blue-200 mt-1">Click to show all metrics</p>
+                )}
               </div>
               <TrendingUp size={40} className="text-nord-5" />
             </div>
           </div>
-          <div className="bg-gradient-to-br from-nord-15 to-nord-9 text-white rounded-lg shadow p-6">
+          <div 
+            className={`bg-gradient-to-br from-nord-15 to-nord-9 text-white rounded-lg shadow p-6 cursor-pointer transition-all duration-200 ${
+              selectedMetric === 'power' ? 'ring-2 ring-blue-400 scale-105' : 'hover:scale-105'
+            }`}
+            onClick={() => setSelectedMetric(selectedMetric === 'power' ? 'all' : 'power')}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-nord-4 text-sm">Average Power</p>
                 <p className="text-3xl font-bold mt-1">{averages.power.toFixed(2)}W</p>
+                {selectedMetric === 'power' && (
+                  <p className="text-xs text-blue-200 mt-1">Click to show all metrics</p>
+                )}
               </div>
               <AlertCircle size={40} className="text-purple-200" />
             </div>
@@ -842,9 +1000,28 @@ export const DeviceDetail = () => {
       {/* Main Aggregate Chart */}
       {readings.length > 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Aggregate Performance Chart</h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              {selectedDay ? `Detailed View - ${selectedDay}` : 'Aggregate Performance Chart'}
+              {selectedMetric !== 'all' && (
+                <span className="text-blue-600 dark:text-blue-400 ml-2">
+                  ({selectedMetric === 'voltage' ? 'Voltage Only' : 
+                    selectedMetric === 'current' ? 'Current Only' : 'Power Only'})
+                </span>
+              )}
+            </h2>
+            {selectedDay && (
+              <button
+                onClick={() => setSelectedDay(null)}
+                className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors flex items-center gap-2"
+              >
+                <X size={16} />
+                Back to Overview
+              </button>
+            )}
+          </div>
           <ResponsiveContainer width="100%" height={400}>
-            <AreaChart data={getAggregateChartData()}>
+            <AreaChart data={selectedDay ? getDetailedChartData() : getAggregateChartData()}>
               <defs>
                 <linearGradient id="colorVoltage" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#5E81AC" stopOpacity={0.8}/>
@@ -857,6 +1034,10 @@ export const DeviceDetail = () => {
                 <linearGradient id="colorPower" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#B48EAD" stopOpacity={0.8}/>
                   <stop offset="95%" stopColor="#B48EAD" stopOpacity={0.1}/>
+                </linearGradient>
+                <linearGradient id="colorAverage" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.1}/>
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border-primary)" />
@@ -879,42 +1060,65 @@ export const DeviceDetail = () => {
                 }} 
               />
               <Legend />
-              <Area 
-                type="monotone" 
-                dataKey="voltage" 
-                stroke="#5E81AC" 
-                fillOpacity={1}
-                fill="url(#colorVoltage)" 
-                name="Voltage (V)"
-              />
-              <Area 
-                type="monotone" 
-                dataKey="current" 
-                stroke="#A3BE8C" 
-                fillOpacity={1}
-                fill="url(#colorCurrent)" 
-                name="Current (A)"
-              />
-              <Area 
-                type="monotone" 
-                dataKey="power" 
-                stroke="#B48EAD" 
-                fillOpacity={1}
-                fill="url(#colorPower)" 
-                name="Power (W)"
-              />
+              {(selectedMetric === 'all' || selectedMetric === 'voltage') && (
+                <Area 
+                  type="monotone" 
+                  dataKey="voltage" 
+                  stroke="#5E81AC" 
+                  fillOpacity={1}
+                  fill="url(#colorVoltage)" 
+                  name="Voltage (V)"
+                />
+              )}
+              {(selectedMetric === 'all' || selectedMetric === 'current') && (
+                <Area 
+                  type="monotone" 
+                  dataKey="current" 
+                  stroke="#A3BE8C" 
+                  fillOpacity={1}
+                  fill="url(#colorCurrent)" 
+                  name="Current (A)"
+                />
+              )}
+              {(selectedMetric === 'all' || selectedMetric === 'power') && (
+                <Area 
+                  type="monotone" 
+                  dataKey="power" 
+                  stroke="#B48EAD" 
+                  fillOpacity={1}
+                  fill="url(#colorPower)" 
+                  name="Power (W)"
+                />
+              )}
+              {selectedMetric !== 'all' && (
+                <Line 
+                  type="monotone" 
+                  dataKey={`${selectedMetric}Avg`}
+                  stroke="#3B82F6" 
+                  strokeWidth={3}
+                  strokeDasharray="5 5"
+                  dot={false}
+                  name={`Avg ${selectedMetric === 'voltage' ? 'Voltage' : selectedMetric === 'current' ? 'Current' : 'Power'}`}
+                  connectNulls={false}
+                />
+              )}
             </AreaChart>
           </ResponsiveContainer>
         </div>
       )}
 
       {/* Daily Breakdown Charts */}
-      {allReadings.length > 0 && (
+      {allReadings.length > 0 && !selectedDay && (
         <div className="space-y-6">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Daily Breakdown (Last 7 Days)</h2>
+          <p className="text-gray-600 dark:text-gray-400">Click on any day to zoom into detailed view</p>
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {getDailyBreakdown().map((day, index) => (
-              <div key={day.date} className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+              <div 
+                key={day.date} 
+                className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
+                onClick={() => setSelectedDay(day.date)}
+              >
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h3 className="text-lg font-bold text-gray-900 dark:text-white">{day.date}</h3>
@@ -924,6 +1128,7 @@ export const DeviceDetail = () => {
                     <p className="text-xs text-gray-500 dark:text-gray-400">Avg: {day.avgVoltage.toFixed(1)}V</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">{day.avgCurrent.toFixed(2)}A</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">{day.avgPower.toFixed(1)}W</p>
+                    <p className="text-xs text-blue-500 dark:text-blue-400 mt-1">Click to zoom</p>
                   </div>
                 </div>
                 <ResponsiveContainer width="100%" height={200}>
