@@ -8,13 +8,6 @@ interface LayoutProps {
 export const Layout = ({ children }: LayoutProps) => {
   return (
     <div className="flex flex-col min-h-screen bg-background-primary">
-      {/* Animated background elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 -left-4 w-96 h-96 bg-primary-200 rounded-full mix-blend-multiply dark:mix-blend-soft-light filter blur-3xl opacity-20 animate-blob" />
-        <div className="absolute top-0 -right-4 w-96 h-96 bg-primary-300 rounded-full mix-blend-multiply dark:mix-blend-soft-light filter blur-3xl opacity-20 animate-blob animation-delay-2000" />
-        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-secondary-200 rounded-full mix-blend-multiply dark:mix-blend-soft-light filter blur-3xl opacity-20 animate-blob animation-delay-4000" />
-      </div>
-
       <Navigation />
       
       <motion.main

@@ -37,8 +37,6 @@ export const Navigation = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
             <motion.div
-              whileHover={{ rotate: 360 }}
-              transition={{ duration: 0.5 }}
               className="p-2 bg-primary-200 rounded-xl"
             >
               <Zap className="text-text-primary" size={24} />
