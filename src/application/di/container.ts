@@ -1,5 +1,6 @@
 import { AuthRepository } from '../../infrastructure/repositories/AuthRepository';
 import { DeviceRepository } from '../../infrastructure/repositories/DeviceRepository';
+import { DeviceTypesRepository } from '../../infrastructure/repositories/DeviceTypesRepository';
 import { UserRepository } from '../../infrastructure/repositories/UserRepository';
 import { ReadingRepository } from '../../infrastructure/repositories/ReadingRepository';
 import { AuditRepository } from '../../infrastructure/repositories/AuditRepository';
@@ -7,6 +8,7 @@ import { LoginUseCase } from '../usecases/auth/LoginUseCase';
 import { LogoutUseCase } from '../usecases/auth/LogoutUseCase';
 import { GetAllDevicesUseCase } from '../usecases/devices/GetAllDevicesUseCase';
 import { GetMyDevicesUseCase } from '../usecases/devices/GetMyDevicesUseCase';
+import { GetDeviceTypesUseCase } from '../usecases/devices/GetDeviceTypesUseCase';
 import { CreateDeviceUseCase } from '../usecases/devices/CreateDeviceUseCase';
 import { SearchDevicesUseCase } from '../usecases/devices/SearchDevicesUseCase';
 import { GenerateDeviceTokenUseCase } from '../usecases/devices/GenerateDeviceTokenUseCase';
@@ -19,6 +21,7 @@ import { DeleteUserUseCase } from '../usecases/users/DeleteUserUseCase';
 class DIContainer {
   private authRepository = new AuthRepository();
   private deviceRepository = new DeviceRepository();
+  private deviceTypesRepository = new DeviceTypesRepository();
   private userRepository = new UserRepository();
   private readingRepository = new ReadingRepository();
   private auditRepository = new AuditRepository();
@@ -51,6 +54,10 @@ class DIContainer {
     return new GenerateDeviceTokenUseCase(this.deviceRepository);
   }
 
+  getGetDeviceTypesUseCase() {
+    return new GetDeviceTypesUseCase(this.deviceTypesRepository);
+  }
+
   getGetDeviceReadingsUseCase() {
     return new GetDeviceReadingsUseCase(this.readingRepository);
   }
@@ -81,6 +88,10 @@ class DIContainer {
 
   getDeviceRepository() {
     return this.deviceRepository;
+  }
+
+  getDeviceTypesRepository() {
+    return this.deviceTypesRepository;
   }
 
   getUserRepository() {

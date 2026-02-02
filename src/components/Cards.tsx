@@ -2,7 +2,7 @@ import { AlertCircle, CheckCircle, AlertTriangle, Settings, XCircle, HelpCircle,
 import { motion } from 'framer-motion';
 
 interface StatusBadgeProps {
-  status: 'active' | 'inactive' | 'error' | 'maintenance' | 'decommissioned' | 'unknown';
+  status: 'active' | 'inactive' | 'error' | 'maintenance' | 'decommissioned' | 'unknown' | 'online';
 }
 
 export const StatusBadge = ({ status }: StatusBadgeProps) => {
@@ -42,6 +42,12 @@ export const StatusBadge = ({ status }: StatusBadgeProps) => {
       text: 'text-text-primary',
       icon: HelpCircle,
       pulse: false,
+    },
+    online: {
+      bg: 'bg-green-500',
+      text: 'text-white',
+      icon: CheckCircle,
+      pulse: true,
     },
   };
 

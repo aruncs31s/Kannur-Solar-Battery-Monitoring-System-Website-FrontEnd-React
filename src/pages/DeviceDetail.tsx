@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Power, PowerOff, Settings, RefreshCw, Activity, AlertCircle, TrendingUp, Calendar, History } from 'lucide-react';
+import { Power, PowerOff, Settings, RefreshCw, Activity, AlertCircle, TrendingUp, Calendar, History, Copy, Check, X, Edit } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
 import { readingsAPI } from '../api/readings';
 import { devicesAPI } from '../api/devices';
 import { StatusBadge } from '../components/Cards';
 import { Reading } from '../domain/entities/Reading';
+import { container } from '../application/di/container';
 
 interface DeviceInfo {
   id: number;
@@ -27,9 +28,24 @@ export const DeviceDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [controlMessage, setControlMessage] = useState('');
-  const [tokenMessage, setTokenMessage] = useState('');
+  const [showTokenModal, setShowTokenModal] = useState(false);
   const [generatedToken, setGeneratedToken] = useState('');
+  const [tokenCopied, setTokenCopied] = useState(false);
   const [readingsLimit, setReadingsLimit] = useState(20);
+  
+  // Update device modal state
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [updateForm, setUpdateForm] = useState({
+    name: '',
+    type: 1,
+    ip_address: '',
+    mac_address: '',
+    firmware_version_id: 1,
+    address: '',
+    city: ''
+  });
+  const [updateMessage, setUpdateMessage] = useState('');
+  const [deviceTypes, setDeviceTypes] = useState<Array<{ id: number; name: string }>>([]);
   
   // Date picker state - default to today
   const getDefaultDates = () => {
@@ -50,6 +66,7 @@ export const DeviceDetail = () => {
     if (id) {
       loadDeviceData();
       loadReadings();
+      loadDeviceTypes();
       
       // Auto-refresh every 30 seconds
       const interval = setInterval(() => {
@@ -60,6 +77,15 @@ export const DeviceDetail = () => {
       return () => clearInterval(interval);
     }
   }, [id, readingsLimit, startDate, endDate, useDateFilter]);
+
+  const loadDeviceTypes = async () => {
+    try {
+      const deviceTypes = await container.getGetDeviceTypesUseCase().execute();
+      setDeviceTypes(deviceTypes);
+    } catch (err) {
+      console.error('Failed to load device types:', err);
+    }
+  };
 
   const loadDeviceData = async () => {
     try {
@@ -104,8 +130,11 @@ export const DeviceDetail = () => {
       }
       
       // Sort by timestamp descending (newest first)
-      const sortedReadings = data.sort((a, b) => b.timestamp - a.timestamp).slice(0, readingsLimit);
-      setReadings(sortedReadings);
+      const sortedReadings = data.sort((a, b) => b.timestamp - a.timestamp);
+      
+      // Always keep at least 10 readings for online status check
+      const minReadings = Math.max(readingsLimit, 10);
+      setReadings(sortedReadings.slice(0, minReadings));
 
       // Also fetch last 7 days for breakdown charts
       const last7DaysEnd = new Date();
@@ -126,6 +155,93 @@ export const DeviceDetail = () => {
       setAllReadings(breakdownData);
     } catch (err) {
       console.error('Failed to load readings:', err);
+    }
+  };
+
+  const generateToken = async () => {
+    if (!id) return;
+    
+    try {
+      const response = await devicesAPI.generateDeviceToken(parseInt(id));
+      setGeneratedToken(response.token);
+      setShowTokenModal(true);
+      setTokenCopied(false);
+    } catch (err: any) {
+      setControlMessage('Failed to generate token');
+      setTimeout(() => setControlMessage(''), 3000);
+      console.error('Token generation error:', err);
+    }
+  };
+
+  const copyToken = async () => {
+    try {
+      await navigator.clipboard.writeText(generatedToken);
+      setTokenCopied(true);
+      setTimeout(() => setTokenCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy token:', err);
+    }
+  };
+
+  const closeTokenModal = () => {
+    setShowTokenModal(false);
+    setGeneratedToken('');
+    setTokenCopied(false);
+  };
+
+  const openUpdateModal = () => {
+    if (device) {
+      setUpdateForm({
+        name: device.name,
+        type: 1, // You may need to map device.type to its ID
+        ip_address: device.ip_address,
+        mac_address: device.mac_address,
+        firmware_version_id: 1, // You may need to map firmware_version to its ID
+        address: device.address,
+        city: device.city
+      });
+      setShowUpdateModal(true);
+      setUpdateMessage('');
+    }
+  };
+
+  const closeUpdateModal = () => {
+    setShowUpdateModal(false);
+    setUpdateMessage('');
+  };
+
+  const handleUpdateDevice = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setUpdateMessage('Please login to update device');
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:8080/api/devices/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(updateForm),
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        setUpdateMessage('Device updated successfully!');
+        setTimeout(() => {
+          loadDeviceData();
+          closeUpdateModal();
+        }, 1500);
+      } else {
+        setUpdateMessage(data.error || 'Failed to update device');
+      }
+    } catch (err) {
+      setUpdateMessage('Failed to update device');
+      console.error(err);
     }
   };
 
@@ -169,24 +285,12 @@ export const DeviceDetail = () => {
     }
   };
 
-  const generateToken = async () => {
-    if (!id) return;
-
-    setTokenMessage('');
-    setGeneratedToken('');
-
-    try {
-      const response = await devicesAPI.generateDeviceToken(parseInt(id));
-      setGeneratedToken(response.token);
-      setTokenMessage('Device token generated successfully!');
-      setTimeout(() => setTokenMessage(''), 5000);
-    } catch (err: any) {
-      setTokenMessage('Failed to generate device token');
-      console.error('Token generation error:', err);
+  const getStatusType = (stateId: number, isOnline: boolean): 'active' | 'inactive' | 'maintenance' | 'decommissioned' | 'unknown' | 'online' => {
+    // If device has recent readings, show as online regardless of device_state
+    if (isOnline) {
+      return 'online';
     }
-  };
-
-  const getStatusType = (stateId: number): 'active' | 'inactive' | 'maintenance' | 'decommissioned' | 'unknown' => {
+    
     const states: { [key: number]: any } = {
       1: 'active',
       2: 'inactive',
@@ -194,6 +298,19 @@ export const DeviceDetail = () => {
       4: 'decommissioned',
     };
     return states[stateId] || 'unknown';
+  };
+
+  const isDeviceOnline = (): boolean => {
+    if (readings.length === 0) return false;
+    
+    // Get the most recent reading
+    const latestReading = readings[0];
+    const now = new Date().getTime();
+    const readingTime = latestReading.timestamp;
+    
+    // Consider device online if it has sent a reading within the last 10 minutes
+    const tenMinutesInMs = 10 * 60 * 1000;
+    return (now - readingTime) <= tenMinutesInMs;
   };
 
   const getLatestReading = () => {
@@ -301,6 +418,7 @@ export const DeviceDetail = () => {
 
   const latestReading = getLatestReading();
   const averages = getAverages();
+  const deviceOnline = isDeviceOnline();
 
   return (
     <div className="space-y-6">
@@ -323,27 +441,248 @@ export const DeviceDetail = () => {
         </div>
       )}
 
-      {tokenMessage && (
-        <div className={`p-4 rounded-lg ${tokenMessage.includes('success') ? 'bg-success/10 text-success' : 'bg-error/10 text-error'}`}>
-          {tokenMessage}
-          {generatedToken && (
-            <div className="mt-3 p-3 bg-gray-100 dark:bg-gray-700 rounded font-mono text-sm break-all">
-              <strong>Token:</strong><br />
-              {generatedToken}
+      {/* Token Modal */}
+      {showTokenModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-surface-primary rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-border-primary flex justify-between items-center">
+              <h3 className="text-2xl font-bold text-text-primary">Device Authentication Token</h3>
+              <button
+                onClick={closeTokenModal}
+                className="text-text-secondary hover:text-text-primary transition-colors"
+              >
+                <X size={24} />
+              </button>
             </div>
-          )}
+            
+            <div className="p-6 space-y-4">
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" size={20} />
+                  <div className="text-sm text-blue-900 dark:text-blue-100">
+                    <p className="font-semibold mb-1">Important Security Information</p>
+                    <p>This token grants access to device data and control. Keep it secure and do not share it publicly.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-text-secondary mb-2">JWT Token</label>
+                <div className="relative">
+                  <div className="bg-surface-secondary border border-border-primary rounded-lg p-4 font-mono text-sm break-all text-text-primary max-h-48 overflow-y-auto">
+                    {generatedToken}
+                  </div>
+                  <button
+                    onClick={copyToken}
+                    className={`absolute top-2 right-2 px-3 py-1.5 rounded-md font-medium text-sm transition-all ${
+                      tokenCopied
+                        ? 'bg-success text-white'
+                        : 'bg-primary-500 hover:bg-primary-600 text-white'
+                    }`}
+                  >
+                    {tokenCopied ? (
+                      <span className="flex items-center gap-1">
+                        <Check size={16} />
+                        Copied!
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1">
+                        <Copy size={16} />
+                        Copy
+                      </span>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="font-semibold text-text-primary">How to use this token:</h4>
+                <ol className="list-decimal list-inside space-y-2 text-sm text-text-secondary">
+                  <li>Copy the token using the button above</li>
+                  <li>Use it in your API requests as a Bearer token</li>
+                  <li>Include it in the Authorization header: <code className="bg-surface-secondary px-2 py-1 rounded text-xs">Bearer YOUR_TOKEN</code></li>
+                  <li>The token contains your user ID and device ID for authentication</li>
+                </ol>
+              </div>
+            </div>
+            
+            <div className="p-6 border-t border-border-primary flex justify-end gap-3">
+              <button
+                onClick={closeTokenModal}
+                className="px-6 py-2 bg-surface-secondary hover:bg-surface-tertiary text-text-primary rounded-lg font-medium transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Update Device Modal */}
+      {showUpdateModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-surface-primary rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-border-primary flex justify-between items-center">
+              <h3 className="text-2xl font-bold text-text-primary">Update Device</h3>
+              <button
+                onClick={closeUpdateModal}
+                className="text-text-secondary hover:text-text-primary transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleUpdateDevice} className="p-6 space-y-4">
+              {updateMessage && (
+                <div className={`p-4 rounded-lg ${
+                  updateMessage.includes('success') 
+                    ? 'bg-success/10 text-success' 
+                    : 'bg-error/10 text-error'
+                }`}>
+                  {updateMessage}
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
+                  Device Name *
+                </label>
+                <input
+                  type="text"
+                  value={updateForm.name}
+                  onChange={(e) => setUpdateForm({ ...updateForm, name: e.target.value })}
+                  required
+                  className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="Enter device name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
+                  Device Type
+                </label>
+                <select
+                  value={updateForm.type}
+                  onChange={(e) => setUpdateForm({ ...updateForm, type: parseInt(e.target.value) })}
+                  className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                >
+                  <option value="">Select device type</option>
+                  {deviceTypes.map((type) => (
+                    <option key={type.id} value={type.id}>
+                      {type.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
+                  IP Address
+                </label>
+                <input
+                  type="text"
+                  value={updateForm.ip_address}
+                  onChange={(e) => setUpdateForm({ ...updateForm, ip_address: e.target.value })}
+                  className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="192.168.1.100"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
+                  MAC Address
+                </label>
+                <input
+                  type="text"
+                  value={updateForm.mac_address}
+                  onChange={(e) => setUpdateForm({ ...updateForm, mac_address: e.target.value })}
+                  className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="AA:BB:CC:DD:EE:FF"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
+                  Firmware Version ID
+                </label>
+                <input
+                  type="number"
+                  value={updateForm.firmware_version_id}
+                  onChange={(e) => setUpdateForm({ ...updateForm, firmware_version_id: parseInt(e.target.value) })}
+                  className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="Enter firmware version ID"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
+                  Address
+                </label>
+                <input
+                  type="text"
+                  value={updateForm.address}
+                  onChange={(e) => setUpdateForm({ ...updateForm, address: e.target.value })}
+                  className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="123 Street Name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
+                  City
+                </label>
+                <input
+                  type="text"
+                  value={updateForm.city}
+                  onChange={(e) => setUpdateForm({ ...updateForm, city: e.target.value })}
+                  className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="Enter city"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={closeUpdateModal}
+                  className="px-6 py-2 bg-surface-secondary hover:bg-surface-tertiary text-text-primary rounded-lg font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors"
+                >
+                  Update Device
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Device Info */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Device Information</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Device Information</h2>
+            <button
+              onClick={openUpdateModal}
+              className="p-2 text-nord-8 hover:text-nord-9 hover:bg-nord-6 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              title="Update Device"
+            >
+              <Edit size={20} />
+            </button>
+          </div>
           <div className="space-y-3">
             <div>
               <span className="text-gray-600 dark:text-gray-400 text-sm">Status</span>
-              <div className="mt-1">
-                <StatusBadge status={getStatusType(device.device_state)} />
+              <div className="mt-1 space-y-1">
+                <StatusBadge status={getStatusType(device.device_state, deviceOnline)} />
+                {latestReading && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Last reading: {new Date(latestReading.timestamp).toLocaleString()}
+                  </p>
+                )}
               </div>
             </div>
             <div>
