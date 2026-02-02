@@ -1,7 +1,10 @@
-import { Device, CreateDeviceDTO } from '../entities/Device';
+import { Device, CreateDeviceDTO, DeviceResponseDTO } from '../entities/Device';
+import { DeviceTokenResponse } from '../../api/devices';
 
 export interface IDeviceRepository {
-  getAll(): Promise<Device[]>;
-  create(device: CreateDeviceDTO): Promise<Device>;
-  search(query: string): Promise<Device[]>;
+  getAll(): Promise<DeviceResponseDTO[]>;
+  getMyDevices(): Promise<DeviceResponseDTO[]>;
+  create(device: CreateDeviceDTO): Promise<DeviceResponseDTO>;
+  search(query: string): Promise<DeviceResponseDTO[]>;
+  generateDeviceToken(deviceId: number): Promise<DeviceTokenResponse>;
 }

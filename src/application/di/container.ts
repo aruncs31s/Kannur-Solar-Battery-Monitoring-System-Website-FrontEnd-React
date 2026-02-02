@@ -6,8 +6,10 @@ import { AuditRepository } from '../../infrastructure/repositories/AuditReposito
 import { LoginUseCase } from '../usecases/auth/LoginUseCase';
 import { LogoutUseCase } from '../usecases/auth/LogoutUseCase';
 import { GetAllDevicesUseCase } from '../usecases/devices/GetAllDevicesUseCase';
+import { GetMyDevicesUseCase } from '../usecases/devices/GetMyDevicesUseCase';
 import { CreateDeviceUseCase } from '../usecases/devices/CreateDeviceUseCase';
 import { SearchDevicesUseCase } from '../usecases/devices/SearchDevicesUseCase';
+import { GenerateDeviceTokenUseCase } from '../usecases/devices/GenerateDeviceTokenUseCase';
 import { GetDeviceReadingsUseCase, GetReadingsByDateRangeUseCase } from '../usecases/readings/GetReadingsUseCase';
 import { GetAuditLogsUseCase } from '../usecases/audit/GetAuditLogsUseCase';
 import { GetUsersUseCase } from '../usecases/users/GetUsersUseCase';
@@ -33,12 +35,20 @@ class DIContainer {
     return new GetAllDevicesUseCase(this.deviceRepository);
   }
 
+  getGetMyDevicesUseCase() {
+    return new GetMyDevicesUseCase(this.deviceRepository);
+  }
+
   getCreateDeviceUseCase() {
     return new CreateDeviceUseCase(this.deviceRepository);
   }
 
   getSearchDevicesUseCase() {
     return new SearchDevicesUseCase(this.deviceRepository);
+  }
+
+  getGenerateDeviceTokenUseCase() {
+    return new GenerateDeviceTokenUseCase(this.deviceRepository);
   }
 
   getGetDeviceReadingsUseCase() {

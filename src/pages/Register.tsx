@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { container } from "../application/di/container";
+import { useAuthStore } from "../store/authStore";
+import { authAPI } from "../api/auth";
 import {
   FormField,
   FormError,
@@ -10,6 +11,7 @@ import { UserPlus } from "lucide-react";
 
 export const Register = () => {
   const navigate = useNavigate();
+  const { setToken, setUser } = useAuthStore();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -57,9 +59,11 @@ export const Register = () => {
 
     setLoading(true);
     try {
-      await container.getAuthRepository().register(name, email, password);
-      setSuccess("Registration successful! Redirecting to login...");
-      setTimeout(() => navigate("/login"), 1500);
+      const { token, user } = await authAPI.register(name, email, password);
+      setToken(token);
+      setUser(user);
+      setSuccess("Registration successful! Redirecting to home...");
+      setTimeout(() => navigate("/"), 1500);
 
     } catch (err: any) {
       setError(

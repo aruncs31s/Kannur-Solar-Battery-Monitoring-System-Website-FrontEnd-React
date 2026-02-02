@@ -11,7 +11,7 @@ export const authAPI = {
     name: string,
     email: string,
     password: string,
-  ): Promise<User> => {
+  ): Promise<{ token: string; user: User }> => {
     return await container.getAuthRepository().register(name, email, password);
   },
 

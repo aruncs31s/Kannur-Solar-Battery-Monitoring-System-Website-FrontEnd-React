@@ -6,6 +6,7 @@ import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { Dashboard } from './pages/Dashboard';
 import { Devices } from './pages/Devices';
+import { MyDevices } from './pages/MyDevices';
 import { DeviceDetail } from './pages/DeviceDetail';
 import { DeviceReadingsHistory } from './pages/DeviceReadingsHistory';
 import { DeviceStateHistory } from './pages/DeviceStateHistory';
@@ -54,6 +55,16 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <Devices />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/my-devices"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <MyDevices />
               </Layout>
             </ProtectedRoute>
           }

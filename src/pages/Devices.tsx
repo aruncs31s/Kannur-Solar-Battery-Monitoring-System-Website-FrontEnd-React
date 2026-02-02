@@ -12,8 +12,11 @@ export const Devices = () => {
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [tokenMessages, setTokenMessages] = useState<{[key: number]: string}>({});
+  const [generatedTokens, setGeneratedTokens] = useState<{[key: number]: string}>({});
   const [formData, setFormData] = useState({
     name: '',
+    uid: '',
     type: 1,
     ip_address: '',
     mac_address: '',
@@ -52,8 +55,8 @@ export const Devices = () => {
     setError('');
     setSuccess('');
 
-    if (!formData.name || !formData.mac_address || !formData.address) {
-      setError('Please fill in all required fields');
+    if (!formData.name || !formData.uid) {
+      setError('Please fill in the device name and UID');
       return;
     }
 
@@ -63,6 +66,7 @@ export const Devices = () => {
       setSuccess('Device added successfully');
       setFormData({
         name: '',
+        uid: '',
         type: 1,
         ip_address: '',
         mac_address: '',
@@ -82,6 +86,23 @@ export const Devices = () => {
     // This will be enabled once the backend supports device deletion
     setError('Device deletion is not yet available. This feature will be added in a future update.');
     setTimeout(() => setError(''), 5000);
+  };
+
+  const handleGenerateToken = async (deviceId: number) => {
+    setTokenMessages(prev => ({ ...prev, [deviceId]: '' }));
+    setGeneratedTokens(prev => ({ ...prev, [deviceId]: '' }));
+
+    try {
+      const response = await devicesAPI.generateDeviceToken(deviceId);
+      setGeneratedTokens(prev => ({ ...prev, [deviceId]: response.token }));
+      setTokenMessages(prev => ({ ...prev, [deviceId]: 'Token generated successfully!' }));
+      setTimeout(() => {
+        setTokenMessages(prev => ({ ...prev, [deviceId]: '' }));
+      }, 5000);
+    } catch (err: any) {
+      setTokenMessages(prev => ({ ...prev, [deviceId]: 'Failed to generate token' }));
+      console.error('Token generation error:', err);
+    }
   };
 
   if (loading) {
@@ -126,12 +147,19 @@ export const Devices = () => {
                 required
               />
               <FormField
+                label="UID"
+                name="uid"
+                value={formData.uid}
+                onChange={handleInputChange}
+                placeholder="unique-device-id"
+                required
+              />
+              <FormField
                 label="MAC Address"
                 name="mac_address"
                 value={formData.mac_address}
                 onChange={handleInputChange}
                 placeholder="AA:BB:CC:DD:EE:FF"
-                required
               />
               <FormField
                 label="IP Address"
@@ -146,7 +174,6 @@ export const Devices = () => {
                 value={formData.address}
                 onChange={handleInputChange}
                 placeholder="Roof Panel 1"
-                required
               />
               <FormField
                 label="City"
@@ -163,7 +190,7 @@ export const Devices = () => {
                   name="type"
                   value={formData.type}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-4 py-2 border border-border-primary rounded-lg focus:ring-2 focus:ring-primary-500 bg-surface-secondary text-text-primary"
                   required
                 >
                   <option value={1}>Sensor</option>
@@ -174,7 +201,7 @@ export const Devices = () => {
             <div className="flex gap-4">
               <button
                 type="submit"
-                className="bg-success hover:bg-success-hover text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                className="bg-success hover:opacity-90 text-white px-6 py-2 rounded-lg font-medium transition-colors"
               >
                 Add Device
               </button>
@@ -222,22 +249,42 @@ export const Devices = () => {
               )}
             </div>
 
-            <div className="flex gap-3">
-              <Link
-                to={`/devices/${device.id}`}
-                className="flex-1 bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
-              >
-                <ExternalLink size={18} />
-                View Details
-              </Link>
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-3">
+                <Link
+                  to={`/devices/${device.id}`}
+                  className="flex-1 bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
+                >
+                  <ExternalLink size={18} />
+                  View Details
+                </Link>
+                <button
+                  onClick={() => handleDeleteDevice(device.id)}
+                  disabled
+                  className="bg-surface-secondary text-text-secondary px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 cursor-not-allowed"
+                  title="Device deletion is not yet implemented in the backend"
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
+              
               <button
-                onClick={() => handleDeleteDevice(device.id)}
-                disabled
-                className="bg-surface-secondary text-text-secondary px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 cursor-not-allowed"
-                title="Device deletion is not yet implemented in the backend"
+                onClick={() => handleGenerateToken(device.id)}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
               >
-                <Trash2 size={18} />
+                Generate Token
               </button>
+              
+              {tokenMessages[device.id] && (
+                <div className={`p-3 rounded-lg text-sm ${tokenMessages[device.id].includes('success') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                  {tokenMessages[device.id]}
+                  {generatedTokens[device.id] && (
+                    <div className="mt-2 p-2 bg-gray-100 rounded font-mono text-xs break-all">
+                      {generatedTokens[device.id]}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         ))}

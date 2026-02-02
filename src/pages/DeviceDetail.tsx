@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Power, PowerOff, Settings, RefreshCw, Activity, AlertCircle, TrendingUp, Calendar, History } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
 import { readingsAPI } from '../api/readings';
+import { devicesAPI } from '../api/devices';
 import { StatusBadge } from '../components/Cards';
 import { Reading } from '../domain/entities/Reading';
 
@@ -26,6 +27,8 @@ export const DeviceDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [controlMessage, setControlMessage] = useState('');
+  const [tokenMessage, setTokenMessage] = useState('');
+  const [generatedToken, setGeneratedToken] = useState('');
   const [readingsLimit, setReadingsLimit] = useState(20);
   
   // Date picker state - default to today
@@ -166,6 +169,23 @@ export const DeviceDetail = () => {
     }
   };
 
+  const generateToken = async () => {
+    if (!id) return;
+
+    setTokenMessage('');
+    setGeneratedToken('');
+
+    try {
+      const response = await devicesAPI.generateDeviceToken(parseInt(id));
+      setGeneratedToken(response.token);
+      setTokenMessage('Device token generated successfully!');
+      setTimeout(() => setTokenMessage(''), 5000);
+    } catch (err: any) {
+      setTokenMessage('Failed to generate device token');
+      console.error('Token generation error:', err);
+    }
+  };
+
   const getStatusType = (stateId: number): 'active' | 'inactive' | 'maintenance' | 'decommissioned' | 'unknown' => {
     const states: { [key: number]: any } = {
       1: 'active',
@@ -303,6 +323,18 @@ export const DeviceDetail = () => {
         </div>
       )}
 
+      {tokenMessage && (
+        <div className={`p-4 rounded-lg ${tokenMessage.includes('success') ? 'bg-success/10 text-success' : 'bg-error/10 text-error'}`}>
+          {tokenMessage}
+          {generatedToken && (
+            <div className="mt-3 p-3 bg-gray-100 dark:bg-gray-700 rounded font-mono text-sm break-all">
+              <strong>Token:</strong><br />
+              {generatedToken}
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Device Info */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
@@ -381,6 +413,16 @@ export const DeviceDetail = () => {
             >
               <RefreshCw size={24} />
               <span className="mt-2 text-sm font-medium">Refresh</span>
+            </button>
+          </div>
+          
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <button
+              onClick={generateToken}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+            >
+              <Activity size={20} />
+              Generate Device Token
             </button>
           </div>
         </div>

@@ -19,6 +19,7 @@ export const Navigation = () => {
 
   const navItems = [
     { name: 'Dashboard', path: '/' },
+    { name: 'My Devices', path: '/my-devices' },
     { name: 'Devices', path: '/devices' },
     { name: 'Readings', path: '/readings' },
     { name: 'Map', path: '/map' },

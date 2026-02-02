@@ -23,20 +23,23 @@ export class AuthRepository implements IAuthRepository {
     return !!token;
   }
 
-  async register(name: string, email: string, password: string): Promise<User> {
-    // Using the /users endpoint with authentication
-    const response = await httpClient.post<any>('/users', { 
+  async register(name: string, email: string, password: string): Promise<{ token: string; user: User }> {
+    // Using the /register endpoint
+    const response = await httpClient.post<{ token: string; user: any }>('/register', { 
       name, 
       username: email,
       email, 
       password 
     });
     return {
-      id: response.id.toString(),
-      username: response.username,
-      name: response.name,
-      email: response.email,
-      role: 'user'
+      token: response.token,
+      user: {
+        id: response.user.id.toString(),
+        username: response.user.username,
+        name: response.user.name,
+        email: response.user.email,
+        role: 'user'
+      }
     };
   }
 }

@@ -33,6 +33,7 @@ export type DeviceStatus = "active" | "inactive" | "error" | "maintenance" | "de
 
 export interface CreateDeviceDTO {
   name: string;
+  uid: string;
   type: number;
   ip_address: string;
   mac_address: string;

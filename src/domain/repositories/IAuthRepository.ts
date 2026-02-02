@@ -8,5 +8,5 @@ export interface IAuthRepository {
   login(credentials: UserCredentials): Promise<string>;
   logout(): Promise<void>;
   validateToken(token: string): Promise<boolean>;
-  register(name: string, email: string, password: string): Promise<User>;
+  register(name: string, email: string, password: string): Promise<{ token: string; user: User }>;
 }

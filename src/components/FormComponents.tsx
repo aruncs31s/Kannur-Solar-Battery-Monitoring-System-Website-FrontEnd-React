@@ -69,7 +69,7 @@ export const FormField = ({
   required,
 }: FormFieldProps) => (
   <div className="flex flex-col gap-2">
-    <label htmlFor={name} className="text-sm font-semibold text-gray-700">
+    <label htmlFor={name} className="text-sm font-semibold text-text-secondary">
       {label} {required && <span className="text-red-500">*</span>}
     </label>
     <input
@@ -79,10 +79,10 @@ export const FormField = ({
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      className={`rounded-lg border px-4 py-2.5 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 text-gray-900 placeholder-gray-400 ${
+      className={`rounded-lg border px-4 py-2.5 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 text-text-primary placeholder-text-tertiary ${
         error
           ? 'border-red-300 focus:ring-red-500 focus:ring-offset-0 bg-red-50'
-          : 'border-gray-300 focus:ring-blue-500 focus:ring-offset-0 bg-gray-50 focus:bg-white'
+          : `border-border-primary focus:ring-primary-500 focus:ring-offset-0 bg-surface-secondary focus:bg-surface-primary`
       }`}
     />
     {error && <p className="text-sm text-red-600 font-medium">{error}</p>}
