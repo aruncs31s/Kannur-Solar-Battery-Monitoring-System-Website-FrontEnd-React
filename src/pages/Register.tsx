@@ -12,6 +12,7 @@ import { UserPlus } from "lucide-react";
 export const Register = () => {
   const navigate = useNavigate();
   const { setToken, setUser } = useAuthStore();
+  const [username, setUsername] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,13 +25,11 @@ export const Register = () => {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!name) {
-      newErrors.name = "Name is required";
+    if (!username) {
+      newErrors.username = "Username is required";
     }
 
-    if (!email) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (email.length > 0 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       newErrors.email = "Please enter a valid email";
     }
 
@@ -59,7 +58,11 @@ export const Register = () => {
 
     setLoading(true);
     try {
-      const { token, user } = await authAPI.register(name, email, password);
+      const { token, user } = await authAPI.register(
+        username,
+        password,
+        email,
+        name);
       setToken(token);
       setUser(user);
       setSuccess("Registration successful! Redirecting to home...");
@@ -75,11 +78,11 @@ export const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center px-4">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-nord-9 to-nord-10 flex items-center justify-center px-4">
+      <div className="bg-surface-primary rounded-2xl shadow-2xl p-8 w-full max-w-md">
         <div className="flex justify-center mb-6">
-          <div className="bg-blue-100 p-4 rounded-full">
-            <UserPlus className="text-blue-600" size={32} />
+          <div className="bg-primary-100 p-4 rounded-full">
+            <UserPlus className="text-primary-600" size={32} />
           </div>
         </div>
 
@@ -95,7 +98,7 @@ export const Register = () => {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <FormField
-            label="Full Name"
+            label="Name"
             name="name"
             type="text"
             value={name}
@@ -104,7 +107,20 @@ export const Register = () => {
               setErrors({ ...errors, name: "" });
             }}
             error={errors.name}
-            placeholder="John Doe"
+            placeholder="Arun CS"
+          />
+
+          <FormField
+            label="Username"
+            name="username"
+            type="text"
+            value={username}
+            onChange={(e) => {
+              setUsername(e.target.value);
+              setErrors({ ...errors, username: "" });
+            }}
+            error={errors.username}
+            placeholder="arun_cs"
             required
           />
 
@@ -118,8 +134,7 @@ export const Register = () => {
               setErrors({ ...errors, email: "" });
             }}
             error={errors.email}
-            placeholder="you@example.com"
-            required
+            placeholder="arun.cs@example.com"
           />
 
           <FormField

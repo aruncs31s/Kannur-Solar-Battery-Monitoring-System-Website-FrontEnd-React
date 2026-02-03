@@ -4,6 +4,7 @@ import { DeviceTypesRepository } from '../../infrastructure/repositories/DeviceT
 import { UserRepository } from '../../infrastructure/repositories/UserRepository';
 import { ReadingRepository } from '../../infrastructure/repositories/ReadingRepository';
 import { AuditRepository } from '../../infrastructure/repositories/AuditRepository';
+import { VersionRepository } from '../../infrastructure/repositories/VersionRepository';
 import { LoginUseCase } from '../usecases/auth/LoginUseCase';
 import { LogoutUseCase } from '../usecases/auth/LogoutUseCase';
 import { GetAllDevicesUseCase } from '../usecases/devices/GetAllDevicesUseCase';
@@ -25,6 +26,7 @@ class DIContainer {
   private userRepository = new UserRepository();
   private readingRepository = new ReadingRepository();
   private auditRepository = new AuditRepository();
+  private versionRepository = new VersionRepository();
 
   getLoginUseCase() {
     return new LoginUseCase(this.authRepository);
@@ -104,6 +106,10 @@ class DIContainer {
 
   getAuditRepository() {
     return this.auditRepository;
+  }
+
+  getVersionRepository() {
+    return this.versionRepository;
   }
 }
 

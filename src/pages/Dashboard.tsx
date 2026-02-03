@@ -6,6 +6,7 @@ import { useDevicesStore } from '../store/devicesStore';
 import { devicesAPI } from '../api/devices';
 import { readingsAPI } from '../api/readings';
 import { StatsCard, StatusBadge } from '../components/Cards';
+import { AllDevicesSection } from '../components/AllDevicesSection';
 import { Activity, AlertCircle, Package, CheckCircle, Zap, MapPin, TrendingUp, Battery, Cpu } from 'lucide-react';
 
 export const Dashboard = () => {
@@ -192,45 +193,7 @@ export const Dashboard = () => {
         )}
       </motion.div>
 
-      <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }} className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 border border-gray-100 dark:border-gray-700">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl">
-              <Cpu className="text-white" size={24} />
-            </div>
-            All Devices
-          </h2>
-          <Link to="/devices" className="inline-flex items-center gap-2 text-nord-8 hover:text-nord-9 font-semibold transition-colors">
-            View All
-            <TrendingUp size={16} />
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {devices.slice(0, 6).map((device, idx) => (
-            <motion.div key={device.id} initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: idx * 0.05 }} whileHover={{ y: -4, scale: 1.02 }}>
-              <Link to={`/devices/${device.id}`} className="block border-2 border-nord-4 dark:border-nord-3 rounded-2xl p-5 hover:shadow-2xl hover:border-nord-8 transition-all bg-gradient-to-br from-nord-6 to-nord-5 dark:from-nord-1 dark:to-nord-2">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex-1">
-                    <h3 className="font-bold text-lg text-nord-0 dark:text-white mb-1">{device.name}</h3>
-                    <p className="text-xs text-nord-3 dark:text-nord-4 font-mono">{device.mac_address}</p>
-                  </div>
-                  <StatusBadge status={device.device_state === 1 ? 'active' : device.device_state === 2 ? 'inactive' : 'unknown'} />
-                </div>
-                <div className="space-y-2.5 text-sm text-nord-3 dark:text-nord-4">
-                  <div className="flex items-center gap-2 bg-nord-5 dark:bg-nord-2 rounded-lg px-3 py-2">
-                    <MapPin size={16} className="text-nord-8" />
-                    <span className="font-medium">{device.address || 'Not specified'}</span>
-                  </div>
-                  <div className="flex items-center gap-2 bg-nord-5 dark:bg-nord-2 rounded-lg px-3 py-2">
-                    <Cpu size={16} className="text-success" />
-                    <span className="font-medium">{device.type}</span>
-                  </div>
-                </div>
-              </Link>
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
+      <AllDevicesSection devices={devices} />
     </div>
   );
 };

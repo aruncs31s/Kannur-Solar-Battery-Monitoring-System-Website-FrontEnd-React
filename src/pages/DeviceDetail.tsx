@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Power, PowerOff, Settings, RefreshCw, Activity, AlertCircle, TrendingUp, Calendar, History, Copy, Check, X, Edit } from 'lucide-react';
+import { Power, PowerOff, Settings, RefreshCw, Activity, AlertCircle, TrendingUp, Calendar, History, Copy, Check, X, Edit, Plus } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
 import { readingsAPI } from '../api/readings';
 import { devicesAPI } from '../api/devices';
 import { StatusBadge } from '../components/Cards';
+import { FormField, FormError } from '../components/FormComponents';
 import { Reading } from '../domain/entities/Reading';
-import { container } from '../application/di/container';
 
 interface DeviceInfo {
   id: number;
@@ -71,6 +71,21 @@ export const DeviceDetail = () => {
   const [showAddConnectedModal, setShowAddConnectedModal] = useState(false);
   const [newConnectedDeviceId, setNewConnectedDeviceId] = useState('');
   
+  // Create device modal state
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createFormData, setCreateFormData] = useState({
+    name: '',
+    uid: '',
+    type: 1,
+    ip_address: '',
+    mac_address: '',
+    firmware_version_id: 1,
+    address: '',
+    city: '',
+  });
+  const [createError, setCreateError] = useState('');
+  const [createLoading, setCreateLoading] = useState(false);
+  
   // Date picker state - default to today
   const getDefaultDates = () => {
     const today = new Date();
@@ -108,8 +123,8 @@ export const DeviceDetail = () => {
 
   const loadDeviceTypes = async () => {
     try {
-      const deviceTypes = await container.getGetDeviceTypesUseCase().execute();
-      setDeviceTypes(deviceTypes);
+      const data = await devicesAPI.getDeviceTypes();
+      setDeviceTypes(data);
     } catch (err) {
       console.error('Failed to load device types:', err);
     }
@@ -312,6 +327,47 @@ export const DeviceDetail = () => {
     setUpdateMessage('');
   };
 
+  // Create device handlers
+  const handleCreateInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setCreateFormData((prev) => ({
+      ...prev,
+      [name]: name === 'type' ? parseInt(value, 10) : value,
+    }));
+  };
+
+  const handleCreateDevice = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreateError('');
+
+    if (!createFormData.name || !createFormData.uid) {
+      setCreateError('Please fill in the device name and UID');
+      return;
+    }
+
+    setCreateLoading(true);
+    try {
+      const newDevice = await devicesAPI.createDevice(createFormData);
+      setShowCreateModal(false);
+      setCreateFormData({
+        name: '',
+        uid: '',
+        type: 1,
+        ip_address: '',
+        mac_address: '',
+        firmware_version_id: 1,
+        address: '',
+        city: '',
+      });
+      // Navigate to the new device detail page
+      navigate(`/devices/${newDevice.id}`);
+    } catch (err: any) {
+      setCreateError(err.response?.data?.error || 'Failed to create device');
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
   const handleUpdateDevice = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
@@ -455,7 +511,7 @@ export const DeviceDetail = () => {
     if (selectedMetric !== 'all') {
       const avgValue = selectedMetric === 'voltage' ? averages.voltage : 
                       selectedMetric === 'current' ? averages.current : averages.power;
-      chartData.forEach(dataPoint => {
+      chartData.forEach((dataPoint: any) => {
         dataPoint[`${selectedMetric}Avg`] = avgValue;
       });
     }
@@ -476,7 +532,7 @@ export const DeviceDetail = () => {
     if (selectedMetric !== 'all') {
       const avgValue = selectedMetric === 'voltage' ? dayData.avgVoltage : 
                       selectedMetric === 'current' ? dayData.avgCurrent : dayData.avgPower;
-      chartData.forEach(dataPoint => {
+      chartData.forEach((dataPoint: any) => {
         dataPoint[`${selectedMetric}Avg`] = avgValue;
       });
     }
@@ -794,18 +850,79 @@ export const DeviceDetail = () => {
         </div>
       )}
 
+      {/* Add Connected Device Modal */}
+      {showAddConnectedModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-surface-primary rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-border-primary flex justify-between items-center">
+              <h3 className="text-2xl font-bold text-text-primary">Add Connected Device</h3>
+              <button
+                onClick={() => setShowAddConnectedModal(false)}
+                className="text-text-secondary hover:text-text-primary transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            
+            <form onSubmit={addConnectedDevice} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
+                  Device ID *
+                </label>
+                <input
+                  type="number"
+                  value={newConnectedDeviceId}
+                  onChange={(e) => setNewConnectedDeviceId(e.target.value)}
+                  required
+                  placeholder="Enter device ID to connect"
+                  className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+                <p className="text-xs text-text-secondary mt-1">
+                  Enter the ID of the device you want to connect to this microcontroller
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowAddConnectedModal(false)}
+                  className="px-6 py-2 bg-surface-secondary hover:bg-surface-tertiary text-text-primary rounded-lg font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors"
+                >
+                  Add Device
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Device Info */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Device Information</h2>
-            <button
-              onClick={openUpdateModal}
-              className="p-2 text-nord-8 hover:text-nord-9 hover:bg-nord-6 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              title="Update Device"
-            >
-              <Edit size={20} />
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="p-2 text-nord-8 hover:text-nord-9 hover:bg-nord-6 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                title="Create New Device"
+              >
+                <Plus size={20} />
+              </button>
+              <button
+                onClick={openUpdateModal}
+                className="p-2 text-nord-8 hover:text-nord-9 hover:bg-nord-6 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                title="Update Device"
+              >
+                <Edit size={20} />
+              </button>
+            </div>
           </div>
           <div className="space-y-3">
             <div>
@@ -849,56 +966,87 @@ export const DeviceDetail = () => {
           </button>
         </div>
 
-        {/* Control Panel */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Control Panel</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <button
-              onClick={() => controlDevice(4)}
-              disabled={device.device_state === 1}
-              className="flex flex-col items-center justify-center p-4 bg-success hover:bg-success/80 disabled:bg-nord-3 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
-            >
-              <Power size={24} />
-              <span className="mt-2 text-sm font-medium">Turn On</span>
-            </button>
-            <button
-              onClick={() => controlDevice(5)}
-              disabled={device.device_state === 2}
-              className="flex flex-col items-center justify-center p-4 bg-error hover:bg-error/80 disabled:bg-nord-3 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
-            >
-              <PowerOff size={24} />
-              <span className="mt-2 text-sm font-medium">Turn Off</span>
-            </button>
-            <button
-              onClick={() => controlDevice(6)}
-              disabled={device.device_state === 3 || device.device_state === 4}
-              className="flex flex-col items-center justify-center p-4 bg-nord-8 hover:bg-nord-9 disabled:bg-nord-3 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
-            >
-              <Settings size={24} />
-              <span className="mt-2 text-sm font-medium">Configure</span>
-            </button>
-            <button
-              onClick={() => {
-                loadDeviceData();
-                loadReadings();
-              }}
-              className="flex flex-col items-center justify-center p-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
-            >
-              <RefreshCw size={24} />
-              <span className="mt-2 text-sm font-medium">Refresh</span>
-            </button>
+        {/* Control Panel or Connected Devices */}
+        {deviceType?.features?.can_control ? (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Control Panel</h2>
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                onClick={() => controlDevice(4)}
+                disabled={device.device_state === 1}
+                className="flex flex-col items-center justify-center p-4 bg-success hover:bg-success/80 disabled:bg-nord-3 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+              >
+                <Power size={24} />
+                <span className="mt-2 text-sm font-medium">Turn On</span>
+              </button>
+              <button
+                onClick={() => controlDevice(5)}
+                disabled={device.device_state === 2}
+                className="flex flex-col items-center justify-center p-4 bg-error hover:bg-error/80 disabled:bg-nord-3 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+              >
+                <PowerOff size={24} />
+                <span className="mt-2 text-sm font-medium">Turn Off</span>
+              </button>
+              <button
+                onClick={() => controlDevice(6)}
+                disabled={device.device_state === 3 || device.device_state === 4}
+                className="flex flex-col items-center justify-center p-4 bg-nord-8 hover:bg-nord-9 disabled:bg-nord-3 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+              >
+                <Settings size={24} />
+                <span className="mt-2 text-sm font-medium">Configure</span>
+              </button>
+              <button
+                onClick={() => {
+                  loadDeviceData();
+                  loadReadings();
+                }}
+                className="flex flex-col items-center justify-center p-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+              >
+                <RefreshCw size={24} />
+                <span className="mt-2 text-sm font-medium">Refresh</span>
+              </button>
+            </div>
+            
+            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <button
+                onClick={generateToken}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              >
+                <Activity size={20} />
+                Generate Device Token
+              </button>
+            </div>
           </div>
-          
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <button
-              onClick={generateToken}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-            >
-              <Activity size={20} />
-              Generate Device Token
-            </button>
+        ) : (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Connected Devices</h2>
+              <button
+                onClick={() => setShowAddConnectedModal(true)}
+                className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors flex items-center gap-2"
+              >
+                <Settings size={16} />
+                Add Device
+              </button>
+            </div>
+            
+            {connectedDevices.length > 0 ? (
+              <div className="space-y-3">
+                {connectedDevices.map((connectedDevice) => (
+                  <div key={connectedDevice.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div>
+                      <h3 className="font-medium text-gray-900 dark:text-white">{connectedDevice.name}</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{connectedDevice.type} • {connectedDevice.ip_address}</p>
+                    </div>
+                    <StatusBadge status={getStatusType(connectedDevice.device_state, false)} />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 dark:text-gray-400">No connected devices</p>
+            )}
           </div>
-        </div>
+        )}
 
         {/* Latest Reading */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
@@ -1113,7 +1261,7 @@ export const DeviceDetail = () => {
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Daily Breakdown (Last 7 Days)</h2>
           <p className="text-gray-600 dark:text-gray-400">Click on any day to zoom into detailed view</p>
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            {getDailyBreakdown().map((day, index) => (
+            {getDailyBreakdown().map((day) => (
               <div 
                 key={day.date} 
                 className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
@@ -1336,6 +1484,121 @@ export const DeviceDetail = () => {
           </table>
         </div>
       </div>
+
+      {/* Create Device Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-surface-primary rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b border-border-primary">
+              <h3 className="text-xl font-bold text-text-primary">Add New Device</h3>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="text-text-secondary hover:text-text-primary transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateDevice} className="p-6 space-y-4">
+              {createError && <FormError message={createError} />}
+
+              <FormField
+                label="Device Name"
+                name="name"
+                type="text"
+                value={createFormData.name}
+                onChange={handleCreateInputChange}
+                placeholder="Solar Monitor 1"
+                required
+              />
+
+              <FormField
+                label="UID"
+                name="uid"
+                type="text"
+                value={createFormData.uid}
+                onChange={handleCreateInputChange}
+                placeholder="unique-device-id"
+                required
+              />
+
+              <FormField
+                label="MAC Address"
+                name="mac_address"
+                type="text"
+                value={createFormData.mac_address}
+                onChange={handleCreateInputChange}
+                placeholder="AA:BB:CC:DD:EE:FF"
+              />
+
+              <FormField
+                label="IP Address"
+                name="ip_address"
+                type="text"
+                value={createFormData.ip_address}
+                onChange={handleCreateInputChange}
+                placeholder="192.168.1.100"
+              />
+
+              <FormField
+                label="Address"
+                name="address"
+                type="text"
+                value={createFormData.address}
+                onChange={handleCreateInputChange}
+                placeholder="123 Main Street"
+              />
+
+              <FormField
+                label="City"
+                name="city"
+                type="text"
+                value={createFormData.city}
+                onChange={handleCreateInputChange}
+                placeholder="Kannur"
+              />
+
+              <div>
+                <label className="block text-sm font-medium text-text-primary mb-2">
+                  Device Type
+                </label>
+                <select
+                  name="type"
+                  value={createFormData.type}
+                  onChange={handleCreateInputChange}
+                  className="w-full px-3 py-2 border border-border-primary rounded-lg bg-surface-primary text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  required
+                >
+                  <option value="">Select device type</option>
+                  {deviceTypes.map((type) => (
+                    <option key={type.id} value={type.id}>
+                      {type.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="submit"
+                  disabled={createLoading}
+                  className="flex-1 bg-primary-500 hover:bg-primary-600 disabled:bg-surface-secondary disabled:text-text-secondary text-white font-bold py-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
+                >
+                  {createLoading ? 'Creating...' : 'Create Device'}
+                  {!createLoading && <Plus size={20} />}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="px-6 py-3 border border-border-primary rounded-lg font-medium text-text-primary hover:bg-surface-secondary transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

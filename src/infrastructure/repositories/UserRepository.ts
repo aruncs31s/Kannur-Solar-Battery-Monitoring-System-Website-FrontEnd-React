@@ -47,8 +47,8 @@ export class UserRepository implements IUserRepository {
   }
 
   async getAll(): Promise<User[]> {
-    const response = await httpClient.get<any[]>('/users');
-    return response.map(dto => ({
+    const response = await httpClient.get<{ users: any[] }>('/users');
+    return response.users.map(dto => ({
       id: dto.id.toString(),
       name: dto.name,
       username: dto.username,

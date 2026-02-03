@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useDevicesStore } from '../store/devicesStore';
 import { devicesAPI } from '../api/devices';
 import { usersAPI } from '../api/users';
@@ -14,6 +15,7 @@ import {
   Users,
   UserPlus,
   Trash2,
+  Tag,
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -121,13 +123,29 @@ export const Admin = () => {
           <h1 className="text-4xl font-bold text-gray-800">Admin Panel</h1>
           <p className="text-gray-600 mt-2">System management and monitoring</p>
         </div>
-        <button
-          onClick={fetchAdminData}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
-        >
-          <Activity size={20} />
-          Refresh
-        </button>
+        <div className="flex gap-4">
+          <Link
+            to="/versions"
+            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
+          >
+            <Tag size={20} />
+            Versions
+          </Link>
+          <Link
+            to="/configuration"
+            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
+          >
+            <Settings size={20} />
+            Configuration
+          </Link>
+          <button
+            onClick={fetchAdminData}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
+          >
+            <Activity size={20} />
+            Refresh
+          </button>
+        </div>
       </div>
 
       {/* Key Statistics */}
@@ -261,7 +279,7 @@ export const Admin = () => {
             <thead className="bg-surface-secondary border-b border-border-primary">
               <tr>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-text-primary">
-                  Name
+                  Username
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-text-primary">
                   Email
@@ -281,7 +299,7 @@ export const Admin = () => {
                   className="border-b border-border-primary hover:bg-surface-secondary transition-colors"
                 >
                   <td className="px-6 py-4 text-sm font-medium text-text-primary">
-                    {user.name}
+                    {user.username}
                   </td>
                   <td className="px-6 py-4 text-sm text-text-secondary">
                     {user.email}

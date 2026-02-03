@@ -15,6 +15,8 @@ import { MapView } from './pages/MapView';
 import { Profile } from './pages/Profile';
 import { Admin } from './pages/Admin';
 import { AuditLogs } from './pages/AuditLogs';
+import { Configuration } from './pages/Configuration';
+import { Versions } from './pages/Versions';
 import { Layout } from './components/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
@@ -135,6 +137,26 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <Admin />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/configuration"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Configuration />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/versions"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Versions />
               </Layout>
             </ProtectedRoute>
           }

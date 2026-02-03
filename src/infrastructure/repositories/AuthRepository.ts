@@ -1,6 +1,7 @@
 import { IAuthRepository } from '../../domain/repositories/IAuthRepository';
 import { User, UserCredentials } from '../../domain/entities/User';
 import { httpClient } from '../http/HttpClient';
+import {  UserResponse } from '../../application/types/user';
 
 export class AuthRepository implements IAuthRepository {
   async login(credentials: UserCredentials): Promise<string> {
@@ -12,7 +13,7 @@ export class AuthRepository implements IAuthRepository {
     console.log('AuthRepository login response:', response);
     return response.token;
   }
-
+  // TODO: Implement
   async logout(): Promise<void> {
     // No logout endpoint in skvms, just clear local storage
     localStorage.removeItem('token');
@@ -23,11 +24,16 @@ export class AuthRepository implements IAuthRepository {
     return !!token;
   }
 
-  async register(name: string, email: string, password: string): Promise<{ token: string; user: User }> {
+  async register(
+    username: string,
+    password: string,
+    name?: string,
+    email?: string
+  ): Promise<{ token: string; user: User }> {
     // Using the /register endpoint
-    const response = await httpClient.post<{ token: string; user: any }>('/register', { 
+    const response = await httpClient.post<{ token: string; user: UserResponse }>('/register', { 
       name, 
-      username: email,
+      username,
       email, 
       password 
     });
@@ -38,7 +44,7 @@ export class AuthRepository implements IAuthRepository {
         username: response.user.username,
         name: response.user.name,
         email: response.user.email,
-        role: 'user'
+        role: response.user.role || 'user'
       }
     };
   }

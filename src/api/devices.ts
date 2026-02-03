@@ -1,5 +1,6 @@
 import { container } from '../application/di/container';
 import { CreateDeviceDTO, DeviceResponseDTO } from '../domain/entities/Device';
+import { DeviceTypeDTO } from '../domain/repositories/IDeviceTypesRepository';
 
 export interface DeviceTokenResponse {
   token: string;
@@ -14,6 +15,10 @@ export const devicesAPI = {
 
   getMyDevices: async (): Promise<DeviceResponseDTO[]> => {
     return await container.getGetMyDevicesUseCase().execute();
+  },
+
+  getDeviceTypes: async (): Promise<DeviceTypeDTO[]> => {
+    return await container.getGetDeviceTypesUseCase().execute();
   },
 
   createDevice: async (data: CreateDeviceDTO): Promise<DeviceResponseDTO> => {

@@ -79,7 +79,7 @@ export const FormField = ({
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      className={`rounded-lg border px-4 py-2.5 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 text-text-primary placeholder-text-tertiary ${
+      className={`rounded-lg border px-4 py-2.5 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 text-text-primary placeholder-text-tertiary/70 ${
         error
           ? 'border-red-300 focus:ring-red-500 focus:ring-offset-0 bg-red-50'
           : `border-border-primary focus:ring-primary-500 focus:ring-offset-0 bg-surface-secondary focus:bg-surface-primary`

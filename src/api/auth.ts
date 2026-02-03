@@ -8,11 +8,12 @@ export const authAPI = {
   },
 
   register: async (
-    name: string,
-    email: string,
+    username: string,
     password: string,
+    email?: string,
+    name?: string,
   ): Promise<{ token: string; user: User }> => {
-    return await container.getAuthRepository().register(name, email, password);
+    return await container.getAuthRepository().register( username, password, name,email);
   },
 
   logout: async (): Promise<void> => {
