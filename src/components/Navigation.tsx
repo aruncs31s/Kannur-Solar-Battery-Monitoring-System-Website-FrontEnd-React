@@ -1,14 +1,18 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, LogOut, User, Moon, Sun, Zap } from 'lucide-react';
-import { useState } from 'react';
+import { Menu, X, LogOut, User, Moon, Sun, Zap, ChevronDown } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../store/authStore';
 import { useThemeStore } from '../store/themeStore';
 import { useSearchStore } from '../store/searchStore';
 import { SearchBar } from './SearchBar';
+import { devicesAPI } from '../api/devices';
 
 export const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const [searchResults, setSearchResults] = useState<Array<{id: number, name: string}>>([]);
   const navigate = useNavigate();
   const location = useLocation();
   const { logout, user } = useAuthStore();
@@ -29,6 +33,26 @@ export const Navigation = () => {
     { name: 'Audit', path: '/audit' },
     { name: 'Admin', path: '/admin' },
   ];
+
+  useEffect(() => {
+    const fetchSearchResults = async () => {
+      if (query.trim() === '') {
+        setSearchResults([]);
+        return;
+      }
+      try {
+        const results = await devicesAPI.searchDevices(query);
+        setSearchResults(results.slice(0, 5)); // Limit to 5 results
+      } catch (err) {
+        console.error('Search failed:', err);
+        setSearchResults([]);
+      }
+    };
+    fetchSearchResults();
+  }, [query]);
+
+  const mainNavItems = navItems.slice(0, 3); // Dashboard, My Devices, Readings
+  const moreNavItems = navItems.slice(3); // Devices, Map, Audit, Admin
 
   const isActivePath = (path: string) => {
     return location.pathname === path;
@@ -57,7 +81,7 @@ export const Navigation = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-2">
-            {navItems.map((item) => (
+            {mainNavItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
@@ -79,14 +103,52 @@ export const Navigation = () => {
                 )}
               </Link>
             ))}
-            {(location.pathname === '/my-devices' || location.pathname === '/devices') && (
-              <SearchBar
-                placeholder="Search devices..."
-                value={query}
-                onChange={setQuery}
-                className="w-64"
-              />
+            {moreNavItems.length > 0 && (
+              <div className="relative">
+                <button
+                  onClick={() => setIsMoreOpen(!isMoreOpen)}
+                  className="relative px-4 py-2 rounded-xl font-medium text-sm transition-all flex items-center gap-1 text-text-secondary hover:text-text-accent"
+                >
+                  More
+                  <ChevronDown size={16} className={`transition-transform ${isMoreOpen ? 'rotate-180' : ''}`} />
+                </button>
+                <AnimatePresence>
+                  {isMoreOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="absolute top-full right-0 mt-2 w-48 bg-surface-primary border border-border-primary rounded-xl shadow-lg py-2 z-50"
+                    >
+                      {moreNavItems.map((item) => (
+                        <Link
+                          key={item.path}
+                          to={item.path}
+                          className={`block px-4 py-2 text-sm transition-all ${
+                            isActivePath(item.path)
+                              ? 'bg-primary-200 text-text-primary'
+                              : 'text-text-secondary hover:bg-surface-secondary'
+                          }`}
+                          onClick={() => setIsMoreOpen(false)}
+                        >
+                          {item.name}
+                        </Link>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             )}
+            <SearchBar
+              placeholder="Search devices..."
+              value={query}
+              onChange={setQuery}
+              expandable={true}
+              isExpanded={isSearchExpanded}
+              onToggleExpand={() => setIsSearchExpanded(!isSearchExpanded)}
+              results={searchResults}
+              className={isSearchExpanded ? "w-64" : ""}
+            />
           </div>
 
           {/* User Info and Logout */}

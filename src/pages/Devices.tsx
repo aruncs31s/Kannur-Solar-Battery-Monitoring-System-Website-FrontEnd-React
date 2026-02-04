@@ -67,12 +67,6 @@ export const Devices = () => {
     setDevices([...devices, newDevice]);
   };
 
-  const handleDeleteDevice = async (_id: number) => {
-    // Device deletion is not yet implemented in the backend
-    // This will be enabled once the backend supports device deletion
-    setError('Device deletion is not yet available. This feature will be added in a future update.');
-    setTimeout(() => setError(''), 5000);
-  };
 
   if (loading) {
     return (

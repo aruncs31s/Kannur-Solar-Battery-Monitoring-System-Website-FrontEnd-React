@@ -19,6 +19,7 @@ import {
   Plus,
   X,
 } from 'lucide-react';
+import { AddDeviceForm } from '../components/AddDeviceForm';
 
 export const MyDevices = () => {
   const [devices, setDevices] = useState<DeviceResponseDTO[]>([]);
@@ -41,7 +42,12 @@ export const MyDevices = () => {
   });
   const [createError, setCreateError] = useState('');
   const [createLoading, setCreateLoading] = useState(false);
-  // const [selectedDevice, setSelectedDevice] = useState<DeviceResponseDTO | null>(null);
+  const [selectedDevice, setSelectedDevice] = useState<DeviceResponseDTO | null>(null);
+ const handleDeviceAdded = (newDevice: any) => {
+    setDevices([...devices, newDevice]);
+  };
+  const [success, setSuccess] = useState('');
+
 
   useEffect(() => {
     fetchDevices();
@@ -154,13 +160,21 @@ export const MyDevices = () => {
           <p className="text-text-secondary mt-2">Monitor and manage your solar battery monitoring devices</p>
         </div>
         <div className="flex gap-3">
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
-          >
-            <Plus size={20} />
-            Add Device
-          </button>
+        
+           <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-800">Devices</h1>
+            <p className="text-gray-600 mt-2">Manage and monitor your ESP32 devices</p>
+          </div>
+          <AddDeviceForm
+            deviceTypes={deviceTypes}
+            onDeviceAdded={handleDeviceAdded}
+            onError={setError}
+            onSuccess={setSuccess}
+          />
+        </div>
+         
+         
           <button
             onClick={() => setShowSolarModal(true)}
             className="bg-success hover:opacity-90 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
@@ -173,6 +187,7 @@ export const MyDevices = () => {
 
       {error && <FormError message={error} />}
 
+       
 
 
       {/* Statistics Cards */}

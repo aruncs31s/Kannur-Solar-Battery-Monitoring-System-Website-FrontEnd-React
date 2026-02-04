@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { X, Plus } from 'lucide-react';
+import { X, Plus, Search } from 'lucide-react';
 import { devicesAPI } from '../api/devices';
 import { FormField } from './FormComponents';
+import { DeviceSearchResultDTO } from '../domain/entities/Device';
 
 interface AddSolarDeviceModalProps {
   isOpen: boolean;
@@ -13,6 +14,9 @@ interface AddSolarDeviceModalProps {
 
 export const AddSolarDeviceModal = ({ isOpen, onClose, onDeviceAdded, onError, onSuccess }: AddSolarDeviceModalProps) => {
   const [deviceTypes, setDeviceTypes] = useState<Array<{ id: number; name: string }>>([]);
+  const [microcontrollers, setMicrocontrollers] = useState<DeviceSearchResultDTO[]>([]);
+  const [microcontrollerSearch, setMicrocontrollerSearch] = useState('');
+  const [showMicrocontrollerDropdown, setShowMicrocontrollerDropdown] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     device_type_id: '1',
@@ -43,6 +47,32 @@ export const AddSolarDeviceModal = ({ isOpen, onClose, onDeviceAdded, onError, o
     }));
   };
 
+  const handleMicrocontrollerSearch = async (query: string) => {
+    setMicrocontrollerSearch(query);
+    if (query.length > 0) {
+      try {
+        const results = await devicesAPI.searchMicrocontrollers(query);
+        setMicrocontrollers(results);
+        setShowMicrocontrollerDropdown(true);
+      } catch (err) {
+        console.error('Failed to search microcontrollers:', err);
+        setMicrocontrollers([]);
+      }
+    } else {
+      setMicrocontrollers([]);
+      setShowMicrocontrollerDropdown(false);
+    }
+  };
+
+  const selectMicrocontroller = (microcontroller: DeviceSearchResultDTO) => {
+    setFormData((prev) => ({
+      ...prev,
+      connected_microcontroller_id: microcontroller.id,
+    }));
+    setMicrocontrollerSearch(microcontroller.name);
+    setShowMicrocontrollerDropdown(false);
+  };
+
   const handleAddDevice = async (e: React.FormEvent) => {
     e.preventDefault();
     onError('');
@@ -64,6 +94,8 @@ export const AddSolarDeviceModal = ({ isOpen, onClose, onDeviceAdded, onError, o
         city: '',
         connected_microcontroller_id: 1,
       });
+      setMicrocontrollerSearch('');
+      setMicrocontrollers([]);
       onClose();
     } catch (err: any) {
       onError(err.response?.data?.error || 'Failed to add solar device');
@@ -133,15 +165,37 @@ export const AddSolarDeviceModal = ({ isOpen, onClose, onDeviceAdded, onError, o
               placeholder="Solar City"
               required
             />
-            <FormField
-              label="Connected Microcontroller ID"
-              name="connected_microcontroller_id"
-              type="number"
-              value={formData.connected_microcontroller_id}
-              onChange={handleInputChange}
-              placeholder="2"
-              required
-            />
+            <div className="relative">
+              <label className="block text-sm font-medium text-text-secondary mb-2">
+                Connected Microcontroller
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={microcontrollerSearch}
+                  onChange={(e) => handleMicrocontrollerSearch(e.target.value)}
+                  onFocus={() => setShowMicrocontrollerDropdown(microcontrollers.length > 0)}
+                  onBlur={() => setTimeout(() => setShowMicrocontrollerDropdown(false), 200)}
+                  placeholder="Search microcontrollers..."
+                  className="w-full px-4 py-2 pl-10 border border-border-primary rounded-lg focus:ring-2 focus:ring-primary-500 bg-surface-secondary text-text-primary"
+                  required
+                />
+                <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary" />
+              </div>
+              {showMicrocontrollerDropdown && microcontrollers.length > 0 && (
+                <div className="absolute z-10 w-full mt-1 bg-surface-primary border border-border-primary rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                  {microcontrollers.map((mc) => (
+                    <div
+                      key={mc.id}
+                      onClick={() => selectMicrocontroller(mc)}
+                      className="px-4 py-2 hover:bg-surface-secondary cursor-pointer text-text-primary"
+                    >
+                      {mc.name}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-border-primary">

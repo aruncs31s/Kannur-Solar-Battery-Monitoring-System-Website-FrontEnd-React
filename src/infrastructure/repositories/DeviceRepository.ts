@@ -90,6 +90,10 @@ export class DeviceRepository implements IDeviceRepository {
     return allDevices.filter(device => searchResults.some(sr => sr.id === device.id));
   }
 
+  async searchMicrocontrollers(query: string): Promise<DeviceSearchResultDTO[]> {
+    return await httpClient.get<DeviceSearchResultDTO[]>(`/devices/search/microcontrollers?q=${encodeURIComponent(query)}`);
+  }
+
   async generateDeviceToken(deviceId: number): Promise<DeviceTokenResponse> {
     return await httpClient.post<DeviceTokenResponse>('/device-auth/token', { device_id: deviceId });
   }

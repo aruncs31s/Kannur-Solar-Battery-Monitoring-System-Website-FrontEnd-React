@@ -33,6 +33,10 @@ export const devicesAPI = {
     return await container.getSearchDevicesUseCase().execute(query);
   },
 
+  searchMicrocontrollers: async (query: string): Promise<DeviceSearchResultDTO[]> => {
+    return await container.getSearchMicrocontrollersUseCase().execute(query);
+  },
+
   generateDeviceToken: async (deviceId: number): Promise<DeviceTokenResponse> => {
     return await container.getGenerateDeviceTokenUseCase().execute(deviceId);
   },

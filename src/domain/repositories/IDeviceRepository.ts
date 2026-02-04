@@ -7,5 +7,6 @@ export interface IDeviceRepository {
   create(device: CreateDeviceDTO): Promise<DeviceResponseDTO>;
   createSolarDevice(device: CreateSolarDeviceDTO): Promise<DeviceResponseDTO>;
   search(query: string): Promise<DeviceResponseDTO[]>;
+  searchMicrocontrollers(query: string): Promise<DeviceSearchResultDTO[]>;
   generateDeviceToken(deviceId: number): Promise<DeviceTokenResponse>;
 }
