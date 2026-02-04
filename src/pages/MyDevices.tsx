@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { devicesAPI } from '../api/devices';
 import { DeviceResponseDTO } from '../domain/entities/Device';
+import { useSearchStore } from '../store/searchStore';
+import { AddSolarDeviceModal } from '../components/AddSolarDeviceModal';
 import { AllDevicesSection } from '../components/AllDevicesSection';
 import { StatsCard } from '../components/Cards';
 import { FormError, FormField } from '../components/FormComponents';
@@ -23,7 +25,10 @@ export const MyDevices = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showSolarModal, setShowSolarModal] = useState(false);
   const [deviceTypes, setDeviceTypes] = useState<Array<{ id: number; name: string }>>([]);
+  const { query: searchQuery, setQuery: setSearchQuery } = useSearchStore();
+  const [searchResults, setSearchResults] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     name: '',
     uid: '',
@@ -42,6 +47,10 @@ export const MyDevices = () => {
     fetchDevices();
     fetchDeviceTypes();
   }, []);
+
+  useEffect(() => {
+    handleSearch(searchQuery);
+  }, [searchQuery]);
 
   const fetchDevices = async () => {
     setLoading(true);
@@ -63,6 +72,20 @@ export const MyDevices = () => {
       setDeviceTypes(data);
     } catch (err) {
       console.error('Failed to fetch device types:', err);
+    }
+  };
+
+  const handleSearch = async (query: string) => {
+    if (query.trim() === '') {
+      setSearchResults([]);
+      return;
+    }
+    try {
+      const results = await devicesAPI.searchDevices(query);
+      setSearchResults(results);
+    } catch (err) {
+      console.error('Search failed:', err);
+      setSearchResults([]);
     }
   };
 
@@ -130,13 +153,22 @@ export const MyDevices = () => {
           <h1 className="text-4xl font-bold text-text-primary">My Devices</h1>
           <p className="text-text-secondary mt-2">Monitor and manage your solar battery monitoring devices</p>
         </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
-        >
-          <Plus size={20} />
-          Add Device
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
+          >
+            <Plus size={20} />
+            Add Device
+          </button>
+          <button
+            onClick={() => setShowSolarModal(true)}
+            className="bg-success hover:opacity-90 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
+          >
+            <Plus size={20} />
+            Add Solar Device
+          </button>
+        </div>
       </div>
 
       {error && <FormError message={error} />}
@@ -154,22 +186,31 @@ export const MyDevices = () => {
       </div>
 
       {/* Devices Grid */}
-      {!devices || devices.length === 0 ? (
-        <div className="bg-surface-primary rounded-lg shadow-md p-12 text-center">
-          <HardDrive className="mx-auto text-text-secondary mb-4" size={64} />
-          <h3 className="text-xl font-semibold text-text-primary mb-2">No Devices Found</h3>
-          <p className="text-text-secondary mb-6">you have no devices add one</p>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-lg font-medium inline-flex items-center gap-2 transition-colors"
-          >
-            <Plus size={20} />
-            Add Your First Device
-          </button>
-        </div>
-      ) : (
-        <AllDevicesSection devices={devices} showGenerateToken={true} title="My Devices" showViewAllLink={false} maxDevices={devices.length} />
-      )}
+      {(() => {
+        const displayDevices = searchQuery ? searchResults : devices;
+        return !displayDevices || displayDevices.length === 0 ? (
+          <div className="bg-surface-primary rounded-lg shadow-md p-12 text-center">
+            <HardDrive className="mx-auto text-text-secondary mb-4" size={64} />
+            <h3 className="text-xl font-semibold text-text-primary mb-2">
+              {searchQuery ? 'No Devices Found' : 'No Devices Found'}
+            </h3>
+            <p className="text-text-secondary mb-6">
+              {searchQuery ? 'No devices match your search.' : 'you have no devices add one'}
+            </p>
+            {!searchQuery && (
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-lg font-medium inline-flex items-center gap-2 transition-colors"
+              >
+                <Plus size={20} />
+                Add Your First Device
+              </button>
+            )}
+          </div>
+        ) : (
+          <AllDevicesSection devices={displayDevices} showGenerateToken={true} title={searchQuery ? `Search Results for "${searchQuery}"` : "My Devices"} showViewAllLink={false} maxDevices={displayDevices.length} />
+        );
+      })()}
 
       {/* Quick Actions */}
       <div className="bg-surface-primary rounded-lg shadow-md p-6">
@@ -330,6 +371,18 @@ export const MyDevices = () => {
           </div>
         </div>
       )}
+
+      {/* Add Solar Device Modal */}
+      <AddSolarDeviceModal
+        isOpen={showSolarModal}
+        onClose={() => setShowSolarModal(false)}
+        onDeviceAdded={(device) => {
+          setDevices([...devices, device]);
+          fetchDevices();
+        }}
+        onError={setError}
+        onSuccess={() => {}}
+      />
     </div>
   );
 };

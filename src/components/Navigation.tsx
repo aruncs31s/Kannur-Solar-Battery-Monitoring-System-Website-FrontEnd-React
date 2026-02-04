@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../store/authStore';
 import { useThemeStore } from '../store/themeStore';
+import { useSearchStore } from '../store/searchStore';
+import { SearchBar } from './SearchBar';
 
 export const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,6 +13,7 @@ export const Navigation = () => {
   const location = useLocation();
   const { logout, user } = useAuthStore();
   const { isDark, toggleTheme } = useThemeStore();
+  const { query, setQuery } = useSearchStore();
 
   const handleLogout = () => {
     logout();
@@ -76,6 +79,14 @@ export const Navigation = () => {
                 )}
               </Link>
             ))}
+            {(location.pathname === '/my-devices' || location.pathname === '/devices') && (
+              <SearchBar
+                placeholder="Search devices..."
+                value={query}
+                onChange={setQuery}
+                className="w-64"
+              />
+            )}
           </div>
 
           {/* User Info and Logout */}

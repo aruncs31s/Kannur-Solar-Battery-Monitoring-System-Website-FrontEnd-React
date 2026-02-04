@@ -7,6 +7,7 @@ import { AddDeviceForm } from '../components/AddDeviceForm';
 import { AllDevicesSection } from '../components/AllDevicesSection';
 import { Package, CheckCircle, Zap, Battery } from 'lucide-react';
 import { FormError, FormSuccess } from '../components/FormComponents';
+import { useSearchStore } from '../store/searchStore';
 
 export const Devices = () => {
   const { devices, setDevices } = useDevicesStore();
@@ -14,11 +15,31 @@ export const Devices = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [deviceTypes, setDeviceTypes] = useState<Array<{ id: number; name: string }>>([]);
+  const { query: searchQuery } = useSearchStore();
+  const [searchResults, setSearchResults] = useState<any[]>([]);
 
   useEffect(() => {
     fetchDevices();
     fetchDeviceTypes();
   }, []);
+
+  const handleSearch = async (query: string) => {
+    if (query.trim() === '') {
+      setSearchResults([]);
+      return;
+    }
+    try {
+      const results = await devicesAPI.searchDevices(query);
+      setSearchResults(results);
+    } catch (err) {
+      console.error('Search failed:', err);
+      setSearchResults([]);
+    }
+  };
+
+  useEffect(() => {
+    handleSearch(searchQuery);
+  }, [searchQuery]);
 
   const fetchDevices = async () => {
     setLoading(true);
@@ -92,11 +113,11 @@ export const Devices = () => {
 
       {/* Devices List */}
       <AllDevicesSection 
-        devices={devices} 
+        devices={searchQuery ? searchResults : devices} 
         showGenerateToken={true} 
         title="All Devices" 
         showViewAllLink={false} 
-        maxDevices={devices.length} 
+        maxDevices={(searchQuery ? searchResults : devices).length} 
       />
     </div>
   );

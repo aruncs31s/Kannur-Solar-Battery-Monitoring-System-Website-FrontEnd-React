@@ -41,3 +41,16 @@ export interface CreateDeviceDTO {
   address: string;
   city: string;
 }
+
+export interface CreateSolarDeviceDTO {
+  name: string;
+  device_type_id: string;
+  address: string;
+  city: string;
+  connected_microcontroller_id: number;
+}
+
+export interface DeviceSearchResultDTO {
+  id: number;
+  name: string;
+}

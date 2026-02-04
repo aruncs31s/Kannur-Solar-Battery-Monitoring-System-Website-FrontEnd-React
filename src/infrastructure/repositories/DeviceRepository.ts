@@ -1,5 +1,5 @@
 import { IDeviceRepository } from '../../domain/repositories/IDeviceRepository';
-import {  CreateDeviceDTO, DeviceResponseDTO } from '../../domain/entities/Device';
+import {  CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO } from '../../domain/entities/Device';
 import { DeviceTokenResponse } from '../../api/devices';
 import { httpClient } from '../http/HttpClient';
 
@@ -61,13 +61,33 @@ export class DeviceRepository implements IDeviceRepository {
     };
   }
 
+  async createSolarDevice(device: CreateSolarDeviceDTO): Promise<DeviceResponseDTO> {
+    const dto = await httpClient.post<any>('/devices/solar', {
+      name: device.name,
+      device_type_id: device.device_type_id,
+      address: device.address,
+      city: device.city,
+      connected_microcontroller_id: device.connected_microcontroller_id,
+    });
+    return {
+      id: dto.device.id,
+      name: dto.device.name || '',
+      type: dto.device.type || '',
+      ip_address: dto.device.ip_address || '',
+      mac_address: dto.device.mac_address || '',
+      firmware_version: dto.device.firmware_version || '',
+      version_id: 0, // Not provided in response
+      address: dto.device.address || '',
+      city: dto.device.city || '',
+      device_state: 0, // Not provided
+    };
+  }
+
   async search(query: string): Promise<DeviceResponseDTO[]> {
-    // skvms doesn't have a search endpoint, so we'll filter client-side
+    const searchResults = await httpClient.get<DeviceSearchResultDTO[]>(`/devices/search?q=${encodeURIComponent(query)}`);
+    if (!searchResults || searchResults.length === 0) return [];
     const allDevices = await this.getAll();
-    return allDevices.filter(device => 
-      device.name.toLowerCase().includes(query.toLowerCase()) ||
-      device.mac_address.toLowerCase().includes(query.toLowerCase())
-    );
+    return allDevices.filter(device => searchResults.some(sr => sr.id === device.id));
   }
 
   async generateDeviceToken(deviceId: number): Promise<DeviceTokenResponse> {
