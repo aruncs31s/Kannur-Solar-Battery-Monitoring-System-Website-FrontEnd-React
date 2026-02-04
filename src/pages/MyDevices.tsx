@@ -10,9 +10,7 @@ import {
   Activity,
   MapPin,
   Clock,
-  TrendingUp,
   CheckCircle,
-  XCircle,
   Battery,
   Zap,
   Package,
@@ -109,13 +107,9 @@ export const MyDevices = () => {
     }
   };
 
-  const stats = {
-    totalDevices: devices.length,
-    onlineDevices: devices.filter(d => d.device_state === 1).length,
-    offlineDevices: devices.filter(d => d.device_state === 0).length,
-    totalCapacity: devices.length * 100, // Assuming 100kW per device for demo
-    activeCapacity: devices.filter(d => d.device_state === 1).length * 100,
-  };
+  const activeDevices = devices.filter((device) => device.device_state === 1).length;
+  const avgVoltage = 0;
+  const totalPower = 0;
 
   if (loading) {
     return (
@@ -150,77 +144,12 @@ export const MyDevices = () => {
 
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-surface-primary rounded-lg shadow-md p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="bg-primary-100 p-3 rounded-full">
-              <HardDrive className="text-primary-500" size={24} />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-text-secondary">Total Devices</p>
-              <p className="text-3xl font-bold text-text-primary">{stats.totalDevices}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <TrendingUp className="text-success-500" size={16} />
-            <span className="text-success-600">All systems operational</span>
-          </div>
-        </div>
-
-        <div className="bg-surface-primary rounded-lg shadow-md p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="bg-success-100 p-3 rounded-full">
-              <CheckCircle className="text-success-500" size={24} />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-text-secondary">Online Devices</p>
-              <p className="text-3xl font-bold text-text-primary">{stats.onlineDevices}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <div className="w-full bg-surface-secondary rounded-full h-2">
-              <div
-                className="bg-success-500 h-2 rounded-full"
-                style={{ width: `${stats.totalDevices > 0 ? (stats.onlineDevices / stats.totalDevices) * 100 : 0}%` }}
-              ></div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-surface-primary rounded-lg shadow-md p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="bg-error-100 p-3 rounded-full">
-              <XCircle className="text-error-500" size={24} />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-text-secondary">Offline Devices</p>
-              <p className="text-3xl font-bold text-text-primary">{stats.offlineDevices}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <div className="w-full bg-surface-secondary rounded-full h-2">
-              <div
-                className="bg-error-500 h-2 rounded-full"
-                style={{ width: `${stats.totalDevices > 0 ? (stats.offlineDevices / stats.totalDevices) * 100 : 0}%` }}
-              ></div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-surface-primary rounded-lg shadow-md p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="bg-warning-100 p-3 rounded-full">
-              <Battery className="text-warning-500" size={24} />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-text-secondary">Total Capacity</p>
-              <p className="text-3xl font-bold text-text-primary">{stats.totalCapacity}kW</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <Zap className="text-warning-500" size={16} />
-            <span className="text-warning-600">{stats.activeCapacity}kW active</span>
-          </div>
+      <div className="space-y-6 pb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatsCard title="Total Devices" value={devices.length} icon={<Package size={28} />} color="blue" subtitle="Connected devices" />
+          <StatsCard title="Active Devices" value={activeDevices} icon={<CheckCircle size={28} />} color="green" subtitle="Currently online" trend={activeDevices > 0 ? 5 : 0} />
+          <StatsCard title="Avg Voltage" value={`${avgVoltage}V`} icon={<Zap size={28} />} color="purple" subtitle="System average" />
+          <StatsCard title="Total Power" value={`${totalPower}W`} icon={<Battery size={28} />} color="indigo" subtitle="Current output" />
         </div>
       </div>
 

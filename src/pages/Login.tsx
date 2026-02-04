@@ -83,7 +83,7 @@ export const Login = () => {
           className="text-center mb-8"
         >
           <motion.div
-            whileHover={{ rotate: 360 }}
+            // whileHover={{ rotate: 360 }}
             transition={{ duration: 0.5 }}
             className="inline-block p-4 bg-white rounded-2xl shadow-2xl mb-4"
           >

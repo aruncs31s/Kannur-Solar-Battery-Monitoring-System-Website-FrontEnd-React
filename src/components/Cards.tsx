@@ -1,6 +1,7 @@
 import { AlertCircle, CheckCircle, AlertTriangle, Settings, XCircle, HelpCircle, TrendingUp, TrendingDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+// Status Cards Shown above
 interface StatusBadgeProps {
   status: 'active' | 'inactive' | 'error' | 'maintenance' | 'decommissioned' | 'unknown' | 'online';
 }
@@ -112,6 +113,7 @@ export const StatsCard = ({ title, value, icon, color, trend, subtitle }: StatsC
   };
 
   const config = colorClasses[color];
+
 
   return (
     <motion.div
