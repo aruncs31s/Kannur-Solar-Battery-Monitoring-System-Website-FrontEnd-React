@@ -12,4 +12,5 @@ export interface IDeviceRepository {
   getDeviceType(deviceId: number): Promise<DeviceTypeDTO>;
   updateDevice(deviceId: number, data: UpdateDeviceDTO): Promise<DeviceResponseDTO>;
   controlDevice(deviceId: number, action: number): Promise<{ success: boolean; message: string }>;
+  removeConnectedDevice(deviceId: number, connectedDeviceId: number): Promise<{ success: boolean; message: string }>;
 }

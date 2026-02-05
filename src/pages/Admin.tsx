@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useDevicesStore } from '../store/devicesStore';
 import { devicesAPI } from '../api/devices';
 import { usersAPI } from '../api/users';
@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 
 export const Admin = () => {
+  const navigate = useNavigate();
   const { setDevices, setLoading, setError } = useDevicesStore();
   const [stats, setStats] = useState({
     totalDevices: 0,
@@ -99,12 +100,14 @@ export const Admin = () => {
           value={stats.totalDevices}
           icon={<Package size={32} />}
           color="blue"
+          onClick={fetchAdminData}
         />
         <StatsCard
           title="Active"
           value={stats.activeDevices}
           icon={<CheckCircle size={32} />}
           color="green"
+          onClick={() => navigate('/devices')}
         />
         <StatsCard
           title="Inactive"

@@ -124,4 +124,8 @@ export const devicesAPI = {
   controlDevice: async (deviceId: number, action: number): Promise<{ success: boolean; message: string }> => {
     return await container.getControlDeviceUseCase().execute(deviceId, action);
   },
+
+  removeConnectedDevice: async (deviceId: number, connectedDeviceId: number): Promise<{ success: boolean; message: string }> => {
+    return await container.getRemoveConnectedDeviceUseCase().execute(deviceId, connectedDeviceId);
+  },
 };

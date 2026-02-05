@@ -137,4 +137,11 @@ export class DeviceRepository implements IDeviceRepository {
     );
     return response;
   }
+
+  async removeConnectedDevice(deviceId: number, connectedDeviceId: number): Promise<{ success: boolean; message: string }> {
+    const response = await httpClient.delete<{ success: boolean; message: string }>(
+      `/devices/${deviceId}/connected/${connectedDeviceId}`
+    );
+    return response;
+  }
 }

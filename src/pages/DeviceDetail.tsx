@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Power, PowerOff, Settings, RefreshCw, Activity, AlertCircle, TrendingUp, Calendar, History, Copy, Check, X, Edit, Plus } from 'lucide-react';
+import { Power, PowerOff, Settings, RefreshCw, Activity, AlertCircle, TrendingUp, Calendar, History, Copy, Check, X, Edit, Plus, Search } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
 import { readingsAPI } from '../api/readings';
 import { devicesAPI } from '../api/devices';
 import { StatusBadge } from '../components/Cards';
-import { FormField, FormError } from '../components/FormComponents';
+import { FormField } from '../components/FormComponents';
 import { Reading } from '../domain/entities/Reading';
+import { DeviceSearchResultDTO } from '../domain/entities/Device';
 
 interface DeviceInfo {
   id: number;
@@ -38,6 +39,7 @@ interface ConnectedDevice {
   address: string;
   city: string;
   device_state: number;
+  hardware_type?: number;
 }
 
 export const DeviceDetail = () => {
@@ -79,6 +81,11 @@ export const DeviceDetail = () => {
     ip_address: '',
     mac_address: ''
   });
+  
+  // Search microcontrollers state
+  const [microcontrollers, setMicrocontrollers] = useState<DeviceSearchResultDTO[]>([]);
+  const [microcontrollerSearch, setMicrocontrollerSearch] = useState('');
+  const [showMicrocontrollerDropdown, setShowMicrocontrollerDropdown] = useState(false);
   
   // Connected device readings modal state
   const [selectedConnectedDevice, setSelectedConnectedDevice] = useState<ConnectedDevice | null>(null);
@@ -143,6 +150,29 @@ export const DeviceDetail = () => {
     }
   };
 
+  const handleMicrocontrollerSearch = async (query: string) => {
+    if (query.length < 2) {
+      setMicrocontrollers([]);
+      setShowMicrocontrollerDropdown(false);
+      return;
+    }
+
+    try {
+      const results = await devicesAPI.searchMicrocontrollers(query);
+      setMicrocontrollers(results);
+      setShowMicrocontrollerDropdown(true);
+    } catch (err) {
+      console.error('Failed to search microcontrollers:', err);
+      setMicrocontrollers([]);
+    }
+  };
+
+  const selectMicrocontroller = (microcontroller: DeviceSearchResultDTO) => {
+    setNewConnectedDeviceId(microcontroller.id.toString());
+    setMicrocontrollerSearch(microcontroller.name);
+    setShowMicrocontrollerDropdown(false);
+  };
+
   const loadDeviceType = async () => {
     if (!id) return;
     
@@ -194,8 +224,8 @@ export const DeviceDetail = () => {
       let response;
       
       if (addConnectedMode === 'existing') {
-        if (!newConnectedDeviceId) {
-          setControlMessage('Please enter a device ID');
+        if (!newConnectedDeviceId || !microcontrollerSearch) {
+          setControlMessage('Please select a microcontroller');
           setTimeout(() => setControlMessage(''), 3000);
           return;
         }
@@ -240,6 +270,9 @@ export const DeviceDetail = () => {
           ip_address: '',
           mac_address: ''
         });
+        setMicrocontrollerSearch('');
+        setMicrocontrollers([]);
+        setShowMicrocontrollerDropdown(false);
         setShowAddConnectedModal(false);
         loadConnectedDevices();
         setTimeout(() => setControlMessage(''), 3000);
@@ -249,6 +282,30 @@ export const DeviceDetail = () => {
       }
     } catch (err) {
       setControlMessage('Failed to add connected device');
+      setTimeout(() => setControlMessage(''), 3000);
+      console.error(err);
+    }
+  };
+
+  const removeConnectedDevice = async (connectedDeviceId: number) => {
+    if (!id) return;
+
+    if (!window.confirm('Are you sure you want to remove this connected device?')) {
+      return;
+    }
+
+    try {
+      const result = await devicesAPI.removeConnectedDevice(parseInt(id), connectedDeviceId);
+      if (result.success) {
+        setControlMessage('Connected device removed successfully!');
+        loadConnectedDevices();
+        setTimeout(() => setControlMessage(''), 3000);
+      } else {
+        setControlMessage(result.message || 'Failed to remove connected device');
+        setTimeout(() => setControlMessage(''), 3000);
+      }
+    } catch (err) {
+      setControlMessage('Failed to remove connected device');
       setTimeout(() => setControlMessage(''), 3000);
       console.error(err);
     }
@@ -291,7 +348,7 @@ export const DeviceDetail = () => {
       // Single device: fetch its latest reading
       setLoadingSingleReading(true);
       try {
-        const readings = await readingsAPI.getByDevice(supportedDevices[0].id, 1);
+        const readings = await readingsAPI.getByDevice(supportedDevices[0].id.toString());
         setSingleConnectedReading(readings.length > 0 ? readings[0] : null);
       } catch (err) {
         console.error('Failed to load single connected device reading:', err);
@@ -307,7 +364,7 @@ export const DeviceDetail = () => {
         await Promise.all(
           supportedDevices.map(async (device) => {
             try {
-              const readings = await readingsAPI.getByDevice(device.id, 1);
+              const readings = await readingsAPI.getByDevice(device.id.toString());
               readingsMap[device.id] = readings.length > 0 ? readings[0] : null;
             } catch (err) {
               console.error(`Failed to load readings for device ${device.id}:`, err);
@@ -975,7 +1032,13 @@ export const DeviceDetail = () => {
             <div className="p-6 border-b border-border-primary flex justify-between items-center">
               <h3 className="text-2xl font-bold text-text-primary">Add Connected Device</h3>
               <button
-                onClick={() => setShowAddConnectedModal(false)}
+                onClick={() => {
+                  setShowAddConnectedModal(false);
+                  setMicrocontrollerSearch('');
+                  setMicrocontrollers([]);
+                  setShowMicrocontrollerDropdown(false);
+                  setNewConnectedDeviceId('');
+                }}
                 className="text-text-secondary hover:text-text-primary transition-colors"
               >
                 <X size={24} />
@@ -987,7 +1050,13 @@ export const DeviceDetail = () => {
               <div className="flex gap-2 bg-surface-secondary rounded-lg p-1">
                 <button
                   type="button"
-                  onClick={() => setAddConnectedMode('new')}
+                  onClick={() => {
+                    setAddConnectedMode('new');
+                    setMicrocontrollerSearch('');
+                    setMicrocontrollers([]);
+                    setShowMicrocontrollerDropdown(false);
+                    setNewConnectedDeviceId('');
+                  }}
                   className={`flex-1 px-4 py-2 rounded-md font-medium text-sm transition-colors ${
                     addConnectedMode === 'new'
                       ? 'bg-primary-500 text-white'
@@ -998,7 +1067,15 @@ export const DeviceDetail = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setAddConnectedMode('existing')}
+                  onClick={() => {
+                    setAddConnectedMode('existing');
+                    setNewConnectedDeviceForm({
+                      name: '',
+                      type: 1,
+                      ip_address: '',
+                      mac_address: ''
+                    });
+                  }}
                   className={`flex-1 px-4 py-2 rounded-md font-medium text-sm transition-colors ${
                     addConnectedMode === 'existing'
                       ? 'bg-primary-500 text-white'
@@ -1014,18 +1091,39 @@ export const DeviceDetail = () => {
               {addConnectedMode === 'existing' ? (
                 <div>
                   <label className="block text-sm font-semibold text-text-secondary mb-2">
-                    Device ID *
+                    Search Microcontroller *
                   </label>
-                  <input
-                    type="number"
-                    value={newConnectedDeviceId}
-                    onChange={(e) => setNewConnectedDeviceId(e.target.value)}
-                    required
-                    placeholder="Enter device ID to connect"
-                    className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={microcontrollerSearch}
+                      onChange={(e) => {
+                        setMicrocontrollerSearch(e.target.value);
+                        handleMicrocontrollerSearch(e.target.value);
+                      }}
+                      onFocus={() => setShowMicrocontrollerDropdown(microcontrollers.length > 0)}
+                      onBlur={() => setTimeout(() => setShowMicrocontrollerDropdown(false), 200)}
+                      placeholder="Search microcontrollers..."
+                      autoComplete="off"
+                      className="w-full px-4 py-2 pl-10 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    />
+                    <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary" />
+                  </div>
+                  {showMicrocontrollerDropdown && microcontrollers.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-surface-primary border border-border-primary rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                      {microcontrollers.map((mc) => (
+                        <div
+                          key={mc.id}
+                          onClick={() => selectMicrocontroller(mc)}
+                          className="px-4 py-2 hover:bg-surface-secondary cursor-pointer text-text-primary"
+                        >
+                          {mc.name}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   <p className="text-xs text-text-secondary mt-1">
-                    Enter the ID of an existing device you want to connect
+                    Search and select an existing microcontroller to connect
                   </p>
                 </div>
               ) : (
@@ -1317,14 +1415,28 @@ export const DeviceDetail = () => {
                 {connectedDevices.map((connectedDevice) => (
                   <div 
                     key={connectedDevice.id} 
-                    onClick={() => handleConnectedDeviceClick(connectedDevice)}
-                    className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                    className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                   >
-                    <div>
+                    <div 
+                      onClick={() => handleConnectedDeviceClick(connectedDevice)}
+                      className="flex-1 cursor-pointer"
+                    >
                       <h3 className="font-medium text-gray-900 dark:text-white">{connectedDevice.name}</h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400">{connectedDevice.type} • {connectedDevice.ip_address}</p>
                     </div>
-                    <StatusBadge status={getStatusType(connectedDevice.device_state, false)} />
+                    <div className="flex items-center gap-2">
+                      <StatusBadge status={getStatusType(connectedDevice.device_state, false)} />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeConnectedDevice(connectedDevice.id);
+                        }}
+                        className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                        title="Remove connected device"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

@@ -78,7 +78,7 @@ interface StatsCardProps {
   subtitle?: string;
 }
 
-export const StatsCard = ({ title, value, icon, color, trend, subtitle }: StatsCardProps) => {
+export const StatsCard = ({ title, value, icon, color, trend, subtitle, onClick }: StatsCardProps & { onClick?: () => void }) => {
   const colorClasses = {
     blue: {
       gradient: 'bg-primary-200',
@@ -122,6 +122,8 @@ export const StatsCard = ({ title, value, icon, color, trend, subtitle }: StatsC
       whileHover={{ y: -4, scale: 1.02 }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
       className={`relative overflow-hidden bg-surface-primary rounded-2xl p-6 shadow-xl ${config.glow} hover:shadow-2xl transition-all duration-300 border border-border-primary`}
+      onClick={onClick}
+      style={{ cursor: onClick ? 'pointer' : 'default' }}
     >
       {/* Gradient overlay */}
       <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${config.gradient} opacity-10 rounded-full blur-2xl`} />
