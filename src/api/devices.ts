@@ -1,5 +1,5 @@
 import { container } from '../application/di/container';
-import { CreateDeviceDTO, CreateSolarDeviceDTO, CreateSensorDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO } from '../domain/entities/Device';
+import { CreateDeviceDTO, CreateSolarDeviceDTO, CreateSensorDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, SolarDeviceView } from '../domain/entities/Device';
 import { DeviceTypeDTO } from '../domain/entities/Device';
 
 export interface CreateDeviceTypeDTO {
@@ -72,6 +72,22 @@ export const devicesAPI = {
     return await response.json();
   },
 
+  getMySolarDevices: async (): Promise<SolarDeviceView[]> => {
+    const response = await fetch('/api/devices/solar/my', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch solar devices');
+    }
+
+    const data = await response.json();
+    return data.devices || [];
+  },
+
   searchDevices: async (query: string): Promise<DeviceResponseDTO[]> => {
     return await container.getSearchDevicesUseCase().execute(query);
   },
@@ -82,5 +98,18 @@ export const devicesAPI = {
 
   generateDeviceToken: async (deviceId: number): Promise<DeviceTokenResponse> => {
     return await container.getGenerateDeviceTokenUseCase().execute(deviceId);
+  },
+
+  getDevice: async (deviceId: string | number): Promise<{ device: any }> => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`http://localhost:8080/api/devices/${deviceId}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to load device');
+    }
+
+    return await response.json();
   },
 };

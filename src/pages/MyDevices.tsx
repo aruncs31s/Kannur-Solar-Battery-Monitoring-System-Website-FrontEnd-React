@@ -1,17 +1,16 @@
 import { useEffect, useState } from 'react';
 import { Plus} from 'lucide-react';
 import { devicesAPI } from '../api/devices';
-import { DeviceResponseDTO } from '../domain/entities/Device';
+import { DeviceResponseDTO, SolarDeviceView } from '../domain/entities/Device';
 import { useSearchStore } from '../store/searchStore';
 import { AddSolarDeviceModal } from '../components/AddSolarDeviceModal';
-import { AllDevicesSection } from '../components/AllDevicesSection';
+import { SolarDevicesSection } from '../components/SolarDevicesSection';
 import { StatsCard } from '../components/Cards';
 import { FormError, FormSuccess } from '../components/FormComponents';
 import { QuickActions } from '../components/QuickActions';
 import { AdvancedDeviceAddModal } from '../components/AdvancedDeviceAddModal';
 import { PageHeader } from '../components/PageHeader';
 import {
-  HardDrive,
   CheckCircle,
   Battery,
   Zap,
@@ -20,6 +19,7 @@ import {
 
 export const MyDevices = () => {
   const [devices, setDevices] = useState<DeviceResponseDTO[]>([]);
+  const [solarDevices, setSolarDevices] = useState<SolarDeviceView[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -42,8 +42,12 @@ export const MyDevices = () => {
   const fetchDevices = async () => {
     setLoading(true);
     try {
-      const response = await devicesAPI.getMyDevices();
-      setDevices(response);
+      const [devicesResponse, solarDevicesResponse] = await Promise.all([
+        devicesAPI.getMyDevices(),
+        devicesAPI.getMySolarDevices()
+      ]);
+      setDevices(devicesResponse);
+      setSolarDevices(solarDevicesResponse);
       setError('');
     } catch (err: any) {
       console.log('Error fetching devices:', err);
@@ -77,8 +81,12 @@ export const MyDevices = () => {
   };
 
   const activeDevices = devices.filter((device) => device.device_state === 1).length;
-  const avgVoltage = 0;
-  const totalPower = 0;
+  const avgVoltage = solarDevices.length > 0
+    ? solarDevices.reduce((sum, device) => sum + device.battery_voltage, 0) / solarDevices.length
+    : 0;
+  const totalPower = solarDevices.length > 0
+    ? solarDevices.reduce((sum, device) => sum + (device.charging_current * device.battery_voltage), 0)
+    : 0;
 
   if (loading) {
     return (
@@ -95,16 +103,9 @@ export const MyDevices = () => {
     <div className="space-y-8">
       {/* Header */}
       <PageHeader
-        title="My Devices"
+        title="My Solar Devices"
         description="Monitor and manage your solar battery monitoring devices"
       >
-        {/* <button
-          onClick={() => setShowCreateModal(true)}
-          className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
-        >
-          <Plus size={20} />
-          Add Device
-        </button> */}
         <button
           onClick={() => setShowSolarModal(true)}
           className="bg-success hover:opacity-90 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
@@ -121,38 +122,22 @@ export const MyDevices = () => {
       {/* Statistics Cards */}
       <div className="space-y-6 pb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatsCard title="Total Devices" value={devices.length} icon={<Package size={28} />} color="blue" subtitle="Connected devices" />
+          <StatsCard title="Solar Devices" value={solarDevices.length} icon={<Package size={28} />} color="blue" subtitle="Solar chargers connected" />
           <StatsCard title="Active Devices" value={activeDevices} icon={<CheckCircle size={28} />} color="green" subtitle="Currently online" trend={activeDevices > 0 ? 5 : 0} />
-          <StatsCard title="Avg Voltage" value={`${avgVoltage}V`} icon={<Zap size={28} />} color="purple" subtitle="System average" />
-          <StatsCard title="Total Power" value={`${totalPower}W`} icon={<Battery size={28} />} color="indigo" subtitle="Current output" />
+          <StatsCard title="Avg Battery Voltage" value={`${avgVoltage.toFixed(1)}V`} icon={<Zap size={28} />} color="purple" subtitle="Average across devices" />
+          <StatsCard title="Total Power" value={`${totalPower.toFixed(1)}W`} icon={<Battery size={28} />} color="indigo" subtitle="Current output" />
         </div>
       </div>
 
-      {/* Devices Grid */}
+      {/* Solar Devices Grid */}
       {(() => {
-        const displayDevices = searchQuery ? searchResults : devices;
-        return !displayDevices || displayDevices.length === 0 ? (
-          <div className="bg-surface-primary rounded-lg shadow-md p-12 text-center">
-            <HardDrive className="mx-auto text-text-secondary mb-4" size={64} />
-            <h3 className="text-xl font-semibold text-text-primary mb-2">
-              {searchQuery ? 'No Devices Found' : 'No Devices Found'}
-            </h3>
-            <p className="text-text-secondary mb-6">
-              {searchQuery ? 'No devices match your search.' : 'you have no devices add one'}
-            </p>
-            {!searchQuery && (
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-lg font-medium inline-flex items-center gap-2 transition-colors"
-              >
-                <Plus size={20} />
-                Add Your First Device
-              </button>
-            )}
-          </div>
-        ) : (
-          <AllDevicesSection devices={displayDevices} showGenerateToken={true} title={searchQuery ? `Search Results for "${searchQuery}"` : "My Devices"} showViewAllLink={false} maxDevices={displayDevices.length} />
-        );
+        const displayDevices = searchQuery ? searchResults : solarDevices;
+        return <SolarDevicesSection
+          devices={displayDevices}
+          title={searchQuery ? `Search Results for "${searchQuery}"` : "My Solar Devices"}
+          showViewAllLink={false}
+          maxDevices={displayDevices.length}
+        />;
       })()}
 
       {/* Quick Actions */}

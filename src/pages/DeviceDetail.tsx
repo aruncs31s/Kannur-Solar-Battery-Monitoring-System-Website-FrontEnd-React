@@ -206,14 +206,7 @@ export const DeviceDetail = () => {
 
   const loadDeviceData = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8080/api/devices/${id}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      
-      if (!response.ok) throw new Error('Failed to load device');
-      
-      const data = await response.json();
+      const data = await devicesAPI.getDevice(id!);
       setDevice(data.device);
       setError('');
     } catch (err) {
@@ -903,6 +896,7 @@ export const DeviceDetail = () => {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
         {/* Device Info */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <div className="flex justify-between items-center mb-4">

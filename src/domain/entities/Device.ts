@@ -59,6 +59,17 @@ export interface CreateSensorDeviceDTO {
   city?: string;
 }
 
+export interface SolarDeviceView {
+  id: number;
+  name: string;
+  charging_current: number;
+  battery_voltage: number;
+  led_status: string;
+  connected_device_ip: string;
+  address: string;
+  city: string;
+}
+
 export interface DeviceSearchResultDTO {
   id: number;
   name: string;

@@ -22,7 +22,7 @@ export const AddSolarDeviceModal = ({ isOpen, onClose, onDeviceAdded, onError, o
     device_type_id: 1,
     address: '',
     city: '',
-    connected_microcontroller_id: 1,
+    connected_microcontroller_id: 0,
   });
 
   useEffect(() => {
@@ -71,6 +71,11 @@ export const AddSolarDeviceModal = ({ isOpen, onClose, onDeviceAdded, onError, o
     }));
     setMicrocontrollerSearch(microcontroller.name);
     setShowMicrocontrollerDropdown(false);
+    // Keep focus on the input to maintain styling
+    setTimeout(() => {
+      const input = document.querySelector('input[placeholder="Search microcontrollers..."]') as HTMLInputElement;
+      if (input) input.focus();
+    }, 0);
   };
 
   const handleAddDevice = async (e: React.FormEvent) => {
@@ -106,7 +111,7 @@ export const AddSolarDeviceModal = ({ isOpen, onClose, onDeviceAdded, onError, o
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-      <div className="bg-surface-primary rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-surface-primary rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
         <div className="p-6 border-b border-border-primary flex justify-between items-center">
           <h3 className="text-2xl font-bold text-text-primary flex items-center gap-2">
             <Plus size={24} />
@@ -177,7 +182,8 @@ export const AddSolarDeviceModal = ({ isOpen, onClose, onDeviceAdded, onError, o
                   onFocus={() => setShowMicrocontrollerDropdown(microcontrollers.length > 0)}
                   onBlur={() => setTimeout(() => setShowMicrocontrollerDropdown(false), 200)}
                   placeholder="Search microcontrollers..."
-                  className="w-full px-4 py-2 pl-10 border border-border-primary rounded-lg focus:ring-2 focus:ring-primary-500 bg-surface-secondary text-text-primary"
+                  autoComplete="off"
+                  className="w-full px-4 py-2 pl-10 border border-border-primary rounded-lg focus:ring-2 focus:ring-primary-500 bg-surface-secondary text-text-primary focus:bg-surface-secondary focus:text-text-primary"
                 />
                 <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary" />
               </div>
