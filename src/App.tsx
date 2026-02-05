@@ -22,6 +22,7 @@ import { Configuration } from './pages/Configuration';
 import { Versions } from './pages/Versions';
 import { Layout } from './components/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { MCDeviceDetail } from './pages/MicrocontrollerDetail';
 
 function App() {
   const { initAuth } = useAuthStore();
@@ -80,6 +81,16 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <DeviceDetail />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/devices/mc/:id"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <MCDeviceDetail />
               </Layout>
             </ProtectedRoute>
           }

@@ -8,6 +8,15 @@ import { StatusBadge } from '../components/Cards';
 import { FormField, FormError } from '../components/FormComponents';
 import { Reading } from '../domain/entities/Reading';
 
+const formatMetric = (value: number | null | undefined, unit: string) => {
+  if (value === null || value === undefined || Number.isNaN(value)) return '—';
+  return `${value.toFixed(2)} ${unit}`;
+};
+
+const formatTimestamp = (timestamp?: number) => {
+  if (!timestamp) return 'No data';
+  return new Date(timestamp).toLocaleString();
+};
 interface DeviceInfo {
   id: number;
   name: string;
@@ -28,23 +37,9 @@ interface DeviceType {
   };
 }
 
-interface ConnectedDevice {
-  id: number;
-  name: string;
-  type: string;
-  ip_address: string;
-  mac_address: string;
-  firmware_version: string;
-  address: string;
-  city: string;
-  device_state: number;
-}
-
-export const DeviceDetail = () => {
+export const MCDeviceDetail = () => {
   const { id } = useParams<{ id: string }>();
-  if (!id) return ;
   const navigate = useNavigate();
-
   const [device, setDevice] = useState<DeviceInfo | null>(null);
   const [readings, setReadings] = useState<Reading[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,40 +54,19 @@ export const DeviceDetail = () => {
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [updateForm, setUpdateForm] = useState({
     name: '',
-    type: 0,
+    type: 1,
     ip_address: '',
     mac_address: '',
-    firmware_version_id: 0,
+    firmware_version_id: 1,
     address: '',
     city: ''
   });
   const [updateMessage, setUpdateMessage] = useState('');
   const [deviceTypes, setDeviceTypes] = useState<Array<{ id: number; name: string }>>([]);
   const [deviceType, setDeviceType] = useState<DeviceType | null>(null);
-  const [connectedDevices, setConnectedDevices] = useState<ConnectedDevice[]>([]);
-  const [showAddConnectedModal, setShowAddConnectedModal] = useState(false);
-  const [newConnectedDeviceId, setNewConnectedDeviceId] = useState('');
-  const [addConnectedMode, setAddConnectedMode] = useState<'existing' | 'new'>('new');
-  const [newConnectedDeviceForm, setNewConnectedDeviceForm] = useState({
-    name: '',
-    type: 1,
-    ip_address: '',
-    mac_address: ''
-  });
   
-  // Connected device readings modal state
-  const [selectedConnectedDevice, setSelectedConnectedDevice] = useState<ConnectedDevice | null>(null);
-  const [showConnectedReadingsModal, setShowConnectedReadingsModal] = useState(false);
-  const [connectedDeviceReadings, setConnectedDeviceReadings] = useState<Reading[]>([]);
-  const [loadingConnectedReadings, setLoadingConnectedReadings] = useState(false);
   
-  // State for automatic connected device readings display
-  const [singleConnectedReading, setSingleConnectedReading] = useState<Reading | null>(null);
-  const [multipleConnectedReadings, setMultipleConnectedReadings] = useState<{ [deviceId: number]: Reading | null }>({});
-  const [expandedDevices, setExpandedDevices] = useState<{ [deviceId: number]: boolean }>({});
-  const [loadingSingleReading, setLoadingSingleReading] = useState(false);
-  const [loadingMultipleReadings, setLoadingMultipleReadings] = useState(false);
-  
+  // Date picker state - default to today
   const getDefaultDates = () => {
     const today = new Date();
     return {
@@ -109,13 +83,15 @@ export const DeviceDetail = () => {
   const [selectedDay, setSelectedDay] = useState<string | null>(null); // For zooming into daily view
   const [selectedMetric, setSelectedMetric] = useState<'all' | 'voltage' | 'current' | 'power'>('all'); // For filtering chart by metric
 
+
+
+
   useEffect(() => {
     if (id) {
       loadDeviceData();
       loadReadings();
       loadDeviceTypes();
       loadDeviceType();
-      loadConnectedDevices();
       
       // Auto-refresh every 30 seconds
       const interval = setInterval(() => {
@@ -126,13 +102,6 @@ export const DeviceDetail = () => {
       return () => clearInterval(interval);
     }
   }, [id, readingsLimit, startDate, endDate, useDateFilter]);
-
-  useEffect(() => {
-    // Load automatic connected device readings when connected devices change
-    if (connectedDevices.length > 0) {
-      loadAutomaticConnectedReadings();
-    }
-  }, [connectedDevices]);
 
   const loadDeviceTypes = async () => {
     try {
@@ -145,7 +114,6 @@ export const DeviceDetail = () => {
 
   const loadDeviceType = async () => {
     if (!id) return;
-    
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:8080/api/devices/${id}/type`, {
@@ -158,174 +126,6 @@ export const DeviceDetail = () => {
       setDeviceType(data.device_type);
     } catch (err) {
       console.error('Failed to load device type:', err);
-    }
-  };
-
-  const loadConnectedDevices = async () => {
-    if (!id) return;
-    
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8080/api/devices/${id}/connected`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      
-      if (!response.ok) throw new Error('Failed to load connected devices');
-      
-      const data = await response.json();
-      setConnectedDevices(data.connected_devices || []);
-    } catch (err) {
-      console.error('Failed to load connected devices:', err);
-    }
-  };
-
-  const addConnectedDevice = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!id) return;
-
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setControlMessage('Please login to add connected devices');
-      setTimeout(() => setControlMessage(''), 3000);
-      return;
-    }
-
-    try {
-      let response;
-      
-      if (addConnectedMode === 'existing') {
-        if (!newConnectedDeviceId) {
-          setControlMessage('Please enter a device ID');
-          setTimeout(() => setControlMessage(''), 3000);
-          return;
-        }
-        
-        response = await fetch(`http://localhost:8080/api/devices/${id}/connected`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ child_id: parseInt(newConnectedDeviceId) }),
-        });
-      } else {
-        if (!newConnectedDeviceForm.name || !newConnectedDeviceForm.type) {
-          setControlMessage('Please fill in required fields');
-          setTimeout(() => setControlMessage(''), 3000);
-          return;
-        }
-        
-        response = await fetch(`http://localhost:8080/api/devices/${id}/connected/new`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(newConnectedDeviceForm),
-        });
-      }
-
-      const data = await response.json();
-      
-      if (response.ok) {
-        setControlMessage(
-          addConnectedMode === 'existing' 
-            ? 'Connected device added successfully!' 
-            : 'New device created and connected successfully!'
-        );
-        setNewConnectedDeviceId('');
-        setNewConnectedDeviceForm({
-          name: '',
-          type: 1,
-          ip_address: '',
-          mac_address: ''
-        });
-        setShowAddConnectedModal(false);
-        loadConnectedDevices();
-        setTimeout(() => setControlMessage(''), 3000);
-      } else {
-        setControlMessage(data.error || 'Failed to add connected device');
-        setTimeout(() => setControlMessage(''), 3000);
-      }
-    } catch (err) {
-      setControlMessage('Failed to add connected device');
-      setTimeout(() => setControlMessage(''), 3000);
-      console.error(err);
-    }
-  };
-
-  const handleConnectedDeviceClick = async (device: ConnectedDevice) => {
-    setSelectedConnectedDevice(device);
-    setShowConnectedReadingsModal(true);
-    setLoadingConnectedReadings(true);
-    
-    try {
-      const data = await readingsAPI.getByDevice(device.id.toString());
-      const sortedReadings = data.sort((a, b) => b.timestamp - a.timestamp);
-      setConnectedDeviceReadings(sortedReadings.slice(0, 5)); // Get latest 5 readings
-    } catch (err) {
-      console.error('Failed to load connected device readings:', err);
-      setConnectedDeviceReadings([]);
-    } finally {
-      setLoadingConnectedReadings(false);
-    }
-  };
-
-  const closeConnectedReadingsModal = () => {
-    setShowConnectedReadingsModal(false);
-    setSelectedConnectedDevice(null);
-    setConnectedDeviceReadings([]);
-  };
-
-  const loadAutomaticConnectedReadings = async () => {
-    // Filter connected devices by hardware_type === 1
-    const supportedDevices = connectedDevices.filter(d => d.hardware_type === 1);
-    
-    if (supportedDevices.length === 0) {
-      setSingleConnectedReading(null);
-      setMultipleConnectedReadings({});
-      return;
-    }
-    
-    if (supportedDevices.length === 1) {
-      // Single device: fetch its latest reading
-      setLoadingSingleReading(true);
-      try {
-        const readings = await readingsAPI.getByDevice(supportedDevices[0].id, 1);
-        setSingleConnectedReading(readings.length > 0 ? readings[0] : null);
-      } catch (err) {
-        console.error('Failed to load single connected device reading:', err);
-        setSingleConnectedReading(null);
-      } finally {
-        setLoadingSingleReading(false);
-      }
-    } else {
-      // Multiple devices: fetch latest reading for each
-      setLoadingMultipleReadings(true);
-      try {
-        const readingsMap: { [deviceId: number]: Reading | null } = {};
-        await Promise.all(
-          supportedDevices.map(async (device) => {
-            try {
-              const readings = await readingsAPI.getByDevice(device.id, 1);
-              readingsMap[device.id] = readings.length > 0 ? readings[0] : null;
-            } catch (err) {
-              console.error(`Failed to load readings for device ${device.id}:`, err);
-              readingsMap[device.id] = null;
-            }
-          })
-        );
-        setMultipleConnectedReadings(readingsMap);
-        // Auto-expand all devices by default
-        const expanded: { [deviceId: number]: boolean } = {};
-        supportedDevices.forEach(d => expanded[d.id] = true);
-        setExpandedDevices(expanded);
-      } catch (err) {
-        console.error('Failed to load multiple connected device readings:', err);
-        setMultipleConnectedReadings({});
-      } finally {
-        setLoadingMultipleReadings(false);
-      }
     }
   };
 
@@ -731,15 +531,52 @@ export const DeviceDetail = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <button
-          onClick={() => navigate('/devices')}
-          className="text-nord-8 hover:text-nord-9 hover:underline mb-4"
-        >
-          ← Back to Devices
-        </button>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{device.name}</h1>
-        <p className="text-gray-600 dark:text-gray-400">{device.type} • {device.city}</p>
+      <div className="rounded-2xl border border-border-primary bg-gradient-to-br from-blue-500/10 via-sky-500/10 to-emerald-500/10 p-6 shadow-lg">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-500/15 text-primary-600 dark:text-primary-300">
+              <Settings size={24} />
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary">Microcontroller</p>
+              <h1 className="text-3xl font-bold text-text-primary">{device.name}</h1>
+              <p className="text-sm text-text-secondary">{device.type} • {device.city}</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className={`inline-flex items-center gap-2 rounded-full px-4 py-1 text-sm font-semibold ${deviceOnline ? 'bg-success/15 text-success' : 'bg-error/15 text-error'}`}>
+              <span className={`h-2.5 w-2.5 rounded-full ${deviceOnline ? 'bg-success' : 'bg-error'}`} />
+              {deviceOnline ? 'Online' : 'Offline'}
+            </span>
+            <span className="rounded-full bg-surface-secondary px-4 py-1 text-sm font-semibold text-text-secondary">
+              Last updated: {formatTimestamp(latestReading?.timestamp)}
+            </span>
+            <button
+              onClick={() => navigate('/devices')}
+              className="rounded-full border border-border-primary px-4 py-1 text-sm font-semibold text-text-secondary transition-colors hover:text-text-primary"
+            >
+              ← Back to Devices
+            </button>
+          </div>
+        </div>
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-xl border border-border-primary bg-surface-primary/70 p-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-text-secondary">Latest Voltage</p>
+            <p className="mt-2 text-2xl font-bold text-text-primary">{formatMetric(latestReading?.voltage ?? null, 'V')}</p>
+          </div>
+          <div className="rounded-xl border border-border-primary bg-surface-primary/70 p-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-text-secondary">Latest Current</p>
+            <p className="mt-2 text-2xl font-bold text-text-primary">{formatMetric(latestReading?.current ?? null, 'A')}</p>
+          </div>
+          <div className="rounded-xl border border-border-primary bg-surface-primary/70 p-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-text-secondary">Latest Power</p>
+            <p className="mt-2 text-2xl font-bold text-text-primary">{formatMetric(latestReading?.power ?? null, 'W')}</p>
+          </div>
+          <div className="rounded-xl border border-border-primary bg-surface-primary/70 p-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-text-secondary">Readings Count</p>
+            <p className="mt-2 text-2xl font-bold text-text-primary">{readings.length}</p>
+          </div>
+        </div>
       </div>
 
       {/* Control Message */}
@@ -968,221 +805,6 @@ export const DeviceDetail = () => {
         </div>
       )}
 
-      {/* Add Connected Device Modal */}
-      {showAddConnectedModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-surface-primary rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-border-primary flex justify-between items-center">
-              <h3 className="text-2xl font-bold text-text-primary">Add Connected Device</h3>
-              <button
-                onClick={() => setShowAddConnectedModal(false)}
-                className="text-text-secondary hover:text-text-primary transition-colors"
-              >
-                <X size={24} />
-              </button>
-            </div>
-            
-            {/* Mode Toggle */}
-            <div className="p-6 pb-0">
-              <div className="flex gap-2 bg-surface-secondary rounded-lg p-1">
-                <button
-                  type="button"
-                  onClick={() => setAddConnectedMode('new')}
-                  className={`flex-1 px-4 py-2 rounded-md font-medium text-sm transition-colors ${
-                    addConnectedMode === 'new'
-                      ? 'bg-primary-500 text-white'
-                      : 'text-text-secondary hover:text-text-primary'
-                  }`}
-                >
-                  Create New Device
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAddConnectedMode('existing')}
-                  className={`flex-1 px-4 py-2 rounded-md font-medium text-sm transition-colors ${
-                    addConnectedMode === 'existing'
-                      ? 'bg-primary-500 text-white'
-                      : 'text-text-secondary hover:text-text-primary'
-                  }`}
-                >
-                  Add Existing Device
-                </button>
-              </div>
-            </div>
-            
-            <form onSubmit={addConnectedDevice} className="p-6 space-y-4">
-              {addConnectedMode === 'existing' ? (
-                <div>
-                  <label className="block text-sm font-semibold text-text-secondary mb-2">
-                    Device ID *
-                  </label>
-                  <input
-                    type="number"
-                    value={newConnectedDeviceId}
-                    onChange={(e) => setNewConnectedDeviceId(e.target.value)}
-                    required
-                    placeholder="Enter device ID to connect"
-                    className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  />
-                  <p className="text-xs text-text-secondary mt-1">
-                    Enter the ID of an existing device you want to connect
-                  </p>
-                </div>
-              ) : (
-                <>
-                  <FormField
-                    label="Device Name"
-                    name="name"
-                    value={newConnectedDeviceForm.name}
-                    onChange={(e) => setNewConnectedDeviceForm({ ...newConnectedDeviceForm, name: e.target.value })}
-                    placeholder="ESP32 Board"
-                    required
-                  />
-
-                  <div>
-                    <label className="block text-sm font-semibold text-text-secondary mb-2">
-                      Device Type *
-                    </label>
-                    <select
-                      value={newConnectedDeviceForm.type}
-                      onChange={(e) => setNewConnectedDeviceForm({ ...newConnectedDeviceForm, type: parseInt(e.target.value) })}
-                      className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      required
-                    >
-                      <option value="">Select device type</option>
-                      {deviceTypes.map((type) => (
-                        <option key={type.id} value={type.id}>
-                          {type.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <FormField
-                    label="IP Address"
-                    name="ip_address"
-                    value={newConnectedDeviceForm.ip_address}
-                    onChange={(e) => setNewConnectedDeviceForm({ ...newConnectedDeviceForm, ip_address: e.target.value })}
-                    placeholder="192.168.1.100"
-                  />
-
-                  <FormField
-                    label="MAC Address"
-                    name="mac_address"
-                    value={newConnectedDeviceForm.mac_address}
-                    onChange={(e) => setNewConnectedDeviceForm({ ...newConnectedDeviceForm, mac_address: e.target.value })}
-                    placeholder="AA:BB:CC:DD:EE:FF"
-                  />
-                </>
-              )}
-
-              <div className="flex justify-end gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowAddConnectedModal(false)}
-                  className="px-6 py-2 bg-surface-secondary hover:bg-surface-tertiary text-text-primary rounded-lg font-medium transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
-                >
-                  <Plus size={16} />
-                  {addConnectedMode === 'existing' ? 'Connect Device' : 'Create & Connect'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Connected Device Readings Modal */}
-      {showConnectedReadingsModal && selectedConnectedDevice && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-surface-primary rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-border-primary flex justify-between items-center">
-              <div>
-                <h3 className="text-2xl font-bold text-text-primary">{selectedConnectedDevice.name}</h3>
-                <p className="text-sm text-text-secondary mt-1">{selectedConnectedDevice.type}</p>
-              </div>
-              <button
-                onClick={closeConnectedReadingsModal}
-                className="text-text-secondary hover:text-text-primary transition-colors"
-              >
-                <X size={24} />
-              </button>
-            </div>
-            
-            <div className="p-6 space-y-4">
-              {loadingConnectedReadings ? (
-                <div className="flex justify-center items-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-                </div>
-              ) : connectedDeviceReadings.length > 0 ? (
-                <>
-                  <div className="bg-surface-secondary rounded-lg p-4">
-                    <h4 className="text-sm font-semibold text-text-secondary mb-3">Latest Readings</h4>
-                    <div className="space-y-3">
-                      {connectedDeviceReadings.map((reading) => (
-                        <div key={reading.id} className="flex items-center justify-between border-b border-border-primary pb-2 last:border-0">
-                          <div className="flex-1">
-                            <p className="text-xs text-text-tertiary">
-                              {new Date(reading.timestamp).toLocaleString()}
-                            </p>
-                            <div className="flex gap-4 mt-1">
-                              <span className="text-sm text-text-primary">
-                                <span className="font-semibold text-nord-8">{(reading.voltage ?? 0).toFixed(2)}V</span>
-                              </span>
-                              <span className="text-sm text-text-primary">
-                                <span className="font-semibold text-success">{(reading.current ?? 0).toFixed(2)}A</span>
-                              </span>
-                              <span className="text-sm text-text-primary">
-                                <span className="font-semibold text-nord-15">{(reading.power ?? 0).toFixed(2)}W</span>
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  
-                </>
-              ) : (
-                <div className="text-center py-12">
-                  <Activity className="mx-auto text-gray-400 mb-4" size={48} />
-                  <h3 className="text-lg font-semibold text-text-primary mb-2">No Readings Available</h3>
-                  <p className="text-text-secondary">This device hasn't sent any readings yet.</p>
-                </div>
-              )}
-            </div>
-            
-            <div className="p-6 border-t border-border-primary flex justify-end gap-3">
-              <button
-                onClick={closeConnectedReadingsModal}
-                className="px-6 py-2 bg-surface-secondary hover:bg-surface-tertiary text-text-primary rounded-lg font-medium transition-colors"
-              >
-                Close
-              </button>
-              <button
-                onClick={() => navigate(`/devices/${selectedConnectedDevice.id}`)}
-                className="px-6 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
-              >
-                <Settings size={16} />
-                View Device Page
-              </button>
-              <button
-                onClick={() => navigate(`/devices/${selectedConnectedDevice.id}/history`)}
-                className="px-6 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
-              >
-                <Activity size={16} />
-                View Full Readings
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* Device Info */}
@@ -1190,13 +812,7 @@ export const DeviceDetail = () => {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Device Information</h2>
             <div className="flex gap-2">
-              {/* <button
-                onClick={() => setShowCreateModal(true)}
-                className="p-2 text-nord-8 hover:text-nord-9 hover:bg-nord-6 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                title="Create New Device"
-              >
-                <Plus size={20} />
-              </button> */}
+             
               <button
                 onClick={openUpdateModal}
                 className="p-2 text-nord-8 hover:text-nord-9 hover:bg-nord-6 dark:hover:bg-gray-700 rounded-lg transition-colors"
@@ -1248,8 +864,8 @@ export const DeviceDetail = () => {
           </button>
         </div>
 
-        {/* Control Panel or Connected Devices */}
-        {deviceType?.features?.can_control ? (
+        {/* Control Panel */}
+        {deviceType?.features?.can_control && (
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Control Panel</h2>
             <div className="grid grid-cols-2 gap-4">
@@ -1288,7 +904,7 @@ export const DeviceDetail = () => {
                 <span className="mt-2 text-sm font-medium">Refresh</span>
               </button>
             </div>
-            
+
             <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
               <button
                 onClick={generateToken}
@@ -1299,241 +915,45 @@ export const DeviceDetail = () => {
               </button>
             </div>
           </div>
-        ) : (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Connected Devices</h2>
-              <button
-                onClick={() => setShowAddConnectedModal(true)}
-                className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors flex items-center gap-2"
-              >
-                <Settings size={16} />
-                Add Device
-              </button>
-            </div>
-            
-            {connectedDevices.length > 0 ? (
-              <div className="space-y-3">
-                {connectedDevices.map((connectedDevice) => (
-                  <div 
-                    key={connectedDevice.id} 
-                    onClick={() => handleConnectedDeviceClick(connectedDevice)}
-                    className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-                  >
-                    <div>
-                      <h3 className="font-medium text-gray-900 dark:text-white">{connectedDevice.name}</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{connectedDevice.type} • {connectedDevice.ip_address}</p>
-                    </div>
-                    <StatusBadge status={getStatusType(connectedDevice.device_state, false)} />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500 dark:text-gray-400">No connected devices</p>
-            )}
-          </div>
         )}
 
-        {/* Latest Reading - Shows connected device readings if available */}
+        {/* Latest Reading */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          {(() => {
-            const supportedDevices = connectedDevices.filter(d => d.hardware_type === 1);
-            
-            if (supportedDevices.length === 1) {
-              // Single connected device - show its readings
-              const connectedDevice = supportedDevices[0];
-              return (
-                <>
-                  <div className="mb-4">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Latest Reading</h2>
-                    <p className="text-xs text-primary-500 mt-1">From connected device: {connectedDevice.name}</p>
-                  </div>
-                  {loadingSingleReading ? (
-                    <div className="flex justify-center items-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
-                    </div>
-                  ) : singleConnectedReading ? (
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <span className="text-nord-3 dark:text-nord-4">Voltage</span>
-                        <span className="text-2xl font-bold text-nord-8">{(singleConnectedReading.voltage ?? 0).toFixed(2)}V</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-nord-3 dark:text-nord-4">Current</span>
-                        <span className="text-2xl font-bold text-success">{(singleConnectedReading.current ?? 0).toFixed(2)}A</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-nord-3 dark:text-nord-4">Power</span>
-                        <span className="text-2xl font-bold text-nord-15">{(singleConnectedReading.power ?? 0).toFixed(2)}W</span>
-                      </div>
-                      {singleConnectedReading.temperature && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-600 dark:text-gray-400">Temperature</span>
-                          <span className="text-2xl font-bold text-orange-600 dark:text-orange-400">{singleConnectedReading.temperature.toFixed(1)}°C</span>
-                        </div>
-                      )}
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                        {new Date(singleConnectedReading.timestamp).toLocaleString()}
-                      </div>
-                      <button
-                        onClick={() => navigate(`/devices/${connectedDevice.id}/history`)}
-                        className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors"
-                      >
-                        <Activity size={16} />
-                        See Older Readings
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="text-gray-500 dark:text-gray-400">No readings available from connected device</div>
-                  )}
-                </>
-              );
-            } else if (supportedDevices.length > 1) {
-              // Multiple connected devices - show expandable sections
-              return (
-                <>
-                  <div className="mb-4">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Connected Device Readings</h2>
-                    <p className="text-xs text-text-secondary mt-1">{supportedDevices.length} devices with latest data</p>
-                  </div>
-                  {loadingMultipleReadings ? (
-                    <div className="flex justify-center items-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {supportedDevices.map((device) => {
-                        const reading = multipleConnectedReadings[device.id];
-                        const isExpanded = expandedDevices[device.id];
-                        
-                        return (
-                          <div key={device.id} className="border border-border-primary rounded-lg overflow-hidden">
-                            <button
-                              onClick={() => setExpandedDevices(prev => ({ ...prev, [device.id]: !prev[device.id] }))}
-                              className="w-full px-4 py-3 bg-surface-secondary hover:bg-surface-tertiary flex items-center justify-between transition-colors"
-                            >
-                              <div className="flex items-center gap-3">
-                                <div className={`transform transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}>
-                                  <Activity size={18} className="text-primary-500" />
-                                </div>
-                                <div className="text-left">
-                                  <h3 className="font-semibold text-text-primary">{device.name}</h3>
-                                  <p className="text-xs text-text-tertiary">{device.type}</p>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                {reading && (
-                                  <div className="text-right mr-2">
-                                    <span className="text-xs font-semibold text-nord-8">{(reading.voltage ?? 0).toFixed(1)}V</span>
-                                    <span className="text-xs text-text-tertiary mx-1">•</span>
-                                    <span className="text-xs font-semibold text-success">{(reading.current ?? 0).toFixed(2)}A</span>
-                                    <span className="text-xs text-text-tertiary mx-1">•</span>
-                                    <span className="text-xs font-semibold text-nord-15">{(reading.power ?? 0).toFixed(1)}W</span>
-                                  </div>
-                                )}
-                                <svg
-                                  className={`w-5 h-5 text-text-secondary transform transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
-                              </div>
-                            </button>
-                            
-                            {isExpanded && (
-                              <div className="px-4 py-3 bg-surface-primary border-t border-border-primary">
-                                {reading ? (
-                                  <div className="space-y-3">
-                                    <div className="grid grid-cols-3 gap-3">
-                                      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
-                                        <p className="text-xs text-text-secondary mb-1">Voltage</p>
-                                        <p className="text-lg font-bold text-nord-8">{(reading.voltage ?? 0).toFixed(2)}V</p>
-                                      </div>
-                                      <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3">
-                                        <p className="text-xs text-text-secondary mb-1">Current</p>
-                                        <p className="text-lg font-bold text-success">{(reading.current ?? 0).toFixed(2)}A</p>
-                                      </div>
-                                      <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3">
-                                        <p className="text-xs text-text-secondary mb-1">Power</p>
-                                        <p className="text-lg font-bold text-nord-15">{(reading.power ?? 0).toFixed(2)}W</p>
-                                      </div>
-                                    </div>
-                                    {reading.temperature && (
-                                      <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-3">
-                                        <p className="text-xs text-text-secondary mb-1">Temperature</p>
-                                        <p className="text-lg font-bold text-orange-600 dark:text-orange-400">{reading.temperature.toFixed(1)}°C</p>
-                                      </div>
-                                    )}
-                                    <div className="text-xs text-text-tertiary">
-                                      Last updated: {new Date(reading.timestamp).toLocaleString()}
-                                    </div>
-                                    <button
-                                      onClick={() => navigate(`/devices/${device.id}/history`)}
-                                      className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors text-sm"
-                                    >
-                                      <Activity size={14} />
-                                      View Full History
-                                    </button>
-                                  </div>
-                                ) : (
-                                  <div className="text-center py-4">
-                                    <p className="text-text-secondary text-sm">No readings available</p>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </>
-              );
-            } else {
-              // No supported connected devices - show parent device readings
-              return (
-                <>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Latest Reading</h2>
-                  {latestReading ? (
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <span className="text-nord-3 dark:text-nord-4">Voltage</span>
-                        <span className="text-2xl font-bold text-nord-8">{(latestReading.voltage ?? 0).toFixed(2)}V</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-nord-3 dark:text-nord-4">Current</span>
-                        <span className="text-2xl font-bold text-success">{(latestReading.current ?? 0).toFixed(2)}A</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-nord-3 dark:text-nord-4">Power</span>
-                        <span className="text-2xl font-bold text-nord-15">{(latestReading.power ?? 0).toFixed(2)}W</span>
-                      </div>
-                      {latestReading.temperature && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-600 dark:text-gray-400">Temperature</span>
-                          <span className="text-2xl font-bold text-orange-600 dark:text-orange-400">{latestReading.temperature.toFixed(1)}°C</span>
-                        </div>
-                      )}
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                        {new Date(latestReading.timestamp).toLocaleString()}
-                      </div>
-                      <button
-                        onClick={() => navigate(`/devices/${id}/history`)}
-                        className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors"
-                      >
-                        <Activity size={16} />
-                        See Older Readings
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="text-gray-500 dark:text-gray-400">No readings available</div>
-                  )}
-                </>
-              );
-            }
-          })()}
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Latest Reading</h2>
+          {latestReading ? (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-nord-3 dark:text-nord-4">Voltage</span>
+                <span className="text-2xl font-bold text-nord-8">{(latestReading.voltage ?? 0).toFixed(2)}V</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-nord-3 dark:text-nord-4">Current</span>
+                <span className="text-2xl font-bold text-success">{(latestReading.current ?? 0).toFixed(2)}A</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-nord-3 dark:text-nord-4">Power</span>
+                <span className="text-2xl font-bold text-nord-15">{(latestReading.power ?? 0).toFixed(2)}W</span>
+              </div>
+              {latestReading.temperature && (
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Temperature</span>
+                  <span className="text-2xl font-bold text-orange-600 dark:text-orange-400">{latestReading.temperature.toFixed(1)}°C</span>
+                </div>
+              )}
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                {new Date(latestReading.timestamp).toLocaleString()}
+              </div>
+              <button
+                onClick={() => navigate(`/devices/${id}/history`)}
+                className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors"
+              >
+                <Activity size={16} />
+                See Older Readings
+              </button>
+            </div>
+          ) : (
+            <div className="text-gray-500 dark:text-gray-400">No readings available</div>
+          )}
         </div>
       </div>
 
