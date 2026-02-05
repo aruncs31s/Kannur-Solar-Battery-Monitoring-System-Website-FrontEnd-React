@@ -1,5 +1,5 @@
 import { container } from '../application/di/container';
-import { CreateDeviceDTO, CreateSolarDeviceDTO, CreateSensorDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, SolarDeviceView } from '../domain/entities/Device';
+import { CreateDeviceDTO, CreateSolarDeviceDTO, CreateSensorDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, SolarDeviceView, UpdateDeviceDTO } from '../domain/entities/Device';
 import { DeviceTypeDTO } from '../domain/entities/Device';
 
 export interface CreateDeviceTypeDTO {
@@ -111,5 +111,17 @@ export const devicesAPI = {
     }
 
     return await response.json();
+  },
+
+  getDeviceType: async (deviceId: number): Promise<DeviceTypeDTO> => {
+    return await container.getGetDeviceTypeUseCase().execute(deviceId);
+  },
+
+  updateDevice: async (deviceId: number, data: UpdateDeviceDTO): Promise<DeviceResponseDTO> => {
+    return await container.getUpdateDeviceUseCase().execute(deviceId, data);
+  },
+
+  controlDevice: async (deviceId: number, action: number): Promise<{ success: boolean; message: string }> => {
+    return await container.getControlDeviceUseCase().execute(deviceId, action);
   },
 };

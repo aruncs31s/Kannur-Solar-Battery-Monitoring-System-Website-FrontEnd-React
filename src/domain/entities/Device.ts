@@ -78,6 +78,19 @@ export interface DeviceSearchResultDTO {
 export interface DeviceTypeDTO {
   id: number;
   name: string;
+  features?: {
+    can_control?: boolean;
+  };
+}
+
+export interface UpdateDeviceDTO {
+  name: string;
+  type: number;
+  ip_address: string;
+  mac_address: string;
+  firmware_version_id: number;
+  address: string;
+  city: string;
 }
 
 export interface IDeviceTypesRepository {

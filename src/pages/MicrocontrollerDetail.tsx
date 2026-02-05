@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Power, PowerOff, Settings, RefreshCw, Activity, AlertCircle, TrendingUp, Calendar, History, Copy, Check, X, Edit, Plus } from 'lucide-react';
+import { Activity, AlertCircle, TrendingUp, Calendar, Copy, Check, X, Settings } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
 import { readingsAPI } from '../api/readings';
 import { devicesAPI } from '../api/devices';
-import { StatusBadge } from '../components/Cards';
-import { FormField, FormError } from '../components/FormComponents';
+import { UpdateDeviceModal } from '../components/UpdateDeviceModal';
+import { DeviceControlPanel } from '../components/DeviceControlPanel';
+import { DeviceInfoCard } from '../components/DeviceInfoCard';
 import { Reading } from '../domain/entities/Reading';
 
 const formatMetric = (value: number | null | undefined, unit: string) => {
@@ -32,8 +33,8 @@ interface DeviceInfo {
 interface DeviceType {
   id: number;
   name: string;
-  features: {
-    can_control: boolean;
+  features?: {
+    can_control?: boolean;
   };
 }
 
@@ -115,15 +116,8 @@ export const MCDeviceDetail = () => {
   const loadDeviceType = async () => {
     if (!id) return;
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8080/api/devices/${id}/type`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      console.log(response)
-      if (!response.ok) throw new Error('Failed to load device type');
-      
-      const data = await response.json();
-      setDeviceType(data.device_type);
+      const data = await devicesAPI.getDeviceType(parseInt(id));
+      setDeviceType(data);
     } catch (err) {
       console.error('Failed to load device type:', err);
     }
@@ -295,26 +289,12 @@ export const MCDeviceDetail = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:8080/api/devices/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(updateForm),
-      });
-
-      const data = await response.json();
-      
-      if (response.ok) {
-        setUpdateMessage('Device updated successfully!');
-        setTimeout(() => {
-          loadDeviceData();
-          closeUpdateModal();
-        }, 1500);
-      } else {
-        setUpdateMessage(data.error || 'Failed to update device');
-      }
+      await devicesAPI.updateDevice(parseInt(id!), updateForm);
+      setUpdateMessage('Device updated successfully!');
+      setTimeout(() => {
+        loadDeviceData();
+        closeUpdateModal();
+      }, 1500);
     } catch (err) {
       setUpdateMessage('Failed to update device');
       console.error(err);
@@ -330,18 +310,9 @@ export const MCDeviceDetail = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:8080/api/devices/${id}/control`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ action }),
-      });
-
-      const data = await response.json();
+      const response = await devicesAPI.controlDevice(parseInt(id!), action);
       
-      if (response.ok) {
+      if (response.success) {
         const actionNames: { [key: number]: string } = {
           4: 'turned on',
           5: 'turned off',
@@ -353,7 +324,7 @@ export const MCDeviceDetail = () => {
           setControlMessage('');
         }, 2000);
       } else {
-        setControlMessage(data.error || 'Control action failed');
+        setControlMessage(response.message || 'Control action failed');
       }
     } catch (err) {
       setControlMessage('Failed to control device');
@@ -664,258 +635,38 @@ export const MCDeviceDetail = () => {
       )}
 
       {/* Update Device Modal */}
-      {showUpdateModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-surface-primary rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-border-primary flex justify-between items-center">
-              <h3 className="text-2xl font-bold text-text-primary">Update Device</h3>
-              <button
-                onClick={closeUpdateModal}
-                className="text-text-secondary hover:text-text-primary transition-colors"
-              >
-                <X size={24} />
-              </button>
-            </div>
-            
-            <form onSubmit={handleUpdateDevice} className="p-6 space-y-4">
-              {updateMessage && (
-                <div className={`p-4 rounded-lg ${
-                  updateMessage.includes('success') 
-                    ? 'bg-success/10 text-success' 
-                    : 'bg-error/10 text-error'
-                }`}>
-                  {updateMessage}
-                </div>
-              )}
-
-              <div>
-                <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Device Name *
-                </label>
-                <input
-                  type="text"
-                  value={updateForm.name}
-                  onChange={(e) => setUpdateForm({ ...updateForm, name: e.target.value })}
-                  required
-                  className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Enter device name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Device Type
-                </label>
-                <select
-                  value={updateForm.type}
-                  onChange={(e) => setUpdateForm({ ...updateForm, type: parseInt(e.target.value) })}
-                  className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                >
-                  <option value="">Select device type</option>
-                  {deviceTypes.map((type) => (
-                    <option key={type.id} value={type.id}>
-                      {type.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  IP Address
-                </label>
-                <input
-                  type="text"
-                  value={updateForm.ip_address}
-                  onChange={(e) => setUpdateForm({ ...updateForm, ip_address: e.target.value })}
-                  className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="192.168.1.100"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  MAC Address
-                </label>
-                <input
-                  type="text"
-                  value={updateForm.mac_address}
-                  onChange={(e) => setUpdateForm({ ...updateForm, mac_address: e.target.value })}
-                  className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="AA:BB:CC:DD:EE:FF"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Firmware Version ID
-                </label>
-                <input
-                  type="number"
-                  value={updateForm.firmware_version_id}
-                  onChange={(e) => setUpdateForm({ ...updateForm, firmware_version_id: parseInt(e.target.value) })}
-                  className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Enter firmware version ID"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Address
-                </label>
-                <input
-                  type="text"
-                  value={updateForm.address}
-                  onChange={(e) => setUpdateForm({ ...updateForm, address: e.target.value })}
-                  className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="123 Street Name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  City
-                </label>
-                <input
-                  type="text"
-                  value={updateForm.city}
-                  onChange={(e) => setUpdateForm({ ...updateForm, city: e.target.value })}
-                  className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Enter city"
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={closeUpdateModal}
-                  className="px-6 py-2 bg-surface-secondary hover:bg-surface-tertiary text-text-primary rounded-lg font-medium transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors"
-                >
-                  Update Device
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <UpdateDeviceModal
+        isOpen={showUpdateModal}
+        onClose={closeUpdateModal}
+        onSubmit={handleUpdateDevice}
+        formData={updateForm}
+        onFormChange={setUpdateForm}
+        deviceTypes={deviceTypes}
+        message={updateMessage}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* Device Info */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Device Information</h2>
-            <div className="flex gap-2">
-             
-              <button
-                onClick={openUpdateModal}
-                className="p-2 text-nord-8 hover:text-nord-9 hover:bg-nord-6 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                title="Update Device"
-              >
-                <Edit size={20} />
-              </button>
-            </div>
-          </div>
-          <div className="space-y-3">
-            <div>
-              <span className="text-gray-600 dark:text-gray-400 text-sm">Status</span>
-              <div className="mt-1 space-y-1">
-                <StatusBadge status={getStatusType(device.device_state, deviceOnline)} />
-                {latestReading && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Last reading: {new Date(latestReading.timestamp).toLocaleString()}
-                  </p>
-                )}
-              </div>
-            </div>
-            <div>
-              <span className="text-gray-600 dark:text-gray-400 text-sm">Type</span>
-              <p className="text-gray-900 dark:text-white font-medium">{device.type}</p>
-            </div>
-            <div>
-              <span className="text-gray-600 dark:text-gray-400 text-sm">IP Address</span>
-              <p className="text-gray-900 dark:text-white font-medium">{device.ip_address}</p>
-            </div>
-            <div>
-              <span className="text-gray-600 dark:text-gray-400 text-sm">MAC Address</span>
-              <p className="text-gray-900 dark:text-white font-medium">{device.mac_address}</p>
-            </div>
-            <div>
-              <span className="text-gray-600 dark:text-gray-400 text-sm">Firmware</span>
-              <p className="text-gray-900 dark:text-white font-medium">{device.firmware_version}</p>
-            </div>
-            <div>
-              <span className="text-gray-600 dark:text-gray-400 text-sm">Location</span>
-              <p className="text-gray-900 dark:text-white font-medium">{device.address}, {device.city}</p>
-            </div>
-          </div>
-          <button
-            onClick={() => navigate(`/devices/${id}/state-history`)}
-            className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2 bg-nord-8 hover:bg-nord-9 text-white rounded-lg transition-colors"
-          >
-            <History size={16} />
-            View State History
-          </button>
-        </div>
+        <DeviceInfoCard
+          device={device}
+          status={getStatusType(device.device_state, deviceOnline)}
+          latestReading={latestReading}
+          onUpdate={openUpdateModal}
+          onViewHistory={() => navigate(`/devices/${id}/state-history`)}
+        />
 
         {/* Control Panel */}
-        {deviceType?.features?.can_control && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Control Panel</h2>
-            <div className="grid grid-cols-2 gap-4">
-              <button
-                onClick={() => controlDevice(4)}
-                disabled={device.device_state === 1}
-                className="flex flex-col items-center justify-center p-4 bg-success hover:bg-success/80 disabled:bg-nord-3 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
-              >
-                <Power size={24} />
-                <span className="mt-2 text-sm font-medium">Turn On</span>
-              </button>
-              <button
-                onClick={() => controlDevice(5)}
-                disabled={device.device_state === 2}
-                className="flex flex-col items-center justify-center p-4 bg-error hover:bg-error/80 disabled:bg-nord-3 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
-              >
-                <PowerOff size={24} />
-                <span className="mt-2 text-sm font-medium">Turn Off</span>
-              </button>
-              <button
-                onClick={() => controlDevice(6)}
-                disabled={device.device_state === 3 || device.device_state === 4}
-                className="flex flex-col items-center justify-center p-4 bg-nord-8 hover:bg-nord-9 disabled:bg-nord-3 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
-              >
-                <Settings size={24} />
-                <span className="mt-2 text-sm font-medium">Configure</span>
-              </button>
-              <button
-                onClick={() => {
-                  loadDeviceData();
-                  loadReadings();
-                }}
-                className="flex flex-col items-center justify-center p-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
-              >
-                <RefreshCw size={24} />
-                <span className="mt-2 text-sm font-medium">Refresh</span>
-              </button>
-            </div>
-
-            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <button
-                onClick={generateToken}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-              >
-                <Activity size={20} />
-                Generate Device Token
-              </button>
-            </div>
-          </div>
-        )}
+        <DeviceControlPanel
+          deviceState={device.device_state}
+          canControl={deviceType?.features?.can_control || false}
+          onControl={controlDevice}
+          onRefresh={() => {
+            loadDeviceData();
+            loadReadings();
+          }}
+          onGenerateToken={generateToken}
+        />
 
         {/* Latest Reading */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">

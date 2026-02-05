@@ -1,5 +1,5 @@
 import { IDeviceRepository } from '../../domain/repositories/IDeviceRepository';
-import {  CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO } from '../../domain/entities/Device';
+import {  CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO } from '../../domain/entities/Device';
 import { DeviceTokenResponse } from '../../api/devices';
 import { httpClient } from '../http/HttpClient';
 
@@ -95,5 +95,46 @@ export class DeviceRepository implements IDeviceRepository {
 
   async generateDeviceToken(deviceId: number): Promise<DeviceTokenResponse> {
     return await httpClient.post<DeviceTokenResponse>('/device-auth/token', { device_id: deviceId });
+  }
+
+  async getDeviceType(deviceId: number): Promise<DeviceTypeDTO> {
+    const response = await httpClient.get<{ device_type: DeviceTypeDTO }>(`/devices/${deviceId}/type`);
+    return {
+      id: response.device_type.id,
+      name: response.device_type.name,
+      features: response.device_type.features,
+    };
+  }
+
+  async updateDevice(deviceId: number, data: UpdateDeviceDTO): Promise<DeviceResponseDTO> {
+    const dto = await httpClient.put<any>(`/devices/${deviceId}`, {
+      name: data.name,
+      type: data.type,
+      ip_address: data.ip_address,
+      mac_address: data.mac_address,
+      firmware_version_id: data.firmware_version_id,
+      address: data.address,
+      city: data.city,
+    });
+    return {
+      id: dto.id,
+      name: dto.name || '',
+      type: dto.type || '',
+      ip_address: dto.ipAddress || dto.ip_address || '',
+      mac_address: dto.macAddress || dto.mac_address || '',
+      firmware_version: dto.firmwareVersion || dto.firmware_version || '',
+      version_id: data.firmware_version_id || 0,
+      address: dto.address || '',
+      city: dto.city || '',
+      device_state: dto.deviceState || dto.device_state || 0,
+    };
+  }
+
+  async controlDevice(deviceId: number, action: number): Promise<{ success: boolean; message: string }> {
+    const response = await httpClient.post<{ success: boolean; message: string }>(
+      `/devices/${deviceId}/control`,
+      { action }
+    );
+    return response;
   }
 }
