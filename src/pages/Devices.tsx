@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react';
 import { useDevicesStore } from '../store/devicesStore';
 import { devicesAPI } from '../api/devices';
 import { StatsCard } from '../components/Cards';
-import { AddDeviceForm } from '../components/AddDeviceForm';
 import { AllDevicesSection } from '../components/AllDevicesSection';
-import { Package, CheckCircle, Zap, Battery } from 'lucide-react';
+import { Package, CheckCircle, Zap, Battery, Plus } from 'lucide-react';
 import { FormError, FormSuccess } from '../components/FormComponents';
 import { useSearchStore } from '../store/searchStore';
+import { AdvancedDeviceAddModal } from '../components/AdvancedDeviceAddModal';
+import { PageHeader } from '../components/PageHeader';
 
 export const Devices = () => {
   const { devices, setDevices } = useDevicesStore();
@@ -16,6 +17,7 @@ export const Devices = () => {
   const [deviceTypes, setDeviceTypes] = useState<Array<{ id: number; name: string }>>([]);
   const { query: searchQuery } = useSearchStore();
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {
     fetchDevices();
@@ -64,6 +66,7 @@ export const Devices = () => {
 
   const handleDeviceAdded = (newDevice: any) => {
     setDevices([...devices, newDevice]);
+    fetchDevices(); // Refresh to get updated data
   };
 
 
@@ -78,18 +81,18 @@ export const Devices = () => {
   return (
    
     <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-4xl font-bold text-gray-800">Devices</h1>
-          <p className="text-gray-600 mt-2">Manage and monitor your ESP32 devices</p>
-        </div>
-        <AddDeviceForm
-          deviceTypes={deviceTypes}
-          onDeviceAdded={handleDeviceAdded}
-          onError={setError}
-          onSuccess={setSuccess}
-        />
-      </div>
+      <PageHeader
+        title="Devices"
+        description="Manage and monitor your ESP32 devices"
+      >
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
+        >
+          <Plus size={20} />
+          Add Device
+        </button>
+      </PageHeader>
 
       {error && <FormError message={error} />}
       {success && <FormSuccess message={success} />}
@@ -111,6 +114,16 @@ export const Devices = () => {
         title="All Devices" 
         showViewAllLink={false} 
         maxDevices={(searchQuery ? searchResults : devices).length} 
+      />
+
+      {/* Add Device Modal */}
+      <AdvancedDeviceAddModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        deviceTypes={deviceTypes}
+        onDeviceAdded={handleDeviceAdded}
+        onError={setError}
+        onSuccess={setSuccess}
       />
     </div>
   );
