@@ -4,17 +4,16 @@ import { useDevicesStore } from '../store/devicesStore';
 import { devicesAPI } from '../api/devices';
 import { usersAPI } from '../api/users';
 import { StatsCard } from '../components/Cards';
+import { SystemHealth } from '../components/SystemHealth';
+import { ManagementModules } from '../components/ManagementModules';
 import {
   Package,
-  Activity,
-  Settings,
   CheckCircle,
   AlertTriangle,
   XCircle,
   Users,
-  Cpu,
-  Database,
-  UserCheck,
+  Settings,
+  Activity,
 } from 'lucide-react';
 
 export const Admin = () => {
@@ -128,91 +127,10 @@ export const Admin = () => {
       </div>
 
       {/* Management Modules */}
-      <div className="space-y-6">
-        <h2 className="text-2xl font-bold text-text-primary">Management Modules</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Link
-            to="/admin/devices"
-            className="bg-surface-primary rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 border border-border-primary cursor-pointer group"
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <p className="text-text-tertiary text-sm font-medium mb-2">Device Management</p>
-                <p className="text-2xl font-bold text-text-primary mb-1">Manage Devices</p>
-                <p className="text-xs text-text-secondary">Monitor and control all system devices</p>
-              </div>
-              <div className="bg-blue-500/10 text-blue-500 p-3 rounded-xl group-hover:bg-blue-500/20 transition-colors">
-                <Database size={32} />
-              </div>
-            </div>
-          </Link>
-
-          <Link
-            to="/admin/users"
-            className="bg-surface-primary rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 border border-border-primary cursor-pointer group"
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <p className="text-text-tertiary text-sm font-medium mb-2">User Management</p>
-                <p className="text-2xl font-bold text-text-primary mb-1">Manage Users</p>
-                <p className="text-xs text-text-secondary">Control user accounts and permissions</p>
-              </div>
-              <div className="bg-purple-500/10 text-purple-500 p-3 rounded-xl group-hover:bg-purple-500/20 transition-colors">
-                <UserCheck size={32} />
-              </div>
-            </div>
-          </Link>
-
-          <Link
-            to="/admin/device-types"
-            className="bg-surface-primary rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 border border-border-primary cursor-pointer group"
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <p className="text-text-tertiary text-sm font-medium mb-2">Device Type Management</p>
-                <p className="text-2xl font-bold text-text-primary mb-1">Manage Types</p>
-                <p className="text-xs text-text-secondary">Configure device types and hardware</p>
-              </div>
-              <div className="bg-green-500/10 text-green-500 p-3 rounded-xl group-hover:bg-green-500/20 transition-colors">
-                <Cpu size={32} />
-              </div>
-            </div>
-          </Link>
-        </div>
-      </div>
+      <ManagementModules />
 
       {/* System Health */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-surface-primary border border-border-primary rounded-lg p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <Activity className="text-success" size={24} />
-            <h3 className="text-lg font-semibold text-text-primary">System Health</h3>
-          </div>
-          <div className="space-y-2 text-sm text-text-secondary">
-            <p>
-              • {Math.round((stats.activeDevices / (stats.totalDevices || 1)) * 100)}% devices
-              operational
-            </p>
-            <p>• API connection active</p>
-            <p>• Database synchronized</p>
-          </div>
-        </div>
-
-        <div className="bg-surface-primary border border-border-primary rounded-lg p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <Settings className="text-primary-500" size={24} />
-            <h3 className="text-lg font-semibold text-text-primary">Quick Actions</h3>
-          </div>
-          <div className="space-y-2">
-            <button className="w-full bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded font-medium transition-colors text-sm">
-              Export Data
-            </button>
-            <button className="w-full bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded font-medium transition-colors text-sm">
-              Generate Report
-            </button>
-          </div>
-        </div>
-      </div>
+      <SystemHealth stats={stats} />
     </div>
   );
 };

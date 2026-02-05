@@ -1,5 +1,5 @@
 import { container } from '../application/di/container';
-import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO } from '../domain/entities/Device';
+import { CreateDeviceDTO, CreateSolarDeviceDTO, CreateSensorDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO } from '../domain/entities/Device';
 import { DeviceTypeDTO } from '../domain/entities/Device';
 
 export interface CreateDeviceTypeDTO {
@@ -53,6 +53,23 @@ export const devicesAPI = {
 
   createSolarDevice: async (data: CreateSolarDeviceDTO): Promise<DeviceResponseDTO> => {
     return await container.getCreateSolarDeviceUseCase().execute(data);
+  },
+
+  createSensorDevice: async (data: CreateSensorDeviceDTO): Promise<DeviceResponseDTO> => {
+    const response = await fetch('/api/devices/sensors', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create sensor device');
+    }
+
+    return await response.json();
   },
 
   searchDevices: async (query: string): Promise<DeviceResponseDTO[]> => {

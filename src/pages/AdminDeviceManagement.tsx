@@ -3,11 +3,13 @@ import { Link } from 'react-router-dom';
 import { useDevicesStore } from '../store/devicesStore';
 import { devicesAPI } from '../api/devices';
 import { StatusBadge } from '../components/Cards';
+import { AddSensorDeviceModal } from '../components/AddSensorDeviceModal';
 import {
   Package,
   Activity,
   Settings,
   ArrowLeft,
+  Plus,
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -19,6 +21,9 @@ export const AdminDeviceManagement = () => {
     inactiveDevices: 0,
     errorDevices: 0,
   });
+  const [isAddSensorModalOpen, setIsAddSensorModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     fetchDeviceData();
@@ -49,6 +54,19 @@ export const AdminDeviceManagement = () => {
     }
   };
 
+  const handleSensorDeviceAdded = (_device: any) => {
+    fetchDeviceData(); // Refresh the device list
+  };
+
+  const handleModalError = (error: string) => {
+    setErrorMessage(error);
+  };
+
+  const handleModalSuccess = (message: string) => {
+    setSuccessMessage(message);
+    setTimeout(() => setSuccessMessage(''), 3000);
+  };
+
   const chartData = [
     {
       name: 'Devices',
@@ -73,6 +91,13 @@ export const AdminDeviceManagement = () => {
           <p className="text-text-secondary mt-2">Monitor and manage all system devices</p>
         </div>
         <div className="flex gap-4">
+          <button
+            onClick={() => setIsAddSensorModalOpen(true)}
+            className="bg-primary hover:opacity-90 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
+          >
+            <Plus size={20} />
+            Add Sensor Device
+          </button>
           <Link
             to="/versions"
             className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
@@ -96,6 +121,18 @@ export const AdminDeviceManagement = () => {
           </button>
         </div>
       </div>
+
+      {/* Status Messages */}
+      {errorMessage && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
+          {errorMessage}
+        </div>
+      )}
+      {successMessage && (
+        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg">
+          {successMessage}
+        </div>
+      )}
 
       {/* Device Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -227,6 +264,15 @@ export const AdminDeviceManagement = () => {
           </div>
         )}
       </div>
+
+      {/* Add Sensor Device Modal */}
+      <AddSensorDeviceModal
+        isOpen={isAddSensorModalOpen}
+        onClose={() => setIsAddSensorModalOpen(false)}
+        onDeviceAdded={handleSensorDeviceAdded}
+        onError={handleModalError}
+        onSuccess={handleModalSuccess}
+      />
     </div>
   );
 };

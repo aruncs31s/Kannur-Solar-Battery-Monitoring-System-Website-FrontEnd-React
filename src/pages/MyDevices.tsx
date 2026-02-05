@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Plus} from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { devicesAPI } from '../api/devices';
 import { DeviceResponseDTO } from '../domain/entities/Device';
 import { useSearchStore } from '../store/searchStore';
@@ -99,13 +98,13 @@ export const MyDevices = () => {
         title="My Devices"
         description="Monitor and manage your solar battery monitoring devices"
       >
-        <button
+        {/* <button
           onClick={() => setShowCreateModal(true)}
           className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
         >
           <Plus size={20} />
           Add Device
-        </button>
+        </button> */}
         <button
           onClick={() => setShowSolarModal(true)}
           className="bg-success hover:opacity-90 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"

@@ -1,4 +1,4 @@
-import { IDeviceTypesRepository, DeviceTypeDTO } from '../../entities/Device';
+import { IDeviceTypesRepository, DeviceTypeDTO } from '../../../domain/entities/Device';
 
 export class GetHardwareDeviceTypesUseCase {
   constructor(private deviceTypesRepository: IDeviceTypesRepository) {}

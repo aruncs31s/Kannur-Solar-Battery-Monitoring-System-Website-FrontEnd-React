@@ -178,7 +178,6 @@ export const AddSolarDeviceModal = ({ isOpen, onClose, onDeviceAdded, onError, o
                   onBlur={() => setTimeout(() => setShowMicrocontrollerDropdown(false), 200)}
                   placeholder="Search microcontrollers..."
                   className="w-full px-4 py-2 pl-10 border border-border-primary rounded-lg focus:ring-2 focus:ring-primary-500 bg-surface-secondary text-text-primary"
-                  required
                 />
                 <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary" />
               </div>

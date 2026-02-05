@@ -49,6 +49,16 @@ export interface CreateSolarDeviceDTO {
   connected_microcontroller_id: number;
 }
 
+export interface CreateSensorDeviceDTO {
+  name: string;
+  type: number;
+  ip_address?: string;
+  mac_address?: string;
+  firmware_version_id?: number;
+  address?: string;
+  city?: string;
+}
+
 export interface DeviceSearchResultDTO {
   id: number;
   name: string;

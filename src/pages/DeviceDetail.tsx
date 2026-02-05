@@ -138,7 +138,7 @@ export const DeviceDetail = () => {
       const response = await fetch(`http://localhost:8080/api/devices/${id}/type`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
-      
+      console.log(response)
       if (!response.ok) throw new Error('Failed to load device type');
       
       const data = await response.json();
