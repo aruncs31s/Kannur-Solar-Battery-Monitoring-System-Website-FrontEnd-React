@@ -6,7 +6,7 @@ import { useSearchStore } from '../store/searchStore';
 import { AddSolarDeviceModal } from '../components/AddSolarDeviceModal';
 import { AllDevicesSection } from '../components/AllDevicesSection';
 import { StatsCard } from '../components/Cards';
-import { FormError, FormField } from '../components/FormComponents';
+import { FormError, FormField, FormSuccess } from '../components/FormComponents';
 import {
   HardDrive,
   Activity,
@@ -19,7 +19,6 @@ import {
   Plus,
   X,
 } from 'lucide-react';
-import { AddDeviceForm } from '../components/AddDeviceForm';
 
 export const MyDevices = () => {
   const [devices, setDevices] = useState<DeviceResponseDTO[]>([]);
@@ -28,11 +27,10 @@ export const MyDevices = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showSolarModal, setShowSolarModal] = useState(false);
   const [deviceTypes, setDeviceTypes] = useState<Array<{ id: number; name: string }>>([]);
-  const { query: searchQuery, setQuery: setSearchQuery } = useSearchStore();
+  const { query: searchQuery } = useSearchStore();
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     name: '',
-    uid: '',
     type: 1,
     ip_address: '',
     mac_address: '',
@@ -42,10 +40,6 @@ export const MyDevices = () => {
   });
   const [createError, setCreateError] = useState('');
   const [createLoading, setCreateLoading] = useState(false);
-  const [selectedDevice, setSelectedDevice] = useState<DeviceResponseDTO | null>(null);
- const handleDeviceAdded = (newDevice: any) => {
-    setDevices([...devices, newDevice]);
-  };
   const [success, setSuccess] = useState('');
 
 
@@ -107,8 +101,8 @@ export const MyDevices = () => {
     e.preventDefault();
     setCreateError('');
 
-    if (!formData.name || !formData.uid) {
-      setCreateError('Please fill in the device name and UID');
+    if (!formData.name) {
+      setCreateError('Please fill in the device name');
       return;
     }
 
@@ -119,7 +113,6 @@ export const MyDevices = () => {
       setShowCreateModal(false);
       setFormData({
         name: '',
-        uid: '',
         type: 1,
         ip_address: '',
         mac_address: '',
@@ -160,21 +153,13 @@ export const MyDevices = () => {
           <p className="text-text-secondary mt-2">Monitor and manage your solar battery monitoring devices</p>
         </div>
         <div className="flex gap-3">
-        
-           <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-800">Devices</h1>
-            <p className="text-gray-600 mt-2">Manage and monitor your ESP32 devices</p>
-          </div>
-          <AddDeviceForm
-            deviceTypes={deviceTypes}
-            onDeviceAdded={handleDeviceAdded}
-            onError={setError}
-            onSuccess={setSuccess}
-          />
-        </div>
-         
-         
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
+          >
+            <Plus size={20} />
+            Add Device
+          </button>
           <button
             onClick={() => setShowSolarModal(true)}
             className="bg-success hover:opacity-90 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
@@ -186,6 +171,7 @@ export const MyDevices = () => {
       </div>
 
       {error && <FormError message={error} />}
+      {success && <FormSuccess message={success} />}
 
        
 
@@ -274,10 +260,13 @@ export const MyDevices = () => {
 
       {/* Create Device Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-surface-primary rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center p-6 border-b border-border-primary">
-              <h3 className="text-xl font-bold text-text-primary">Add New Device</h3>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-border-primary flex justify-between items-center">
+              <h3 className="text-2xl font-bold text-text-primary flex items-center gap-2">
+                <Plus size={24} />
+                Add New Device
+              </h3>
               <button
                 onClick={() => setShowCreateModal(false)}
                 className="text-text-secondary hover:text-text-primary transition-colors"
@@ -286,100 +275,92 @@ export const MyDevices = () => {
               </button>
             </div>
 
-            <form onSubmit={handleCreateDevice} className="p-6 space-y-4">
+            <form onSubmit={handleCreateDevice} className="p-6 space-y-6">
               {createError && <FormError message={createError} />}
 
-              <FormField
-                label="Device Name"
-                name="name"
-                type="text"
-                value={formData.name}
-                onChange={handleInputChange}
-                placeholder="Solar Monitor 1"
-                required
-              />
-
-              <FormField
-                label="UID"
-                name="uid"
-                type="text"
-                value={formData.uid}
-                onChange={handleInputChange}
-                placeholder="unique-device-id"
-                required
-              />
-
-              <FormField
-                label="MAC Address"
-                name="mac_address"
-                type="text"
-                value={formData.mac_address}
-                onChange={handleInputChange}
-                placeholder="AA:BB:CC:DD:EE:FF"
-              />
-
-              <FormField
-                label="IP Address"
-                name="ip_address"
-                type="text"
-                value={formData.ip_address}
-                onChange={handleInputChange}
-                placeholder="192.168.1.100"
-              />
-
-              <FormField
-                label="Address"
-                name="address"
-                type="text"
-                value={formData.address}
-                onChange={handleInputChange}
-                placeholder="123 Main Street"
-              />
-
-              <FormField
-                label="City"
-                name="city"
-                type="text"
-                value={formData.city}
-                onChange={handleInputChange}
-                placeholder="Kannur"
-              />
-
-              <div>
-                <label className="block text-sm font-medium text-text-primary mb-2">
-                  Device Type
-                </label>
-                <select
-                  name="type"
-                  value={formData.type}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  label="Device Name"
+                  name="name"
+                  type="text"
+                  value={formData.name}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-border-primary rounded-lg bg-surface-primary text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="Solar Monitor 1"
                   required
-                >
-                  <option value="">Select device type</option>
-                  {deviceTypes.map((type) => (
-                    <option key={type.id} value={type.id}>
-                      {type.name}
-                    </option>
-                  ))}
-                </select>
+                />
+
+                <FormField
+                  label="MAC Address"
+                  name="mac_address"
+                  type="text"
+                  value={formData.mac_address}
+                  onChange={handleInputChange}
+                  placeholder="AA:BB:CC:DD:EE:FF"
+                />
+
+                <FormField
+                  label="IP Address"
+                  name="ip_address"
+                  type="text"
+                  value={formData.ip_address}
+                  onChange={handleInputChange}
+                  placeholder="192.168.1.100"
+                />
+
+                <FormField
+                  label="Address"
+                  name="address"
+                  type="text"
+                  value={formData.address}
+                  onChange={handleInputChange}
+                  placeholder="123 Main Street"
+                />
+
+                <FormField
+                  label="City"
+                  name="city"
+                  type="text"
+                  value={formData.city}
+                  onChange={handleInputChange}
+                  placeholder="Kannur"
+                />
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-text-secondary mb-2">
+                    Device Type
+                  </label>
+                  <select
+                    name="type"
+                    value={formData.type}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-border-primary rounded-lg focus:ring-2 focus:ring-primary-500 bg-surface-secondary text-text-primary"
+                    required
+                  >
+                    <option value="">Select device type</option>
+                    {deviceTypes.map((type) => (
+                      <option key={type.id} value={type.id}>
+                        {type.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="submit"
-                  disabled={createLoading}
-                  className="flex-1 bg-primary-500 hover:bg-primary-600 disabled:bg-surface-secondary disabled:text-text-secondary text-white font-bold py-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
-                >
-                  {createLoading ? 'Creating...' : 'Create Device'}
-                  {!createLoading && <Plus size={20} />}
-                </button>
+              <div className="flex justify-end gap-3 pt-4 border-t border-border-primary">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-6 py-3 border border-border-primary rounded-lg font-medium text-text-primary hover:bg-surface-secondary transition-colors"
+                  className="px-6 py-2 bg-surface-secondary hover:bg-surface-tertiary text-text-primary rounded-lg font-medium transition-colors"
                 >
                   Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={createLoading}
+                  className="px-6 py-2 bg-primary-500 hover:bg-primary-600 disabled:bg-surface-secondary disabled:text-text-secondary text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                >
+                  <Plus size={20} />
+                  {createLoading ? 'Creating...' : 'Create Device'}
                 </button>
               </div>
             </form>
@@ -396,7 +377,7 @@ export const MyDevices = () => {
           fetchDevices();
         }}
         onError={setError}
-        onSuccess={() => {}}
+        onSuccess={(message) => setSuccess(message)}
       />
     </div>
   );

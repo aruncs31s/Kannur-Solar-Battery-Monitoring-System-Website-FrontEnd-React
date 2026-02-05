@@ -39,7 +39,6 @@ export class DeviceRepository implements IDeviceRepository {
   async create(device: CreateDeviceDTO): Promise< DeviceResponseDTO> {
     const dto = await httpClient.post<any>('/devices', {
       name: device.name,
-      uid: device.uid,
       type: device.type,
       ip_address: device.ip_address,
       mac_address: device.mac_address,

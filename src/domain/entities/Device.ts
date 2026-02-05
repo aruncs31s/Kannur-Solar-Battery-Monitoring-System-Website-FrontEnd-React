@@ -33,7 +33,6 @@ export type DeviceStatus = "active" | "inactive" | "error" | "maintenance" | "de
 
 export interface CreateDeviceDTO {
   name: string;
-  uid: string;
   type: number;
   ip_address: string;
   mac_address: string;
@@ -44,7 +43,7 @@ export interface CreateDeviceDTO {
 
 export interface CreateSolarDeviceDTO {
   name: string;
-  device_type_id: string;
+  device_type_id: number;
   address: string;
   city: string;
   connected_microcontroller_id: number;
@@ -53,4 +52,14 @@ export interface CreateSolarDeviceDTO {
 export interface DeviceSearchResultDTO {
   id: number;
   name: string;
+}
+
+export interface DeviceTypeDTO {
+  id: number;
+  name: string;
+}
+
+export interface IDeviceTypesRepository {
+  getAll(): Promise<DeviceTypeDTO[]>;
+  getHardwareTypes(): Promise<DeviceTypeDTO[]>;
 }

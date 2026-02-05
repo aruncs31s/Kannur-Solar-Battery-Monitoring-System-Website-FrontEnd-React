@@ -1,4 +1,4 @@
-import { Device, CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO } from '../entities/Device';
+import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO } from '../entities/Device';
 import { DeviceTokenResponse } from '../../api/devices';
 
 export interface IDeviceRepository {

@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useDevicesStore } from '../store/devicesStore';
 import { devicesAPI } from '../api/devices';
-import { StatusBadge, StatsCard } from '../components/Cards';
+import { StatsCard } from '../components/Cards';
 import { AddDeviceForm } from '../components/AddDeviceForm';
 import { AllDevicesSection } from '../components/AllDevicesSection';
 import { Package, CheckCircle, Zap, Battery } from 'lucide-react';

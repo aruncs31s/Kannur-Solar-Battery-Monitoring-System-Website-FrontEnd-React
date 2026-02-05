@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Zap, Lock, User as UserIcon, ArrowRight } from 'lucide-react';
+import { Zap, Lock, User as UserIcon, ArrowRight, Shield, Activity } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { authAPI } from '../api/auth';
 import { FormError, FormSuccess } from '../components/FormComponents';
@@ -61,168 +61,187 @@ export const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background-primary flex items-center justify-center px-4 py-12 relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary-200/10 rounded-full blur-3xl animate-blob" />
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-primary-300/20 rounded-full blur-3xl animate-blob animation-delay-2000" />
-        <div className="absolute -bottom-8 left-1/3 w-96 h-96 bg-secondary-200/20 rounded-full blur-3xl animate-blob animation-delay-4000" />
-      </div>
-
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md relative z-10"
-      >
-        {/* Logo and Title */}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-6xl">
+        {/* Header with animated cards */}
         <motion.div
-          initial={{ y: -20, opacity: 0 }}
+          initial={{ y: -30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
+          transition={{ duration: 0.6 }}
           className="text-center mb-8"
         >
+         
+          <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">Welcome Back</h1>
+          <p className="text-lg text-gray-600 dark:text-gray-300">Sign in to Solar & Battery Monitoring System</p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Login Form - Left Side */}
           <motion.div
-            // whileHover={{ rotate: 360 }}
-            transition={{ duration: 0.5 }}
-            className="inline-block p-4 bg-white rounded-2xl shadow-2xl mb-4"
+            initial={{ x: -30, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 border border-gray-100 dark:border-gray-700"
           >
-            <Zap className="text-blue-600" size={48} />
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">Sign In</h2>
+              <p className="text-gray-600 dark:text-gray-400">Enter your credentials to continue</p>
+            </div>
+
+            {error && <FormError message={error} />}
+            {success && <FormSuccess message={success} />}
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  <UserIcon size={16} className="inline mr-2 text-blue-600" />
+                  Username
+                </label>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                    setErrors({ ...errors, username: '' });
+                  }}
+                  placeholder="Enter your username"
+                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50 dark:bg-gray-700 focus:bg-white dark:focus:bg-gray-600 text-gray-900 dark:text-white"
+                  required
+                />
+                {errors.username && (
+                  <p className="mt-1 text-xs text-red-600">{errors.username}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  <Lock size={16} className="inline mr-2 text-blue-600" />
+                  Password
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setErrors({ ...errors, password: '' });
+                  }}
+                  placeholder="Enter your password"
+                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50 dark:bg-gray-700 focus:bg-white dark:focus:bg-gray-600 text-gray-900 dark:text-white"
+                  required
+                />
+                {errors.password && (
+                  <p className="mt-1 text-xs text-red-600">{errors.password}</p>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between">
+                <label className="flex items-center">
+                  <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                  <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">Remember me</span>
+                </label>
+                <Link
+                  to="#"
+                  className="text-sm text-blue-600 hover:text-blue-700 font-semibold transition-colors"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
+              >
+                {loading ? (
+                  <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    Sign In
+                    <ArrowRight size={20} />
+                  </>
+                )}
+              </motion.button>
+            </form>
+
+            <div className="mt-6 text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Don&apos;t have an account?{' '}
+                <Link
+                  to="/register"
+                  className="text-blue-600 hover:text-blue-700 font-semibold transition-colors"
+                >
+                  Sign up now
+                </Link>
+              </p>
+            </div>
           </motion.div>
-          <h1 className="text-4xl font-bold text-white mb-2">Welcome Back</h1>
-          <p className="text-blue-100">Sign in to SKVMS Dashboard</p>
-        </motion.div>
 
-        {/* Main card */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 p-8"
-        >
-          {error && <FormError message={error} />}
-          {success && <FormSuccess message={success} />}
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                <UserIcon size={16} className="inline mr-2 text-blue-600" />
-                Username
-              </label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => {
-                  setUsername(e.target.value);
-                  setErrors({ ...errors, username: '' });
-                }}
-                placeholder="Enter your username"
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white"
-                required
-              />
-              {errors.username && (
-                <p className="mt-1 text-xs text-red-600">{errors.username}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                <Lock size={16} className="inline mr-2 text-blue-600" />
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  setErrors({ ...errors, password: '' });
-                }}
-                placeholder="Enter your password"
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white"
-                required
-              />
-              {errors.password && (
-                <p className="mt-1 text-xs text-red-600">{errors.password}</p>
-              )}
-            </div>
-
-            <div className="flex items-center justify-between">
-              <label className="flex items-center">
-                <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                <span className="ml-2 text-sm text-gray-600">Remember me</span>
-              </label>
-              <Link
-                to="#"
-                className="text-sm text-blue-600 hover:text-blue-700 font-semibold transition-colors"
-              >
-                Forgot password?
-              </Link>
-            </div>
-
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              type="submit"
-              disabled={loading}
-              className="w-full bg-primary-200 text-text-primary py-3 rounded-xl font-semibold hover:bg-primary-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 text-lg"
+          {/* Feature Cards - Right Side */}
+          <div className="space-y-6">
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.1 }}
+              whileHover={{ y: -4, scale: 1.02 }}
+              className="relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-100 dark:border-gray-700"
             >
-              {loading ? (
-                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <>
-                  Sign In
-                  <ArrowRight size={20} />
-                </>
-              )}
-            </motion.button>
-          </form>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400 to-blue-600 opacity-10 rounded-full blur-2xl" />
+              <div className="relative flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="text-gray-600 dark:text-gray-400 text-sm font-medium mb-2">Real-time Monitoring</p>
+                  <p className="text-2xl font-bold text-gray-800 dark:text-white mb-1">24/7</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Always connected</p>
+                </div>
+                <div className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 p-3 rounded-xl">
+                  <Activity size={28} />
+                </div>
+              </div>
+            </motion.div>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Don&apos;t have an account?{' '}
-              <Link
-                to="/register"
-                className="text-blue-600 hover:text-blue-700 font-semibold transition-colors"
-              >
-                Sign up
-              </Link>
-            </p>
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              whileHover={{ y: -4, scale: 1.02 }}
+              className="relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-100 dark:border-gray-700"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-400 to-purple-600 opacity-10 rounded-full blur-2xl" />
+              <div className="relative flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="text-gray-600 dark:text-gray-400 text-sm font-medium mb-2">Secure Access</p>
+                  <p className="text-2xl font-bold text-gray-800 dark:text-white mb-1">100%</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Encrypted data</p>
+                </div>
+                <div className="bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 p-3 rounded-xl">
+                  <Shield size={28} />
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              whileHover={{ y: -4, scale: 1.02 }}
+              className="relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-100 dark:border-gray-700"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-400 to-green-600 opacity-10 rounded-full blur-2xl" />
+              <div className="relative flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="text-gray-600 dark:text-gray-400 text-sm font-medium mb-2">Energy Insights</p>
+                  <p className="text-2xl font-bold text-gray-800 dark:text-white mb-1">Smart</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">AI-powered analytics</p>
+                </div>
+                <div className="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 p-3 rounded-xl">
+                  <Zap size={28} />
+                </div>
+              </div>
+            </motion.div>
           </div>
-        </motion.div>
-
-        {/* Footer */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="text-center text-white/80 text-sm mt-6"
-        >
-          Secure solar battery monitoring system
-        </motion.p>
-      </motion.div>
-
-      <style>{`
-        @keyframes blob {
-          0%, 100% {
-            transform: translate(0px, 0px) scale(1);
-          }
-          33% {
-            transform: translate(30px, -50px) scale(1.1);
-          }
-          66% {
-            transform: translate(-20px, 20px) scale(0.9);
-          }
-        }
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-      `}</style>
+        </div>
+      </div>
     </div>
   );
 };

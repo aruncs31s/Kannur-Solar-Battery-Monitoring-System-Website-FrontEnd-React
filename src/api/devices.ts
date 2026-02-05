@@ -1,6 +1,11 @@
 import { container } from '../application/di/container';
 import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO } from '../domain/entities/Device';
-import { DeviceTypeDTO } from '../domain/repositories/IDeviceTypesRepository';
+import { DeviceTypeDTO } from '../domain/entities/Device';
+
+export interface CreateDeviceTypeDTO {
+  name: string;
+  hardware_type: number;
+}
 
 export interface DeviceTokenResponse {
   token: string;
@@ -19,6 +24,27 @@ export const devicesAPI = {
 
   getDeviceTypes: async (): Promise<DeviceTypeDTO[]> => {
     return await container.getGetDeviceTypesUseCase().execute();
+  },
+
+  createDeviceType: async (data: CreateDeviceTypeDTO): Promise<{ message: string }> => {
+    const response = await fetch('/api/devices/types', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create device type');
+    }
+
+    return await response.json();
+  },
+
+  getHardwareDeviceTypes: async (): Promise<{ device_type: DeviceTypeDTO[] }> => {
+    return await container.getGetHardwareDeviceTypesUseCase().execute().then(types => ({ device_type: types }));
   },
 
   createDevice: async (data: CreateDeviceDTO): Promise<DeviceResponseDTO> => {

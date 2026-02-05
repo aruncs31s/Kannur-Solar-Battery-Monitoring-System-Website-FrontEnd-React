@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { versionsAPI } from '../api/versions';
 import { Version, Feature, CreateVersionDTO, CreateFeatureDTO } from '../domain/entities/Version';
 import {
-  Settings,
   Plus,
   Edit,
   Trash2,
@@ -17,7 +16,6 @@ export const Configuration = () => {
   const [features, setFeatures] = useState<Feature[]>([]);
   const [selectedVersion, setSelectedVersion] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'versions' | 'features'>('versions');
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   // Version form states
@@ -47,15 +45,12 @@ export const Configuration = () => {
   }, [selectedVersion]);
 
   const fetchVersions = async () => {
-    setLoading(true);
     try {
       const response = await versionsAPI.getAll();
       setVersions(response);
       setError('');
     } catch (err) {
       setError('Failed to fetch versions');
-    } finally {
-      setLoading(false);
     }
   };
 

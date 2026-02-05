@@ -19,7 +19,7 @@ export const AddSolarDeviceModal = ({ isOpen, onClose, onDeviceAdded, onError, o
   const [showMicrocontrollerDropdown, setShowMicrocontrollerDropdown] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
-    device_type_id: '1',
+    device_type_id: 1,
     address: '',
     city: '',
     connected_microcontroller_id: 1,
@@ -43,7 +43,7 @@ export const AddSolarDeviceModal = ({ isOpen, onClose, onDeviceAdded, onError, o
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === 'connected_microcontroller_id' ? parseInt(value, 10) : value,
+      [name]: name === 'connected_microcontroller_id' || name === 'device_type_id' ? parseInt(value, 10) : value,
     }));
   };
 
@@ -89,7 +89,7 @@ export const AddSolarDeviceModal = ({ isOpen, onClose, onDeviceAdded, onError, o
       onSuccess('Solar device added successfully');
       setFormData({
         name: '',
-        device_type_id: '1',
+        device_type_id: 1,
         address: '',
         city: '',
         connected_microcontroller_id: 1,

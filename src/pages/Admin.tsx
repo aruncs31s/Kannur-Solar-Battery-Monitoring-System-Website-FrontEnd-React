@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useDevicesStore } from '../store/devicesStore';
 import { devicesAPI } from '../api/devices';
 import { usersAPI } from '../api/users';
-import { User, CreateUserDTO } from '../domain/entities/User';
+import { User } from '../domain/entities/User';
 import { StatsCard, StatusBadge } from '../components/Cards';
 import {
   Package,
@@ -16,6 +16,8 @@ import {
   UserPlus,
   Trash2,
   Tag,
+  Cpu,
+  Plus,
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -29,6 +31,14 @@ export const Admin = () => {
     email: '',
     password: '',
     role: 'user'
+  });
+
+  const [deviceTypes, setDeviceTypes] = useState<Array<{ id: number; name: string }>>([]);
+  const [hardwareTypes, setHardwareTypes] = useState<Array<{ id: number; name: string }>>([]);
+  const [showAddDeviceType, setShowAddDeviceType] = useState(false);
+  const [newDeviceType, setNewDeviceType] = useState({
+    name: '',
+    hardware_type: 1
   });
 
   const [stats, setStats] = useState({
@@ -46,18 +56,21 @@ export const Admin = () => {
   const fetchAdminData = async () => {
     setLoading(true);
     try {
-      const [devicesResponse, usersResponse] = await Promise.all([
+      const [devicesResponse, usersResponse, deviceTypesResponse] = await Promise.all([
         devicesAPI.getAllDevices(),
-        usersAPI.getAll()
+        usersAPI.getAll(),
+        devicesAPI.getHardwareDeviceTypes()
       ]);
 
       setDevices(devicesResponse);
       setUsers(usersResponse);
+      setDeviceTypes(deviceTypesResponse.device_type);
+      setHardwareTypes(deviceTypesResponse.device_type);
 
       // Calculate statistics
-      const active = devicesResponse.filter((d) => d.device_state === 1).length;
-      const inactive = devicesResponse.filter((d) => d.device_state === 2).length;
-      const error = devicesResponse.filter((d) => d.device_state === 3).length;
+      const active = devicesResponse.filter((d: any) => d.device_state === 1).length;
+      const inactive = devicesResponse.filter((d: any) => d.device_state === 2).length;
+      const error = devicesResponse.filter((d: any) => d.device_state === 3).length;
 
       setStats({
         totalDevices: devicesResponse.length,
@@ -104,6 +117,18 @@ export const Admin = () => {
       } catch (err) {
         setError('Failed to delete user');
       }
+    }
+  };
+
+  const handleCreateDeviceType = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await devicesAPI.createDeviceType(newDeviceType);
+      setNewDeviceType({ name: '', hardware_type: 1 });
+      setShowAddDeviceType(false);
+      fetchAdminData();
+    } catch (err) {
+      setError('Failed to create device type');
     }
   };
 
@@ -332,6 +357,65 @@ export const Admin = () => {
         )}
       </div>
 
+      {/* Device Type Management */}
+      <div className="bg-surface-primary rounded-lg shadow-md overflow-hidden">
+        <div className="p-6 border-b border-border-primary flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-text-primary">Device Type Management</h2>
+          <button
+            onClick={() => setShowAddDeviceType(true)}
+            className="bg-primary-500 hover:bg-primary-600 text-text-primary px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
+          >
+            <Plus size={20} />
+            Add Device Type
+          </button>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-surface-secondary border-b border-border-primary">
+              <tr>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-text-primary">
+                  ID
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-text-primary">
+                  Name
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-text-primary">
+                  Hardware Type
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {deviceTypes.map((type) => (
+                <tr
+                  key={type.id}
+                  className="border-b border-border-primary hover:bg-surface-secondary transition-colors"
+                >
+                  <td className="px-6 py-4 text-sm font-medium text-text-primary">
+                    {type.id}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-text-secondary">
+                    {type.name}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-text-secondary">
+                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200">
+                      {hardwareTypes.find(ht => ht.id === type.id)?.name || 'Unknown'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {deviceTypes.length === 0 && (
+          <div className="text-center py-12">
+            <Cpu className="mx-auto text-text-tertiary mb-2" size={48} />
+            <p className="text-text-secondary">No device types found</p>
+          </div>
+        )}
+      </div>
+
       {/* Add User Modal */}
       {showAddUser && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -413,6 +497,63 @@ export const Admin = () => {
                   className="flex-1 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-text-primary rounded-lg font-medium transition-colors"
                 >
                   Add User
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Device Type Modal */}
+      {showAddDeviceType && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-surface-primary rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-bold text-text-primary mb-4">Add New Device Type</h3>
+            <form onSubmit={handleCreateDeviceType}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-1">
+                    Device Type Name
+                  </label>
+                  <input
+                    type="text"
+                    value={newDeviceType.name}
+                    onChange={(e) => setNewDeviceType({ ...newDeviceType, name: e.target.value })}
+                    placeholder="e.g., Raspberry Pi, Arduino"
+                    className="w-full px-3 py-2 border border-border-primary rounded-lg bg-surface-primary text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-1">
+                    Hardware Type
+                  </label>
+                  <select
+                    value={newDeviceType.hardware_type}
+                    onChange={(e) => setNewDeviceType({ ...newDeviceType, hardware_type: parseInt(e.target.value) })}
+                    className="w-full px-3 py-2 border border-border-primary rounded-lg bg-surface-primary text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  >
+                    {hardwareTypes.map((ht) => (
+                      <option key={ht.id} value={ht.id}>
+                        {ht.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowAddDeviceType(false)}
+                  className="flex-1 px-4 py-2 border border-border-primary rounded-lg text-text-secondary hover:bg-surface-secondary transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-text-primary rounded-lg font-medium transition-colors"
+                >
+                  Add Device Type
                 </button>
               </div>
             </form>

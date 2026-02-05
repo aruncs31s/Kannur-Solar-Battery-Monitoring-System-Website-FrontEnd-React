@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Cpu, TrendingUp, MapPin, Wifi, Settings, Clock, Eye, Activity, HardDrive, X, Copy, Check, AlertCircle } from 'lucide-react';
+import { Cpu, TrendingUp, MapPin, X, Copy, Check, AlertCircle } from 'lucide-react';
 import { StatusBadge } from './Cards';
 import { devicesAPI } from '../api/devices';
 import { useState } from 'react';
@@ -15,13 +15,10 @@ interface AllDevicesSectionProps {
 
 export const AllDevicesSection = ({ devices, showGenerateToken = false, maxDevices = 6, title = "All Devices", showViewAllLink = true }: AllDevicesSectionProps) => {
   const [showTokenModal, setShowTokenModal] = useState(false);
-  const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
   const [generatedToken, setGeneratedToken] = useState('');
   const [tokenCopied, setTokenCopied] = useState(false);
 
   const handleGenerateToken = async (deviceId: number) => {
-    setSelectedDeviceId(deviceId);
-
     try {
       const response = await devicesAPI.generateDeviceToken(deviceId);
       setGeneratedToken(response.token);
@@ -46,7 +43,6 @@ export const AllDevicesSection = ({ devices, showGenerateToken = false, maxDevic
     setShowTokenModal(false);
     setGeneratedToken('');
     setTokenCopied(false);
-    setSelectedDeviceId(null);
   };
 
   return (

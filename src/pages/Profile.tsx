@@ -5,11 +5,9 @@ import {
   User, 
   Activity, 
   HardDrive, 
-  Calendar, 
   MapPin, 
   Wifi, 
   Clock,
-  TrendingUp,
   AlertCircle,
   CheckCircle,
   XCircle

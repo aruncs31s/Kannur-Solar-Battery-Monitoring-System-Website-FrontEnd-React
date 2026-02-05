@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { versionsAPI } from '../api/versions';
 import { devicesAPI } from '../api/devices';
-import { Version, Feature, CreateFeatureDTO, UpdateFeatureDTO } from '../domain/entities/Version';
+import { Version, Feature, CreateFeatureDTO } from '../domain/entities/Version';
 import { Device } from '../domain/entities/Device';
 import {
   Package,
@@ -21,7 +21,6 @@ export const Versions = () => {
   const [features, setFeatures] = useState<Feature[]>([]);
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
   const [selectedVersion, setSelectedVersion] = useState<Version | null>(null);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   // Feature form states
@@ -51,7 +50,6 @@ export const Versions = () => {
   }, [selectedDevice, versions]);
 
   const fetchData = async () => {
-    setLoading(true);
     try {
       const [versionsResponse, devicesResponse] = await Promise.all([
         versionsAPI.getAll(),
@@ -62,8 +60,6 @@ export const Versions = () => {
       setError('');
     } catch (err) {
       setError('Failed to fetch data');
-    } finally {
-      setLoading(false);
     }
   };
 

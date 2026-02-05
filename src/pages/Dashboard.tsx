@@ -5,9 +5,9 @@ import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
 import { useDevicesStore } from '../store/devicesStore';
 import { devicesAPI } from '../api/devices';
 import { readingsAPI } from '../api/readings';
-import { StatsCard, StatusBadge } from '../components/Cards';
+import { StatsCard } from '../components/Cards';
 import { AllDevicesSection } from '../components/AllDevicesSection';
-import { Activity, AlertCircle, Package, CheckCircle, Zap, MapPin, TrendingUp, Battery, Cpu } from 'lucide-react';
+import { Activity, AlertCircle, Package, CheckCircle, Zap, TrendingUp, Battery } from 'lucide-react';
 
 export const Dashboard = () => {
   const { devices, setDevices, setLoading, setError } = useDevicesStore();
