@@ -1,12 +1,10 @@
 import { IDeviceRepository } from '../../../domain/repositories/IDeviceRepository';
 import {  DeviceResponseDTO } from '../../../domain/entities/Device';
 
-export class GetAllDevicesUseCase {
+export class GetRecentDevicesUseCase {
   constructor(private deviceRepository: IDeviceRepository) {}
 
-  // TODO: Change only in required places.
   async execute(): Promise<DeviceResponseDTO[]> {
-    return await this.deviceRepository.getAllSolarDevices();
-    // return await this.deviceRepository.getAll();
+    return await this.deviceRepository.getRecentDevices();
   }
 }

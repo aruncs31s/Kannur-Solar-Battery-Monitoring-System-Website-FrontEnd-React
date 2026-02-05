@@ -1,5 +1,5 @@
 import { IDeviceRepository } from '../../domain/repositories/IDeviceRepository';
-import {  CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO } from '../../domain/entities/Device';
+import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO } from '../../domain/entities/Device';
 import { DeviceTokenResponse } from '../../api/devices';
 import { httpClient } from '../http/HttpClient';
 
@@ -19,7 +19,36 @@ export class DeviceRepository implements IDeviceRepository {
       device_state: dto.deviceState || 0,
     }));
   }
-
+  async getAllSolarDevices(): Promise<DeviceResponseDTO[]> {
+    const response = await httpClient.get<{ devices: any[] }>('/devices/solar');
+    return response.devices.map(dto => ({
+      id: dto.id,
+      name: dto.name || '',
+      type: dto.type || '',
+      ip_address: dto.ipAddress || '',
+      mac_address: dto.macAddress || '',
+      firmware_version: dto.firmwareVersion || '',
+      version_id: dto.version_id || 0,
+      address: dto.address || '',
+      city: dto.city || '',
+      device_state: dto.deviceState || 0,
+    }));
+  }
+  async getRecentDevices(): Promise<DeviceResponseDTO[]> {
+    const response = await httpClient.get<{ devices: any[] }>('/devices/recent');
+    return response.devices.map(dto => ({
+      id: dto.id,
+      name: dto.name || '',
+      type: dto.type || '',
+      ip_address: dto.ipAddress || '',
+      mac_address: dto.macAddress || '',
+      firmware_version: dto.firmwareVersion || '',
+      version_id: dto.version_id || 0,
+      address: dto.address || '',
+      city: dto.city || '',
+      device_state: dto.deviceState || 0,
+    }));
+  }
   async getMyDevices(): Promise<DeviceResponseDTO[]> {
     const response = await httpClient.get<{ devices: any[] }>('/devices/my');
     return response.devices.map(dto => ({
@@ -36,7 +65,7 @@ export class DeviceRepository implements IDeviceRepository {
     }));
   }
 
-  async create(device: CreateDeviceDTO): Promise< DeviceResponseDTO> {
+  async create(device: CreateDeviceDTO): Promise<DeviceResponseDTO> {
     const dto = await httpClient.post<any>('/devices', {
       name: device.name,
       type: device.type,

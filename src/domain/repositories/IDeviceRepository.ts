@@ -3,6 +3,7 @@ import { DeviceTokenResponse } from '../../api/devices';
 
 export interface IDeviceRepository {
   getAll(): Promise<DeviceResponseDTO[]>;
+  getAllSolarDevices(): Promise<DeviceResponseDTO[]>;
   getMyDevices(): Promise<DeviceResponseDTO[]>;
   create(device: CreateDeviceDTO): Promise<DeviceResponseDTO>;
   createSolarDevice(device: CreateSolarDeviceDTO): Promise<DeviceResponseDTO>;
@@ -13,4 +14,5 @@ export interface IDeviceRepository {
   updateDevice(deviceId: number, data: UpdateDeviceDTO): Promise<DeviceResponseDTO>;
   controlDevice(deviceId: number, action: number): Promise<{ success: boolean; message: string }>;
   removeConnectedDevice(deviceId: number, connectedDeviceId: number): Promise<{ success: boolean; message: string }>;
+  getRecentDevices(): Promise<DeviceResponseDTO[]>;
 }

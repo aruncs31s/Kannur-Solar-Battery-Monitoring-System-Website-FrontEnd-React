@@ -9,6 +9,7 @@ import { LoginUseCase } from '../usecases/auth/LoginUseCase';
 import { LogoutUseCase } from '../usecases/auth/LogoutUseCase';
 import { GetAllDevicesUseCase } from '../usecases/devices/GetAllDevicesUseCase';
 import { GetMyDevicesUseCase } from '../usecases/devices/GetMyDevicesUseCase';
+import { GetRecentDevicesUseCase } from '../usecases/devices/GetRecentDevicesUseCase';
 import { GetDeviceTypesUseCase } from '../usecases/devices/GetDeviceTypesUseCase';
 import { GetHardwareDeviceTypesUseCase } from '../usecases/devices/GetHardwareDeviceTypesUseCase';
 import { CreateDeviceUseCase } from '../usecases/devices/CreateDeviceUseCase';
@@ -49,6 +50,10 @@ class DIContainer {
 
   getGetMyDevicesUseCase() {
     return new GetMyDevicesUseCase(this.deviceRepository);
+  }
+
+  getGetRecentDevicesUseCase() {
+    return new GetRecentDevicesUseCase(this.deviceRepository);
   }
 
   getCreateDeviceUseCase() {
