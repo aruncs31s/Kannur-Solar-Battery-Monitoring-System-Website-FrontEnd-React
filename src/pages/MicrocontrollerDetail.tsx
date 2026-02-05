@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Power, PowerOff, Settings, RefreshCw, Activity, AlertCircle, TrendingUp, Calendar, History, Copy, Check, X, Edit, Plus } from 'lucide-react';
+import { Power, PowerOff, Settings, RefreshCw, Activity, AlertCircle, TrendingUp, Calendar, History, Copy, Check, X, Edit } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
 import { readingsAPI } from '../api/readings';
 import { devicesAPI } from '../api/devices';
 import { StatusBadge } from '../components/Cards';
-import { FormField, FormError } from '../components/FormComponents';
 import { Reading } from '../domain/entities/Reading';
 
 const formatMetric = (value: number | null | undefined, unit: string) => {
@@ -32,8 +31,8 @@ interface DeviceInfo {
 interface DeviceType {
   id: number;
   name: string;
-  features: {
-    can_control: boolean;
+  features?: {
+    can_control?: boolean;
   };
 }
 
@@ -115,15 +114,8 @@ export const MCDeviceDetail = () => {
   const loadDeviceType = async () => {
     if (!id) return;
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8080/api/devices/${id}/type`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      console.log(response)
-      if (!response.ok) throw new Error('Failed to load device type');
-      
-      const data = await response.json();
-      setDeviceType(data.device_type);
+      const data = await devicesAPI.getDeviceType(parseInt(id));
+      setDeviceType(data);
     } catch (err) {
       console.error('Failed to load device type:', err);
     }
@@ -295,26 +287,12 @@ export const MCDeviceDetail = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:8080/api/devices/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(updateForm),
-      });
-
-      const data = await response.json();
-      
-      if (response.ok) {
-        setUpdateMessage('Device updated successfully!');
-        setTimeout(() => {
-          loadDeviceData();
-          closeUpdateModal();
-        }, 1500);
-      } else {
-        setUpdateMessage(data.error || 'Failed to update device');
-      }
+      await devicesAPI.updateDevice(parseInt(id!), updateForm);
+      setUpdateMessage('Device updated successfully!');
+      setTimeout(() => {
+        loadDeviceData();
+        closeUpdateModal();
+      }, 1500);
     } catch (err) {
       setUpdateMessage('Failed to update device');
       console.error(err);
@@ -330,18 +308,9 @@ export const MCDeviceDetail = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:8080/api/devices/${id}/control`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ action }),
-      });
-
-      const data = await response.json();
+      const response = await devicesAPI.controlDevice(parseInt(id!), action);
       
-      if (response.ok) {
+      if (response.success) {
         const actionNames: { [key: number]: string } = {
           4: 'turned on',
           5: 'turned off',
@@ -353,7 +322,7 @@ export const MCDeviceDetail = () => {
           setControlMessage('');
         }, 2000);
       } else {
-        setControlMessage(data.error || 'Control action failed');
+        setControlMessage(response.message || 'Control action failed');
       }
     } catch (err) {
       setControlMessage('Failed to control device');
