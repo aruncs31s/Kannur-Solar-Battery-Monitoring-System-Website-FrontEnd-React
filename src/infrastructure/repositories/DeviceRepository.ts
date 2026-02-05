@@ -98,7 +98,7 @@ export class DeviceRepository implements IDeviceRepository {
   }
 
   async getDeviceType(deviceId: number): Promise<DeviceTypeDTO> {
-    const response = await httpClient.get<{ device_type: any }>(`/devices/${deviceId}/type`);
+    const response = await httpClient.get<{ device_type: DeviceTypeDTO }>(`/devices/${deviceId}/type`);
     return {
       id: response.device_type.id,
       name: response.device_type.name,

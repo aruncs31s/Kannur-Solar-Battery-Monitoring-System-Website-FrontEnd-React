@@ -1,4 +1,4 @@
-import { Power, PowerOff, Settings, RefreshCw } from 'lucide-react';
+import { Power, PowerOff, Settings, RefreshCw, Activity } from 'lucide-react';
 
 interface DeviceControlPanelProps {
   deviceState: number;
@@ -59,6 +59,7 @@ export const DeviceControlPanel = ({
           onClick={onGenerateToken}
           className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
         >
+          <Activity size={20} />
           Generate Device Token
         </button>
       </div>
