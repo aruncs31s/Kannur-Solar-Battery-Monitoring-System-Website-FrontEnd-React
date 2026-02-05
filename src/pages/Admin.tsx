@@ -3,8 +3,7 @@ import { Link } from 'react-router-dom';
 import { useDevicesStore } from '../store/devicesStore';
 import { devicesAPI } from '../api/devices';
 import { usersAPI } from '../api/users';
-import { User } from '../domain/entities/User';
-import { StatsCard, StatusBadge } from '../components/Cards';
+import { StatsCard } from '../components/Cards';
 import {
   Package,
   Activity,
@@ -13,34 +12,13 @@ import {
   AlertTriangle,
   XCircle,
   Users,
-  UserPlus,
-  Trash2,
-  Tag,
   Cpu,
-  Plus,
+  Database,
+  UserCheck,
 } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export const Admin = () => {
-  const { devices, setDevices, setLoading, setError } = useDevicesStore();
-  const [users, setUsers] = useState<User[]>([]);
-  const [showAddUser, setShowAddUser] = useState(false);
-  const [newUser, setNewUser] = useState({
-    name: '',
-    username: '',
-    email: '',
-    password: '',
-    role: 'user'
-  });
-
-  const [deviceTypes, setDeviceTypes] = useState<Array<{ id: number; name: string }>>([]);
-  const [hardwareTypes, setHardwareTypes] = useState<Array<{ id: number; name: string }>>([]);
-  const [showAddDeviceType, setShowAddDeviceType] = useState(false);
-  const [newDeviceType, setNewDeviceType] = useState({
-    name: '',
-    hardware_type: 1
-  });
-
+  const { setDevices, setLoading, setError } = useDevicesStore();
   const [stats, setStats] = useState({
     totalDevices: 0,
     activeDevices: 0,
@@ -56,16 +34,12 @@ export const Admin = () => {
   const fetchAdminData = async () => {
     setLoading(true);
     try {
-      const [devicesResponse, usersResponse, deviceTypesResponse] = await Promise.all([
+      const [devicesResponse, usersResponse] = await Promise.all([
         devicesAPI.getAllDevices(),
-        usersAPI.getAll(),
-        devicesAPI.getHardwareDeviceTypes()
+        usersAPI.getAll()
       ]);
 
       setDevices(devicesResponse);
-      setUsers(usersResponse);
-      setDeviceTypes(deviceTypesResponse.device_type);
-      setHardwareTypes(deviceTypesResponse.device_type);
 
       // Calculate statistics
       const active = devicesResponse.filter((d: any) => d.device_state === 1).length;
@@ -87,73 +61,19 @@ export const Admin = () => {
     }
   };
 
-  const handleCreateUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const userData = {
-      UserCredentials: {
-        username: newUser.username,
-        password: newUser.password
-      },
-      name: newUser.name,
-      email: newUser.email,
-      role: newUser.role
-    };
-    console.log('Submitting user data:', userData);
-    try {
-      await usersAPI.create(userData);
-      setNewUser({ name: '', username: '', email: '', password: '', role: 'user' });
-      setShowAddUser(false);
-      fetchAdminData();
-    } catch (err) {
-      setError('Failed to create user');
-    }
-  };
-
-  const handleDeleteUser = async (userId: string) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      try {
-        await usersAPI.delete(parseInt(userId));
-        fetchAdminData();
-      } catch (err) {
-        setError('Failed to delete user');
-      }
-    }
-  };
-
-  const handleCreateDeviceType = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await devicesAPI.createDeviceType(newDeviceType);
-      setNewDeviceType({ name: '', hardware_type: 1 });
-      setShowAddDeviceType(false);
-      fetchAdminData();
-    } catch (err) {
-      setError('Failed to create device type');
-    }
-  };
-
-  const chartData = [
-    {
-      name: 'Devices',
-      Active: stats.activeDevices,
-      Inactive: stats.inactiveDevices,
-      Error: stats.errorDevices,
-    },
-  ];
-
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-4xl font-bold text-gray-800">Admin Panel</h1>
-          <p className="text-gray-600 mt-2">System management and monitoring</p>
+          <h1 className="text-4xl font-bold text-text-primary">Admin Panel</h1>
+          <p className="text-text-secondary mt-2">System management and monitoring</p>
         </div>
         <div className="flex gap-4">
           <Link
             to="/versions"
             className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
           >
-            <Tag size={20} />
+            <Settings size={20} />
             Versions
           </Link>
           <Link
@@ -207,359 +127,59 @@ export const Admin = () => {
         />
       </div>
 
-      {/* Device Status Chart */}
-      <div className="bg-surface-primary rounded-lg shadow-md p-6">
-        <h2 className="text-2xl font-bold text-text-primary mb-6">Device Status Overview</h2>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-primary)" />
-            <XAxis dataKey="name" stroke="var(--text-tertiary)" />
-            <YAxis stroke="var(--text-tertiary)" />
-            <Tooltip contentStyle={{ backgroundColor: 'var(--surface-primary)', border: 'none', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', color: 'var(--text-primary)' }} />
-            <Legend />
-            <Bar dataKey="Active" fill="var(--success)" />
-            <Bar dataKey="Inactive" fill="var(--warning)" />
-            <Bar dataKey="Error" fill="var(--error)" />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Device Management Table */}
-      <div className="bg-surface-primary rounded-lg shadow-md overflow-hidden">
-        <div className="p-6 border-b border-border-primary">
-          <h2 className="text-2xl font-bold text-text-primary">Device Management</h2>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-surface-secondary border-b border-border-primary">
-              <tr>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-text-primary">
-                  Name
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-text-primary">
-                  MAC Address
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-text-primary">
-                  Address
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-text-primary">
-                  Type
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-text-primary">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {devices.map((device) => (
-                <tr
-                  key={device.id}
-                  className="border-b border-border-primary hover:bg-surface-secondary transition-colors"
-                >
-                  <td className="px-6 py-4 text-sm font-medium text-text-primary">
-                    {device.name}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-text-secondary font-mono">
-                    {device.mac_address}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-text-secondary">
-                    {device.address || 'Not specified'}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-text-secondary">
-                    {device.type}
-                  </td>
-                  <td className="px-6 py-4">
-                    <StatusBadge status={device.device_state === 1 ? 'active' : device.device_state === 2 ? 'inactive' : 'unknown'} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {devices.length === 0 && (
-          <div className="text-center py-12">
-            <Package className="mx-auto text-text-tertiary mb-2" size={48} />
-            <p className="text-text-secondary">No devices found</p>
-          </div>
-        )}
-      </div>
-
-      {/* User Management */}
-      <div className="bg-surface-primary rounded-lg shadow-md overflow-hidden">
-        <div className="p-6 border-b border-border-primary flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-text-primary">User Management</h2>
-          <button
-            onClick={() => setShowAddUser(true)}
-            className="bg-primary-500 hover:bg-primary-600 text-text-primary px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
+      {/* Management Modules */}
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold text-text-primary">Management Modules</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Link
+            to="/admin/devices"
+            className="bg-surface-primary rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 border border-border-primary cursor-pointer group"
           >
-            <UserPlus size={20} />
-            Add User
-          </button>
-        </div>
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <p className="text-text-tertiary text-sm font-medium mb-2">Device Management</p>
+                <p className="text-2xl font-bold text-text-primary mb-1">Manage Devices</p>
+                <p className="text-xs text-text-secondary">Monitor and control all system devices</p>
+              </div>
+              <div className="bg-blue-500/10 text-blue-500 p-3 rounded-xl group-hover:bg-blue-500/20 transition-colors">
+                <Database size={32} />
+              </div>
+            </div>
+          </Link>
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-surface-secondary border-b border-border-primary">
-              <tr>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-text-primary">
-                  Username
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-text-primary">
-                  Email
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-text-primary">
-                  Role
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-text-primary">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr
-                  key={user.id}
-                  className="border-b border-border-primary hover:bg-surface-secondary transition-colors"
-                >
-                  <td className="px-6 py-4 text-sm font-medium text-text-primary">
-                    {user.username}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-text-secondary">
-                    {user.email}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-text-secondary">
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200">
-                      {user.role}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <button
-                      onClick={() => handleDeleteUser(user.id)}
-                      className="text-error-600 hover:text-error-900 dark:text-error-400 dark:hover:text-error-300 transition-colors"
-                      title="Delete User"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {users.length === 0 && (
-          <div className="text-center py-12">
-            <Users className="mx-auto text-text-tertiary mb-2" size={48} />
-            <p className="text-text-secondary">No users found</p>
-          </div>
-        )}
-      </div>
-
-      {/* Device Type Management */}
-      <div className="bg-surface-primary rounded-lg shadow-md overflow-hidden">
-        <div className="p-6 border-b border-border-primary flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-text-primary">Device Type Management</h2>
-          <button
-            onClick={() => setShowAddDeviceType(true)}
-            className="bg-primary-500 hover:bg-primary-600 text-text-primary px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
+          <Link
+            to="/admin/users"
+            className="bg-surface-primary rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 border border-border-primary cursor-pointer group"
           >
-            <Plus size={20} />
-            Add Device Type
-          </button>
-        </div>
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <p className="text-text-tertiary text-sm font-medium mb-2">User Management</p>
+                <p className="text-2xl font-bold text-text-primary mb-1">Manage Users</p>
+                <p className="text-xs text-text-secondary">Control user accounts and permissions</p>
+              </div>
+              <div className="bg-purple-500/10 text-purple-500 p-3 rounded-xl group-hover:bg-purple-500/20 transition-colors">
+                <UserCheck size={32} />
+              </div>
+            </div>
+          </Link>
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-surface-secondary border-b border-border-primary">
-              <tr>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-text-primary">
-                  ID
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-text-primary">
-                  Name
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-text-primary">
-                  Hardware Type
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {deviceTypes.map((type) => (
-                <tr
-                  key={type.id}
-                  className="border-b border-border-primary hover:bg-surface-secondary transition-colors"
-                >
-                  <td className="px-6 py-4 text-sm font-medium text-text-primary">
-                    {type.id}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-text-secondary">
-                    {type.name}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-text-secondary">
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200">
-                      {hardwareTypes.find(ht => ht.id === type.id)?.name || 'Unknown'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <Link
+            to="/admin/device-types"
+            className="bg-surface-primary rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 border border-border-primary cursor-pointer group"
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <p className="text-text-tertiary text-sm font-medium mb-2">Device Type Management</p>
+                <p className="text-2xl font-bold text-text-primary mb-1">Manage Types</p>
+                <p className="text-xs text-text-secondary">Configure device types and hardware</p>
+              </div>
+              <div className="bg-green-500/10 text-green-500 p-3 rounded-xl group-hover:bg-green-500/20 transition-colors">
+                <Cpu size={32} />
+              </div>
+            </div>
+          </Link>
         </div>
-
-        {deviceTypes.length === 0 && (
-          <div className="text-center py-12">
-            <Cpu className="mx-auto text-text-tertiary mb-2" size={48} />
-            <p className="text-text-secondary">No device types found</p>
-          </div>
-        )}
       </div>
-
-      {/* Add User Modal */}
-      {showAddUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-surface-primary rounded-lg p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-bold text-text-primary mb-4">Add New User</h3>
-            <form onSubmit={handleCreateUser}>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-text-primary mb-1">
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    value={newUser.name}
-                    onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-border-primary rounded-lg bg-surface-primary text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-text-primary mb-1">
-                    Username
-                  </label>
-                  <input
-                    type="text"
-                    value={newUser.username}
-                    onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
-                    className="w-full px-3 py-2 border border-border-primary rounded-lg bg-surface-primary text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-text-primary mb-1">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={newUser.email}
-                    onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                    className="w-full px-3 py-2 border border-border-primary rounded-lg bg-surface-primary text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-text-primary mb-1">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    value={newUser.password}
-                    onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                    className="w-full px-3 py-2 border border-border-primary rounded-lg bg-surface-primary text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-text-primary mb-1">
-                    Role
-                  </label>
-                  <select
-                    value={newUser.role}
-                    onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
-                    className="w-full px-3 py-2 border border-border-primary rounded-lg bg-surface-primary text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  >
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                </div>
-              </div>
-              <div className="flex gap-3 mt-6">
-                <button
-                  type="button"
-                  onClick={() => setShowAddUser(false)}
-                  className="flex-1 px-4 py-2 border border-border-primary rounded-lg text-text-secondary hover:bg-surface-secondary transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-text-primary rounded-lg font-medium transition-colors"
-                >
-                  Add User
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Add Device Type Modal */}
-      {showAddDeviceType && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-surface-primary rounded-lg p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-bold text-text-primary mb-4">Add New Device Type</h3>
-            <form onSubmit={handleCreateDeviceType}>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-text-primary mb-1">
-                    Device Type Name
-                  </label>
-                  <input
-                    type="text"
-                    value={newDeviceType.name}
-                    onChange={(e) => setNewDeviceType({ ...newDeviceType, name: e.target.value })}
-                    placeholder="e.g., Raspberry Pi, Arduino"
-                    className="w-full px-3 py-2 border border-border-primary rounded-lg bg-surface-primary text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-text-primary mb-1">
-                    Hardware Type
-                  </label>
-                  <select
-                    value={newDeviceType.hardware_type}
-                    onChange={(e) => setNewDeviceType({ ...newDeviceType, hardware_type: parseInt(e.target.value) })}
-                    className="w-full px-3 py-2 border border-border-primary rounded-lg bg-surface-primary text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  >
-                    {hardwareTypes.map((ht) => (
-                      <option key={ht.id} value={ht.id}>
-                        {ht.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div className="flex gap-3 mt-6">
-                <button
-                  type="button"
-                  onClick={() => setShowAddDeviceType(false)}
-                  className="flex-1 px-4 py-2 border border-border-primary rounded-lg text-text-secondary hover:bg-surface-secondary transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-text-primary rounded-lg font-medium transition-colors"
-                >
-                  Add Device Type
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* System Health */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

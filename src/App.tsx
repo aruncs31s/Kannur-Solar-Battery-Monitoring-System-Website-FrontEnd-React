@@ -14,6 +14,9 @@ import { AllReadings } from './pages/AllReadings';
 import { MapView } from './pages/MapView';
 import { Profile } from './pages/Profile';
 import { Admin } from './pages/Admin';
+import { AdminDeviceManagement } from './pages/AdminDeviceManagement';
+import { AdminUserManagement } from './pages/AdminUserManagement';
+import { AdminDeviceTypeManagement } from './pages/AdminDeviceTypeManagement';
 import { AuditLogs } from './pages/AuditLogs';
 import { Configuration } from './pages/Configuration';
 import { Versions } from './pages/Versions';
@@ -137,6 +140,36 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <Admin />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/devices"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <AdminDeviceManagement />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <AdminUserManagement />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/device-types"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <AdminDeviceTypeManagement />
               </Layout>
             </ProtectedRoute>
           }
