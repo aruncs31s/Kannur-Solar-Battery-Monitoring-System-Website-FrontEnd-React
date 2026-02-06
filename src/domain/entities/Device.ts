@@ -68,6 +68,7 @@ export interface SolarDeviceView {
   connected_device_ip: string;
   address: string;
   city: string;
+  status: DeviceStatus;
 }
 
 export interface DeviceSearchResultDTO {

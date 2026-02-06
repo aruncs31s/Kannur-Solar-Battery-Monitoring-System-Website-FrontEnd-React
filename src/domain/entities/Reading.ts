@@ -4,6 +4,8 @@ export interface Reading {
   voltage?: number;
   current?: number;
   power?: number;
+  avg_voltage?: number;
+  avg_current?: number;
   temperature?: number;
   humidity?: number;
   timestamp: number;

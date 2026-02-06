@@ -52,14 +52,15 @@ export const SolarDeviceCard = ({ device, index = 0 }: SolarDeviceCardProps) => 
             <Zap size={16} className="text-yellow-600" />
             <div>
               <p className="text-xs text-gray-500 dark:text-gray-400">Charging</p>
-              <p className="font-semibold text-gray-800 dark:text-white">{device.charging_current}A</p>
+            <p className="font-semibold text-gray-800 dark:text-white">{device.charging_current.toFixed(2)}A</p>
             </div>
           </div>
           <div className="flex items-center gap-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg px-3 py-2">
             <Battery size={16} className="text-blue-600" />
             <div>
               <p className="text-xs text-gray-500 dark:text-gray-400">Battery</p>
-              <p className="font-semibold text-gray-800 dark:text-white">{device.battery_voltage}V</p>
+              <p className="font-semibold text-gray-800 dark:text-white">{device.battery_voltage.toFixed(2)}V</p>
+            
             </div>
           </div>
         </div>

@@ -8,6 +8,7 @@ import { StatsCard } from '../components/Cards';
 import { AllDevicesSection } from '../components/AllDevicesSection';
 import { LiveReadingsSection } from '../components/LiveReadingsSection';
 import { Section } from '../components/Section';
+import { AlertsBanner } from '../components/AlertsBanner';
 import { container } from '../application/di/container';
 import { Package, CheckCircle, Zap, Battery, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -18,6 +19,8 @@ export const Dashboard = () => {
   const [readings, setReadings] = useState<any[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
   const [recentDevices, setRecentDevices] = useState<any[]>([]);
+  const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
+  const [offlineDevices, setOfflineDevices] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchDevices = async () => {
@@ -53,10 +56,24 @@ export const Dashboard = () => {
   }, []);
 
   useEffect(() => {
+    const fetchOfflineDevices = async () => {
+      try {
+        const getOfflineDevicesUseCase = container.getGetOfflineDevicesUseCase();
+        const offline = await getOfflineDevicesUseCase.execute();
+        setOfflineDevices(offline);
+      } catch (err) {
+        console.error('Failed to fetch offline devices:', err);
+      }
+    };
+
+    fetchOfflineDevices();
+  }, []);
+
+  useEffect(() => {
     const fetchReadings = async () => {
       if (!selectedDeviceId) return;
       try {
-        const data = await readingsAPI.getByDevice(selectedDeviceId.toString());
+        const data = await readingsAPI.getProgressiveByDevice(selectedDeviceId);
         setReadings(data.slice(0, 10));
         setError('');
       } catch (err) {
@@ -82,8 +99,85 @@ export const Dashboard = () => {
       ? readings[0].power.toFixed(2)
       : '0.00';
 
+  // Generate alerts
+  const generateAlerts = () => {
+    const alerts: any[] = [];
+
+    // Check offline devices
+    offlineDevices.forEach((device) => {
+      alerts.push({
+        id: `offline-${device.id}`,
+        type: 'critical' as const,
+        title: 'Device Offline',
+        message: `Device ${device.name} is currently offline.`,
+        deviceId: device.id,
+        deviceName: device.name,
+      });
+    });
+
+    // Check voltage anomalies (assuming solar system, normal range 180-250V)
+    if (readings.length > 0) {
+      const latestReading = readings[0];
+      if (latestReading.voltage > 250) {
+        alerts.push({
+          id: `high-voltage-${selectedDeviceId}`,
+          type: 'warning' as const,
+          title: 'High Voltage Detected',
+          message: `Voltage is ${latestReading.voltage.toFixed(2)}V, which is above normal range.`,
+          deviceId: selectedDeviceId,
+          deviceName: devices.find(d => d.id === selectedDeviceId)?.name,
+        });
+      } else if (latestReading.voltage < 180) {
+        alerts.push({
+          id: `low-voltage-${selectedDeviceId}`,
+          type: 'warning' as const,
+          title: 'Low Voltage Detected',
+          message: `Voltage is ${latestReading.voltage.toFixed(2)}V, which is below normal range.`,
+          deviceId: selectedDeviceId,
+          deviceName: devices.find(d => d.id === selectedDeviceId)?.name,
+        });
+      }
+
+      // Check for zero power (possible issue)
+      if (latestReading.power < 1) {
+        alerts.push({
+          id: `no-power-${selectedDeviceId}`,
+          type: 'warning' as const,
+          title: 'No Power Generation',
+          message: `Device is not generating power. Current power: ${latestReading.power.toFixed(2)}W.`,
+          deviceId: selectedDeviceId,
+          deviceName: devices.find(d => d.id === selectedDeviceId)?.name,
+        });
+      }
+    }
+
+    return alerts.filter(alert => !dismissedAlerts.has(alert.id));
+  };
+
+  const alerts = generateAlerts();
+
+  const handleDismissAlert = (alertId: string) => {
+    setDismissedAlerts(prev => new Set(prev).add(alertId));
+  };
+
+  const handleViewDevice = (deviceId: number) => {
+    navigate(`/devices/${deviceId}`);
+  };
+
+  const handleAcknowledgeAlert = (alertId: string) => {
+    // For now, just dismiss
+    handleDismissAlert(alertId);
+  };
+
   return (
     <div className="space-y-6 pb-8">
+      <AlertsBanner
+        alerts={alerts}
+        onDismiss={handleDismissAlert}
+        onViewDevice={handleViewDevice}
+        onAcknowledge={handleAcknowledgeAlert}
+      />
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard
           title="Total Devices"

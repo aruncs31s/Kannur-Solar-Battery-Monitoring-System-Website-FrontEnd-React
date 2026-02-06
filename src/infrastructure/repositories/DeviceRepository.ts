@@ -1,6 +1,7 @@
 import { IDeviceRepository } from '../../domain/repositories/IDeviceRepository';
 import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO } from '../../domain/entities/Device';
 import { DeviceTokenResponse } from '../../api/devices';
+import { Reading } from '../../domain/entities/Reading';
 import { httpClient } from '../http/HttpClient';
 
 export class DeviceRepository implements IDeviceRepository {
@@ -36,6 +37,21 @@ export class DeviceRepository implements IDeviceRepository {
   }
   async getRecentDevices(): Promise<DeviceResponseDTO[]> {
     const response = await httpClient.get<{ devices: any[] }>('/devices/recent');
+    return response.devices.map(dto => ({
+      id: dto.id,
+      name: dto.name || '',
+      type: dto.type || '',
+      ip_address: dto.ipAddress || '',
+      mac_address: dto.macAddress || '',
+      firmware_version: dto.firmwareVersion || '',
+      version_id: dto.version_id || 0,
+      address: dto.address || '',
+      city: dto.city || '',
+      device_state: dto.deviceState || 0,
+    }));
+  }
+  async getOfflineDevices(): Promise<DeviceResponseDTO[]> {
+    const response = await httpClient.get<{ devices: any[] }>('/devices/solar/offline');
     return response.devices.map(dto => ({
       id: dto.id,
       name: dto.name || '',
@@ -172,5 +188,19 @@ export class DeviceRepository implements IDeviceRepository {
       `/devices/${deviceId}/connected/${connectedDeviceId}`
     );
     return response;
+  }
+
+  async getProgressiveReadings(deviceId: number): Promise<Reading[]> {
+    const response = await httpClient.get<{ readings: any[] }>(`/devices/${deviceId}/readings/progressive`);
+    return response.readings.map(reading => ({
+      id: `${deviceId}-${reading.created_at}`, // Generate ID
+      deviceId: deviceId.toString(),
+      voltage: reading.voltage,
+      current: reading.current,
+      avg_voltage: reading.avg_voltage,
+      avg_current: reading.avg_current,
+      power: 0, // Placeholder, will be added later
+      timestamp: new Date(reading.created_at).getTime(),
+    }));
   }
 }

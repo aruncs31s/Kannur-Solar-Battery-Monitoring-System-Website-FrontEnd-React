@@ -19,27 +19,34 @@ export const LiveReadingsSection = ({
   selectedDeviceId, 
   onDeviceChange 
 }: LiveReadingsSectionProps) => {
-  const [selectedMetric, setSelectedMetric] = useState<'all' | 'voltage' | 'current' | 'power'>('all');
+  const [selectedMetric, setSelectedMetric] = useState<'all' | 'voltage' | 'current' | 'power' | 'avg_voltage' | 'avg_current'>('all');
 
   // Calculate averages
   const averages = readings.length > 0 ? {
-    voltage: readings.reduce((sum, r) => sum + r.voltage, 0) / readings.length,
-    current: readings.reduce((sum, r) => sum + r.current, 0) / readings.length,
-    power: readings.reduce((sum, r) => sum + r.power, 0) / readings.length,
-  } : { voltage: 0, current: 0, power: 0 };
+    voltage: readings.reduce((sum, r) => sum + (r.voltage || 0), 0) / readings.length,
+    current: readings.reduce((sum, r) => sum + (r.current || 0), 0) / readings.length,
+    power: readings.reduce((sum, r) => sum + (r.power || 0), 0) / readings.length,
+    avg_voltage: readings.reduce((sum, r) => sum + (r.avg_voltage || 0), 0) / readings.length,
+    avg_current: readings.reduce((sum, r) => sum + (r.avg_current || 0), 0) / readings.length,
+  } : { voltage: 0, current: 0, power: 0, avg_voltage: 0, avg_current: 0 };
 
   const chartData = readings.slice(0, 10).reverse().map((reading) => {
     const dataPoint: any = {
       time: new Date(reading.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      voltage: parseFloat(reading.voltage.toFixed(2)),
-      current: parseFloat(reading.current.toFixed(2)),
-      power: parseFloat(reading.power.toFixed(2)),
+      voltage: parseFloat((reading.voltage || 0).toFixed(2)),
+      current: parseFloat((reading.current || 0).toFixed(2)),
+      power: parseFloat((reading.power || 0).toFixed(2)),
+      avg_voltage: parseFloat((reading.avg_voltage || 0).toFixed(2)),
+      avg_current: parseFloat((reading.avg_current || 0).toFixed(2)),
     };
 
     // Add average lines if a specific metric is selected
     if (selectedMetric !== 'all') {
       const avgValue = selectedMetric === 'voltage' ? averages.voltage : 
-                      selectedMetric === 'current' ? averages.current : averages.power;
+                      selectedMetric === 'current' ? averages.current : 
+                      selectedMetric === 'power' ? averages.power :
+                      selectedMetric === 'avg_voltage' ? averages.avg_voltage :
+                      averages.avg_current;
       dataPoint[`${selectedMetric}Avg`] = avgValue;
     }
 
@@ -111,7 +118,7 @@ export const LiveReadingsSection = ({
               </div>
 
               {/* Averages Section */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <motion.div
                   whileHover={{ scale: 1.02 }}
                   className={`bg-gradient-to-br from-blue-600 to-blue-800 text-white rounded-2xl p-6 cursor-pointer transition-all duration-200 shadow-lg ${
@@ -162,6 +169,40 @@ export const LiveReadingsSection = ({
                     <Battery size={32} className="text-purple-200" />
                   </div>
                 </motion.div>
+
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  className={`bg-gradient-to-br from-indigo-600 to-indigo-800 text-white rounded-2xl p-6 cursor-pointer transition-all duration-200 shadow-lg ${
+                    selectedMetric === 'avg_voltage' ? 'ring-2 ring-indigo-400 scale-105' : 'hover:scale-105'
+                  }`}
+                  onClick={() => setSelectedMetric(selectedMetric === 'avg_voltage' ? 'all' : 'avg_voltage')}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-indigo-100 text-sm font-medium">Avg Voltage</p>
+                      <p className="text-3xl font-bold mt-1">{averages.avg_voltage.toFixed(2)}V</p>
+                      <p className="text-indigo-200 text-xs mt-1">Click to focus</p>
+                    </div>
+                    <Zap size={32} className="text-indigo-200" />
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  className={`bg-gradient-to-br from-teal-600 to-teal-800 text-white rounded-2xl p-6 cursor-pointer transition-all duration-200 shadow-lg ${
+                    selectedMetric === 'avg_current' ? 'ring-2 ring-teal-400 scale-105' : 'hover:scale-105'
+                  }`}
+                  onClick={() => setSelectedMetric(selectedMetric === 'avg_current' ? 'all' : 'avg_current')}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-teal-100 text-sm font-medium">Avg Current</p>
+                      <p className="text-3xl font-bold mt-1">{averages.avg_current.toFixed(2)}A</p>
+                      <p className="text-teal-200 text-xs mt-1">Click to focus</p>
+                    </div>
+                    <Activity size={32} className="text-teal-200" />
+                  </div>
+                </motion.div>
               </div>
 
               {chartData.length > 1 && (
@@ -169,7 +210,7 @@ export const LiveReadingsSection = ({
                   <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
                     <h3 className="font-bold text-text-primary mb-4 flex items-center gap-2">
                       <TrendingUp size={20} className="text-primary-400" />
-                      Voltage Trend {selectedMetric !== 'all' && selectedMetric === 'voltage' && ' - Voltage Focus'}
+                      Voltage Trend {selectedMetric !== 'all' && (selectedMetric === 'voltage' || selectedMetric === 'avg_voltage') && ` - ${selectedMetric === 'voltage' ? 'Voltage' : 'Avg Voltage'} Focus`}
                     </h3>
                     <ResponsiveContainer width="100%" height={200}>
                       <AreaChart data={chartData}>
@@ -177,6 +218,10 @@ export const LiveReadingsSection = ({
                           <linearGradient id="colorVoltage" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor="var(--primary-200)" stopOpacity={0.8} />
                             <stop offset="95%" stopColor="var(--primary-200)" stopOpacity={0.1} />
+                          </linearGradient>
+                          <linearGradient id="colorAvgVoltage" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#6366F1" stopOpacity={0.8} />
+                            <stop offset="95%" stopColor="#6366F1" stopOpacity={0.1} />
                           </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" stroke="var(--border-primary)" />
@@ -200,11 +245,34 @@ export const LiveReadingsSection = ({
                             name="Voltage (V)"
                           />
                         )}
+                        {(selectedMetric === 'all' || selectedMetric === 'avg_voltage') && (
+                          <Area
+                            type="monotone"
+                            dataKey="avg_voltage"
+                            stroke="#6366F1"
+                            strokeWidth={3}
+                            fillOpacity={1}
+                            fill="url(#colorAvgVoltage)"
+                            name="Avg Voltage (V)"
+                          />
+                        )}
                         {selectedMetric === 'voltage' && (
                           <Line
                             type="monotone"
                             dataKey="voltageAvg"
                             stroke="#3B82F6"
+                            strokeWidth={3}
+                            strokeDasharray="5 5"
+                            dot={false}
+                            name="Avg Voltage"
+                            connectNulls={false}
+                          />
+                        )}
+                        {selectedMetric === 'avg_voltage' && (
+                          <Line
+                            type="monotone"
+                            dataKey="avg_voltageAvg"
+                            stroke="#6366F1"
                             strokeWidth={3}
                             strokeDasharray="5 5"
                             dot={false}
@@ -218,7 +286,7 @@ export const LiveReadingsSection = ({
                   <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
                     <h3 className="font-bold text-text-primary mb-4 flex items-center gap-2">
                       <Activity size={20} className="text-success" />
-                      Power & Current {selectedMetric !== 'all' && ` - ${selectedMetric === 'voltage' ? 'Voltage' : selectedMetric === 'current' ? 'Current' : 'Power'} Focus`}
+                      Power & Current {selectedMetric !== 'all' && ` - ${selectedMetric === 'voltage' ? 'Voltage' : selectedMetric === 'current' ? 'Current' : selectedMetric === 'power' ? 'Power' : selectedMetric === 'avg_voltage' ? 'Avg Voltage' : 'Avg Current'} Focus`}
                     </h3>
                     <ResponsiveContainer width="100%" height={200}>
                       <LineChart data={chartData}>
@@ -244,6 +312,17 @@ export const LiveReadingsSection = ({
                             name="Current (A)"
                           />
                         )}
+                        {(selectedMetric === 'all' || selectedMetric === 'avg_current') && (
+                          <Line
+                            type="monotone"
+                            dataKey="avg_current"
+                            stroke="#14B8A6"
+                            strokeWidth={3}
+                            dot={{ r: 4 }}
+                            activeDot={{ r: 6 }}
+                            name="Avg Current (A)"
+                          />
+                        )}
                         {(selectedMetric === 'all' || selectedMetric === 'power') && (
                           <Line
                             type="monotone"
@@ -263,7 +342,7 @@ export const LiveReadingsSection = ({
                             strokeWidth={3}
                             strokeDasharray="5 5"
                             dot={false}
-                            name={`Avg ${selectedMetric === 'voltage' ? 'Voltage' : selectedMetric === 'current' ? 'Current' : 'Power'}`}
+                            name={`Avg ${selectedMetric === 'voltage' ? 'Voltage' : selectedMetric === 'current' ? 'Current' : selectedMetric === 'power' ? 'Power' : selectedMetric === 'avg_voltage' ? 'Avg Voltage' : 'Avg Current'}`}
                             connectNulls={false}
                           />
                         )}

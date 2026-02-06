@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Plus} from 'lucide-react';
 import { devicesAPI } from '../api/devices';
-import { DeviceResponseDTO, SolarDeviceView } from '../domain/entities/Device';
+import { SolarDeviceView } from '../domain/entities/Device';
 import { useSearchStore } from '../store/searchStore';
 import { AddSolarDeviceModal } from '../components/AddSolarDeviceModal';
 import { SolarDevicesSection } from '../components/SolarDevicesSection';
@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 export const MyDevices = () => {
-  const [devices, setDevices] = useState<DeviceResponseDTO[]>([]);
+  // const [devices, setDevices] = useState<DeviceResponseDTO[]>([]);
   const [solarDevices, setSolarDevices] = useState<SolarDeviceView[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -42,11 +42,11 @@ export const MyDevices = () => {
   const fetchDevices = async () => {
     setLoading(true);
     try {
-      const [devicesResponse, solarDevicesResponse] = await Promise.all([
-        devicesAPI.getMyDevices(),
+      const [ solarDevicesResponse] = await Promise.all([
+        // devicesAPI.getMyDevices(),
         devicesAPI.getMySolarDevices()
       ]);
-      setDevices(devicesResponse);
+      // setDevices(devicesResponse);
       setSolarDevices(solarDevicesResponse);
       setError('');
     } catch (err: any) {
@@ -80,7 +80,7 @@ export const MyDevices = () => {
     }
   };
 
-  const activeDevices = devices.filter((device) => device.device_state === 1).length;
+  const activeDevices = solarDevices.filter((solarDevice) => solarDevice.status === "active").length;
   const avgVoltage = solarDevices.length > 0
     ? solarDevices.reduce((sum, device) => sum + device.battery_voltage, 0) / solarDevices.length
     : 0;
@@ -149,7 +149,7 @@ export const MyDevices = () => {
         onClose={() => setShowCreateModal(false)}
         deviceTypes={deviceTypes}
         onDeviceAdded={(device) => {
-          setDevices([...devices, device]);
+          setSolarDevices([...solarDevices, device]);
           fetchDevices();
         }}
         onError={setError}
@@ -161,7 +161,7 @@ export const MyDevices = () => {
         isOpen={showSolarModal}
         onClose={() => setShowSolarModal(false)}
         onDeviceAdded={(device) => {
-          setDevices([...devices, device]);
+          setSolarDevices([...solarDevices, device]);
           fetchDevices();
         }}
         onError={setError}

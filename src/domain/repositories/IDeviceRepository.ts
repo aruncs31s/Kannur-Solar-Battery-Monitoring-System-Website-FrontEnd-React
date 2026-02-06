@@ -1,5 +1,6 @@
 import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO } from '../entities/Device';
 import { DeviceTokenResponse } from '../../api/devices';
+import { Reading } from '../entities/Reading';
 
 export interface IDeviceRepository {
   getAll(): Promise<DeviceResponseDTO[]>;
@@ -15,4 +16,6 @@ export interface IDeviceRepository {
   controlDevice(deviceId: number, action: number): Promise<{ success: boolean; message: string }>;
   removeConnectedDevice(deviceId: number, connectedDeviceId: number): Promise<{ success: boolean; message: string }>;
   getRecentDevices(): Promise<DeviceResponseDTO[]>;
+  getOfflineDevices(): Promise<DeviceResponseDTO[]>;
+  getProgressiveReadings(deviceId: number): Promise<Reading[]>;
 }

@@ -6,6 +6,10 @@ export const readingsAPI = {
     return await container.getGetDeviceReadingsUseCase().execute(deviceId);
   },
 
+  getProgressiveByDevice: async (deviceId: number): Promise<Reading[]> => {
+    return await container.getGetProgressiveReadingsUseCase().execute(deviceId);
+  },
+
   getByDateRange: async (filters: ReadingFilters): Promise<Reading[]> => {
     return await container.getGetReadingsByDateRangeUseCase().execute(filters);
   },
