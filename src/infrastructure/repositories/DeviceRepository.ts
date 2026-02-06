@@ -1,6 +1,6 @@
 import { IDeviceRepository } from '../../domain/repositories/IDeviceRepository';
 import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO, MicrocontrollerDTO, CreateSensorDeviceDTO, SolarDeviceView, DeviceStateHistoryResponse, DeviceStateHistoryFilters, CreateDeviceTypeDTO, DeviceState, CreateDeviceStateDTO, UpdateDeviceStateDTO } from '../../domain/entities/Device';
-import { DeviceTokenResponse } from '../../api/devices';
+import { DeviceTokenResponse, MicrocontrollerStats } from '../../api/devices';
 import { Reading } from '../../domain/entities/Reading';
 import { httpClient } from '../http/HttpClient';
 
@@ -143,6 +143,11 @@ export class DeviceRepository implements IDeviceRepository {
     return response.devices;
   }
 
+  async getMicrocontrollerStats(): Promise<MicrocontrollerStats> {
+    const response = await httpClient.get<{ stats: MicrocontrollerStats }>('/devices/microcontrollers/stats');
+    return response.stats;
+  }
+
   async generateDeviceToken(deviceId: number): Promise<DeviceTokenResponse> {
     return await httpClient.post<DeviceTokenResponse>('/device-auth/token', { device_id: deviceId });
   }
@@ -241,8 +246,24 @@ export class DeviceRepository implements IDeviceRepository {
   async uploadFirmware(deviceId: number, firmwareFile: File): Promise<{ message: string }> {
     const formData = new FormData();
     formData.append('firmware', firmwareFile);
-    formData.append('device_id', deviceId.toString());
-    return await httpClient.post('/codegen/upload', formData);
+    // Send device_id as query parameter instead of form field
+    return await httpClient.post(`/codegen/upload?device_id=${deviceId}`, formData);
+  }
+
+  // Firmware Builder Methods
+  async buildFirmware(config: any): Promise<any> {
+    return await httpClient.post('/codegen/build', config);
+  }
+
+  async getFirmwareBuildStatus(buildId: string): Promise<any> {
+    return await httpClient.get(`/codegen/build/${buildId}/status`);
+  }
+
+  async downloadFirmware(buildId: string): Promise<Blob> {
+    const response = await httpClient.get(`/codegen/build/${buildId}/download`, {
+      responseType: 'blob'
+    });
+    return response as Blob;
   }
 
   async getDeviceStateHistory(deviceId: string | number, filters?: DeviceStateHistoryFilters): Promise<DeviceStateHistoryResponse> {

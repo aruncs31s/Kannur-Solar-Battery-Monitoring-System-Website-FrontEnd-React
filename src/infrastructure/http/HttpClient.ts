@@ -10,8 +10,11 @@ class HttpClient {
     this.client = axios.create({
       baseURL: API_BASE_URL,
       headers: { 
-        'Content-Type': 'application/json',
         'Accept': 'application/json'
+        // Note: Content-Type is intentionally NOT set here
+        // It will be set automatically by axios based on data type
+        // For JSON: 'application/json'
+        // For FormData: 'multipart/form-data' with boundary
       },
       withCredentials: false,
     });
@@ -26,6 +29,16 @@ class HttpClient {
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
+        
+        // Set Content-Type based on data type
+        // For FormData, let axios set it automatically with boundary
+        // For regular JSON requests, set it explicitly
+        if (config.data && !(config.data instanceof FormData)) {
+          config.headers['Content-Type'] = 'application/json';
+        }
+        // If it's FormData, axios will automatically set:
+        // Content-Type: multipart/form-data; boundary=----WebKitFormBoundary...
+        
         return config;
       },
       (error: AxiosError) => Promise.reject(error)
@@ -53,6 +66,10 @@ class HttpClient {
 
   async get<T>(url: string, config?: any): Promise<T> {
     const response = await this.client.get(url, config);
+    // For blob responses, return raw data
+    if (config?.responseType === 'blob') {
+      return response.data as T;
+    }
     return this.unwrapResponse<T>(response.data);
   }
 

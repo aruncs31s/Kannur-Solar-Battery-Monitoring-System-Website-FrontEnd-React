@@ -17,3 +17,6 @@ export { DateRangeFilter } from './DateRangeFilter';
 export { MicrocontrollerCard } from './MicrocontrollerCard';
 export { MicrocontrollersSection } from './MicrocontrollersSection';
 export { FirmwareUploadModal } from './FirmwareUploadModal';
+export { OnlineFirmwareBuilder } from './OnlineFirmwareBuilder';
+export { OTAFirmwareUpload } from './OTAFirmwareUpload';
+export { DailyBreakdownCharts } from './DailyBreakdownCharts';

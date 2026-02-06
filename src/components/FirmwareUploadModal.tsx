@@ -84,7 +84,34 @@ export const FirmwareUploadModal = ({
       }, 2000);
 
     } catch (error: any) {
-      setMessage(`Upload failed: ${error.message}`);
+      // Extract detailed error message
+      let errorMessage = 'Upload failed';
+      
+      if (error.response) {
+        // Server responded with error
+        const status = error.response.status;
+        const data = error.response.data;
+        
+        if (status === 400) {
+          errorMessage = data?.message || data?.error || 'Bad Request: Invalid file or parameters';
+        } else if (status === 413) {
+          errorMessage = 'File too large. Maximum size is 10MB';
+        } else if (status === 415) {
+          errorMessage = 'Unsupported file type. Please upload a .bin file';
+        } else if (status === 500) {
+          errorMessage = 'Server error. Please try again later';
+        } else {
+          errorMessage = data?.message || data?.error || `Error ${status}: ${error.message}`;
+        }
+      } else if (error.request) {
+        // Request made but no response
+        errorMessage = 'No response from server. Please check your connection';
+      } else {
+        // Error in request setup
+        errorMessage = error.message || 'Upload failed';
+      }
+      
+      setMessage(errorMessage);
       setIsSuccess(false);
       setUploading(false);
       setUploadProgress(0);

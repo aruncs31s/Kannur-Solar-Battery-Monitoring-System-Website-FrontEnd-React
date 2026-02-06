@@ -1,5 +1,5 @@
 import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO, MicrocontrollerDTO, CreateSensorDeviceDTO, SolarDeviceView, DeviceStateHistoryResponse, DeviceStateHistoryFilters, CreateDeviceTypeDTO, DeviceState, CreateDeviceStateDTO, UpdateDeviceStateDTO } from '../entities/Device';
-import { DeviceTokenResponse } from '../../api/devices';
+import { DeviceTokenResponse, MicrocontrollerStats } from '../../api/devices';
 import { Reading } from '../entities/Reading';
 
 export interface IDeviceRepository {
@@ -11,6 +11,7 @@ export interface IDeviceRepository {
   search(query: string): Promise<DeviceResponseDTO[]>;
   searchMicrocontrollers(query: string): Promise<DeviceSearchResultDTO[]>;
   getMicrocontrollers(): Promise<MicrocontrollerDTO[]>;
+  getMicrocontrollerStats(): Promise<MicrocontrollerStats>;
   generateDeviceToken(deviceId: number): Promise<DeviceTokenResponse>;
   getDeviceType(deviceId: number): Promise<DeviceTypeDTO>;
   updateDevice(deviceId: number, data: UpdateDeviceDTO): Promise<DeviceResponseDTO>;
@@ -24,6 +25,9 @@ export interface IDeviceRepository {
   getMySolarDevices(): Promise<SolarDeviceView[]>;
   getDevice(deviceId: string | number): Promise<{ device: any }>;
   uploadFirmware(deviceId: number, firmwareFile: File): Promise<{ message: string }>;
+  buildFirmware(config: any): Promise<any>;
+  getFirmwareBuildStatus(buildId: string): Promise<any>;
+  downloadFirmware(buildId: string): Promise<Blob>;
   getDeviceStateHistory(deviceId: string | number, filters?: DeviceStateHistoryFilters): Promise<DeviceStateHistoryResponse>;
   getDeviceStates(): Promise<DeviceState[]>;
   getDeviceState(id: number): Promise<DeviceState>;

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
-import { devicesAPI } from '../api/devices';
+import { devicesAPI, MicrocontrollerStats } from '../api/devices';
 import { MicrocontrollerDTO } from '../domain/entities/Device';
 import { useSearchStore } from '../store/searchStore';
 import { MicrocontrollersSection } from '../components/MicrocontrollersSection';
@@ -25,10 +25,12 @@ export const MyMicrocontrollers = () => {
   const { query: searchQuery } = useSearchStore();
   const [searchResults, setSearchResults] = useState<MicrocontrollerDTO[]>([]);
   const [success, setSuccess] = useState('');
+  const [stats, setStats] = useState<MicrocontrollerStats | null>(null);
 
   useEffect(() => {
     fetchMicrocontrollers();
     fetchDeviceTypes();
+    fetchStats();
   }, []);
 
   useEffect(() => {
@@ -60,6 +62,15 @@ export const MyMicrocontrollers = () => {
     }
   };
 
+  const fetchStats = async () => {
+    try {
+      const statsData = await devicesAPI.getMicrocontrollerStats();
+      setStats(statsData);
+    } catch (err) {
+      console.error('Failed to fetch microcontroller stats:', err);
+    }
+  };
+
   const handleSearch = async (query: string) => {
     if (query.trim() === '') {
       setSearchResults([]);
@@ -79,7 +90,6 @@ export const MyMicrocontrollers = () => {
   };
 
   const activeDevices = microcontrollers.filter((mc) => mc.status?.toLowerCase() === "active" || mc.status?.toLowerCase() === "online").length;
-  const connectedDevices = microcontrollers.filter((mc) => mc.used_by || mc.connected_sensors).length;
   const avgFirmwareVersion = microcontrollers.length > 0
     ? `v${microcontrollers[0].firmware_version || '0.0.0'}`
     : 'N/A';
@@ -119,29 +129,29 @@ export const MyMicrocontrollers = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatsCard 
             title="Total Microcontrollers" 
-            value={microcontrollers.length} 
+            value={stats?.total_microcontrollers ?? microcontrollers.length} 
             icon={<Cpu size={28} />} 
             color="blue" 
             subtitle="ESP32 and other MCUs" 
           />
           <StatsCard 
-            title="Active Devices" 
-            value={activeDevices} 
+            title="Online Devices" 
+            value={stats?.online_microcontrollers ?? activeDevices} 
             icon={<CheckCircle size={28} />} 
             color="green" 
             subtitle="Currently online" 
-            trend={activeDevices > 0 ? 5 : 0} 
+            trend={stats?.online_microcontrollers ? 5 : 0} 
           />
           <StatsCard 
-            title="Connected Devices" 
-            value={connectedDevices} 
+            title="Offline Devices" 
+            value={stats?.offline_microcontrollers ?? 0} 
             icon={<Wifi size={28} />} 
-            color="purple" 
-            subtitle="With active connections" 
+            color="red" 
+            subtitle="Currently offline" 
           />
           <StatsCard 
-            title="Firmware Version" 
-            value={avgFirmwareVersion} 
+            title="Latest Firmware" 
+            value={stats?.latest_version ? `v${stats.latest_version}` : avgFirmwareVersion} 
             icon={<Activity size={28} />} 
             color="indigo" 
             subtitle="Latest version" 

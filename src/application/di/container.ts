@@ -21,10 +21,14 @@ import { CreateDeviceTypeUseCase } from '../usecases/devices/CreateDeviceTypeUse
 import { GetMySolarDevicesUseCase } from '../usecases/devices/GetMySolarDevicesUseCase';
 import { GetDeviceUseCase } from '../usecases/devices/GetDeviceUseCase';
 import { UploadFirmwareUseCase } from '../usecases/devices/UploadFirmwareUseCase';
+import { BuildFirmwareUseCase } from '../usecases/devices/BuildFirmwareUseCase';
+import { GetFirmwareBuildStatusUseCase } from '../usecases/devices/GetFirmwareBuildStatusUseCase';
+import { DownloadFirmwareUseCase } from '../usecases/devices/DownloadFirmwareUseCase';
 import { GetDeviceStateHistoryUseCase } from '../usecases/devices/GetDeviceStateHistoryUseCase';
 import { SearchDevicesUseCase } from '../usecases/devices/SearchDevicesUseCase';
 import { SearchMicrocontrollersUseCase } from '../usecases/devices/SearchMicrocontrollersUseCase';
 import { GetMicrocontrollersUseCase } from '../usecases/devices/GetMicrocontrollersUseCase';
+import { GetMicrocontrollerStatsUseCase } from '../usecases/devices/GetMicrocontrollerStatsUseCase';
 import { GenerateDeviceTokenUseCase } from '../usecases/devices/GenerateDeviceTokenUseCase';
 import { GetDeviceTypeUseCase } from '../usecases/devices/GetDeviceTypeUseCase';
 import { UpdateDeviceUseCase } from '../usecases/devices/UpdateDeviceUseCase';
@@ -105,6 +109,18 @@ class DIContainer {
     return new UploadFirmwareUseCase(this.deviceRepository);
   }
 
+  getBuildFirmwareUseCase() {
+    return new BuildFirmwareUseCase(this.deviceRepository);
+  }
+
+  getGetFirmwareBuildStatusUseCase() {
+    return new GetFirmwareBuildStatusUseCase(this.deviceRepository);
+  }
+
+  getDownloadFirmwareUseCase() {
+    return new DownloadFirmwareUseCase(this.deviceRepository);
+  }
+
   getGetDeviceStateHistoryUseCase() {
     return new GetDeviceStateHistoryUseCase(this.deviceRepository);
   }
@@ -135,6 +151,10 @@ class DIContainer {
 
   getGetMicrocontrollersUseCase() {
     return new GetMicrocontrollersUseCase(this.deviceRepository);
+  }
+
+  getGetMicrocontrollerStatsUseCase() {
+    return new GetMicrocontrollerStatsUseCase(this.deviceRepository);
   }
 
   getGenerateDeviceTokenUseCase() {

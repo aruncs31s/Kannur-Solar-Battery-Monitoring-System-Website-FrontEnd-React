@@ -8,6 +8,39 @@ export interface DeviceTokenResponse {
   device_id: number;
 }
 
+export interface FirmwareBuildConfig {
+  device_id: number;
+  device_name: string;
+  ip: string;
+  host_ip: string;
+  host_ssid: string;
+  host_pass: string;
+  port: number;
+  token?: string;
+  build_tool?: 'platformio' | 'arduino';
+}
+
+export interface FirmwareBuildResponse {
+  build_id: string;
+  message: string;
+  status: 'queued' | 'building' | 'completed' | 'failed';
+}
+
+export interface FirmwareBuildStatus {
+  build_id: string;
+  status: 'queued' | 'building' | 'completed' | 'failed';
+  progress: number;
+  message: string;
+  download_url?: string;
+}
+
+export interface MicrocontrollerStats {
+  total_microcontrollers: number;
+  online_microcontrollers: number;
+  offline_microcontrollers: number;
+  latest_version: string;
+}
+
 export const devicesAPI = {
   getAllDevices: async (): Promise<DeviceResponseDTO[]> => {
     return await container.getGetAllDevicesUseCase().execute();
@@ -65,6 +98,10 @@ export const devicesAPI = {
     return await container.getGetMicrocontrollersUseCase().execute();
   },
 
+  getMicrocontrollerStats: async (): Promise<MicrocontrollerStats> => {
+    return await container.getGetMicrocontrollerStatsUseCase().execute();
+  },
+
   getDevice: async (deviceId: string | number): Promise<{ device: any }> => {
     return await container.getGetDeviceUseCase().execute(deviceId);
   },
@@ -99,5 +136,18 @@ export const devicesAPI = {
 
   updateDeviceState: async (id: number, data: UpdateDeviceStateDTO): Promise<DeviceState> => {
     return await container.getUpdateDeviceStateUseCase().execute(id, data);
+  },
+
+  // Firmware Builder APIs
+  buildFirmware: async (config: FirmwareBuildConfig): Promise<FirmwareBuildResponse> => {
+    return await container.getBuildFirmwareUseCase().execute(config);
+  },
+
+  getFirmwareBuildStatus: async (buildId: string): Promise<FirmwareBuildStatus> => {
+    return await container.getGetFirmwareBuildStatusUseCase().execute(buildId);
+  },
+
+  downloadFirmware: async (buildId: string): Promise<Blob> => {
+    return await container.getDownloadFirmwareUseCase().execute(buildId);
   },
 };

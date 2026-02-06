@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Activity, AlertCircle, Calendar, Copy, Check, X, Settings, Download, Code } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
+import { Activity, AlertCircle, Copy, Check, X, Settings, Download, Code } from 'lucide-react';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
 import { readingsAPI } from '../api/readings';
 import { devicesAPI } from '../api/devices';
 import { UpdateDeviceModal } from '../components/UpdateDeviceModal';
 import { DeviceControlPanel } from '../components/DeviceControlPanel';
 import { DeviceInfoCard } from '../components/DeviceInfoCard';
-import { FirmwareUploadModal } from '../components';
+import { FirmwareUploadModal, OnlineFirmwareBuilder, OTAFirmwareUpload } from '../components';
+import { DailyBreakdownCharts } from '../components/DailyBreakdownCharts';
 import { Reading } from '../domain/entities/Reading';
 
 const formatMetric = (value: number | null | undefined, unit: string) => {
@@ -50,8 +51,8 @@ export const MCDeviceDetail = () => {
   const [showTokenModal, setShowTokenModal] = useState(false);
   const [generatedToken, setGeneratedToken] = useState('');
   const [tokenCopied, setTokenCopied] = useState(false);
-  const [readingsLimit, setReadingsLimit] = useState(20);
-  
+  const [readingsLimit] = useState(20);
+
   // Firmware builder state
   const [showFirmwareModal, setShowFirmwareModal] = useState(false);
   const [firmwareBuilding, setFirmwareBuilding] = useState(false);
@@ -73,6 +74,8 @@ export const MCDeviceDetail = () => {
   
   // Firmware upload state
   const [isFirmwareUploadModalOpen, setIsFirmwareUploadModalOpen] = useState(false);
+  const [isOnlineBuilderOpen, setIsOnlineBuilderOpen] = useState(false);
+  const [isOTAUploadOpen, setIsOTAUploadOpen] = useState(false);
   
   // Update device modal state
   const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -100,9 +103,9 @@ export const MCDeviceDetail = () => {
   };
   
   const defaultDates = getDefaultDates();
-  const [startDate, setStartDate] = useState(defaultDates.start);
-  const [endDate, setEndDate] = useState(defaultDates.end);
-  const [useDateFilter, setUseDateFilter] = useState(false); // Default to disabled to show all readings
+  const [startDate] = useState(defaultDates.start);
+  const [endDate] = useState(defaultDates.end);
+  const [useDateFilter] = useState(false); // Default to disabled to show all readings
   const [allReadings, setAllReadings] = useState<Reading[]>([]); // Store all readings for breakdown
   const [selectedDay, setSelectedDay] = useState<string | null>(null); // For zooming into daily view
 
@@ -450,46 +453,6 @@ export const MCDeviceDetail = () => {
     }
   };
 
-  // Create device handlers
-  // const handleCreateInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-  //   const { name, value } = e.target;
-  //   setCreateFormData((prev) => ({
-  //     ...prev,
-  //     [name]: name === 'type' ? parseInt(value, 10) : value,
-  //   }));
-  // };
-
-  // const handleCreateDevice = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   setCreateError('');
-
-  //   if (!createFormData.name || !createFormData.uid) {
-  //     setCreateError('Please fill in the device name and UID');
-  //     return;
-  //   }
-
-  //   setCreateLoading(true);
-  //   try {
-  //     const newDevice = await devicesAPI.createDevice(createFormData);
-  //     setShowCreateModal(false);
-  //     setCreateFormData({
-  //       name: '',
-  //       uid: '',
-  //       type: 1,
-  //       ip_address: '',
-  //       mac_address: '',
-  //       firmware_version_id: 1,
-  //       address: '',
-  //       city: '',
-  //     });
-  //     // Navigate to the new device detail page
-  //     navigate(`/devices/${newDevice.id}`);
-  //   } catch (err: any) {
-  //     setCreateError(err.response?.data?.error || 'Failed to create device');
-  //   } finally {
-  //     setCreateLoading(false);
-  //   }
-  // };
 
   const handleUpdateDevice = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -594,63 +557,34 @@ export const MCDeviceDetail = () => {
   // Prepare data for detailed daily chart
   const getDetailedChartData = () => {
     if (!selectedDay) return [];
-    
-    const dayData = getDailyBreakdown().find(day => day.date === selectedDay);
-    if (!dayData) return [];
-    
-    const chartData = dayData.chartData;
-    
-    return chartData;
-  };
 
-  // Group readings by day for breakdown charts
-  const getDailyBreakdown = () => {
+    // Recreate the logic to find the selected day's data
     const dailyData: { [key: string]: Reading[] } = {};
-    
+
     // Use allReadings (last 7 days) for breakdown
     allReadings.forEach(reading => {
-      const date = new Date(reading.timestamp).toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
+      const date = new Date(reading.timestamp).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
       });
       if (!dailyData[date]) {
         dailyData[date] = [];
       }
       dailyData[date].push(reading);
     });
-    
-    // Generate all 7 days, even if no data
-    const result = [];
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      const dateString = date.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
-      });
-      
-      const readings = dailyData[dateString] || [];
-      result.push({
-        date: dateString,
-        readings: readings.sort((a, b) => a.timestamp - b.timestamp),
-        chartData: readings
-          .sort((a, b) => a.timestamp - b.timestamp)
-          .map(r => ({
-            time: new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            voltage: r.voltage ?? 0,
-            current: r.current ?? 0,
-            power: r.power ?? 0
-          })),
-        avgVoltage: readings.length > 0 ? readings.reduce((sum, r) => sum + (r.voltage ?? 0), 0) / readings.length : 0,
-        avgCurrent: readings.length > 0 ? readings.reduce((sum, r) => sum + (r.current ?? 0), 0) / readings.length : 0,
-        avgPower: readings.length > 0 ? readings.reduce((sum, r) => sum + (r.power ?? 0), 0) / readings.length : 0,
-        count: readings.length
-      });
-    }
-    
-    return result;
+
+    const readings = dailyData[selectedDay] || [];
+    const chartData = readings
+      .sort((a, b) => a.timestamp - b.timestamp)
+      .map(r => ({
+        time: new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        voltage: r.voltage ?? 0,
+        current: r.current ?? 0,
+        power: r.power ?? 0
+      }));
+
+    return chartData;
   };
 
   if (loading) {
@@ -1215,11 +1149,27 @@ export const MCDeviceDetail = () => {
             </button>
             
             <button
+              onClick={() => setIsOnlineBuilderOpen(true)}
+              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 shadow-md hover:shadow-lg"
+            >
+              <Code size={20} />
+              Build Online
+            </button>
+            
+            <button
+              onClick={() => setIsOTAUploadOpen(true)}
+              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 shadow-md hover:shadow-lg"
+            >
+              <Settings size={20} />
+              OTA Upload
+            </button>
+            
+            <button
               onClick={() => setIsFirmwareUploadModalOpen(true)}
               className="px-6 py-3 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 shadow-md hover:shadow-lg"
             >
               <Settings size={20} />
-              Upload Firmware
+              Upload to Server
             </button>
             
             {generatedToken ? (
@@ -1324,234 +1274,11 @@ export const MCDeviceDetail = () => {
       )}
 
       {/* Daily Breakdown Charts */}
-      {allReadings.length > 0 && !selectedDay && (
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Daily Breakdown (Last 7 Days)</h2>
-          <p className="text-gray-600 dark:text-gray-400">Click on any day to zoom into detailed view</p>
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            {getDailyBreakdown().map((day) => (
-              <div 
-                key={day.date} 
-                className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
-                onClick={() => setSelectedDay(day.date)}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">{day.date}</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">{day.count} readings</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Avg: {day.avgVoltage.toFixed(1)}V</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{day.avgCurrent.toFixed(2)}A</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{day.avgPower.toFixed(1)}W</p>
-                    <p className="text-xs text-blue-500 dark:text-blue-400 mt-1">Click to zoom</p>
-                  </div>
-                </div>
-                <ResponsiveContainer width="100%" height={200}>
-                  <LineChart data={day.chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-primary)" />
-                    <XAxis 
-                      dataKey="time" 
-                      stroke="var(--text-tertiary)"
-                      tick={{ fill: 'var(--text-tertiary)', fontSize: 10 }}
-                    />
-                    <YAxis 
-                      stroke="var(--text-tertiary)"
-                      tick={{ fill: 'var(--text-tertiary)', fontSize: 10 }}
-                    />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'var(--surface-primary)', 
-                        border: 'none', 
-                        borderRadius: '8px', 
-                        boxShadow: '0 2px 4px rgb(0 0 0 / 0.1)',
-                        color: 'var(--text-primary)',
-                        fontSize: '12px'
-                      }} 
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="voltage" 
-                      stroke="#5E81AC" 
-                      strokeWidth={2}
-                      dot={false}
-                      name="V"
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="current" 
-                      stroke="#A3BE8C" 
-                      strokeWidth={2}
-                      dot={false}
-                      name="A"
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="power" 
-                      stroke="#B48EAD" 
-                      strokeWidth={2}
-                      dot={false}
-                      name="W"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Date Filter */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <div className="flex items-center gap-4 flex-wrap">
-          <div className="flex items-center gap-2">
-            <Calendar className="text-primary-500" size={20} />
-            <span className="text-sm font-medium text-gray-900 dark:text-white">Date Range:</span>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="useDateFilter"
-              checked={useDateFilter}
-              onChange={(e) => setUseDateFilter(e.target.checked)}
-              className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-            />
-            <label htmlFor="useDateFilter" className="text-sm text-gray-700 dark:text-gray-300">
-              Enable Date Filter
-            </label>
-          </div>
-          
-          {useDateFilter && (
-            <>
-              <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-600 dark:text-gray-400">From:</label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-                />
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-600 dark:text-gray-400">To:</label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-                />
-              </div>
-              
-              <button
-                onClick={() => {
-                  const dates = getDefaultDates();
-                  setStartDate(dates.start);
-                  setEndDate(dates.end);
-                }}
-                className="px-3 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors"
-              >
-                Last 7 Days
-              </button>
-              
-              <button
-                onClick={() => {
-                  const endDate = new Date();
-                  const startDate = new Date();
-                  startDate.setDate(startDate.getDate() - 30);
-                  setStartDate(startDate.toISOString().split('T')[0]);
-                  setEndDate(endDate.toISOString().split('T')[0]);
-                }}
-                className="px-3 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors"
-              >
-                Last 30 Days
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Readings Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-            {useDateFilter ? `Readings (${startDate} to ${endDate})` : 'Recent Readings'}
-          </h2>
-          <div className="flex items-center gap-4">
-            <label className="text-sm text-gray-600 dark:text-gray-400">
-              Show:
-              <select
-                value={readingsLimit}
-                onChange={(e) => setReadingsLimit(Number(e.target.value))}
-                className="ml-2 px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              >
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-                <option value={500}>500</option>
-              </select>
-            </label>
-          </div>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-900">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Timestamp
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Voltage (V)
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Current (A)
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Power (W)
-                </th>
-                {readings.some(r => r.temperature) && (
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Temperature (°C)
-                  </th>
-                )}
-              </tr>
-            </thead>
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {readings.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
-                    No readings available
-                  </td>
-                </tr>
-              ) : (
-                readings.map((reading) => (
-                  <tr key={reading.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                      {new Date(reading.timestamp).toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-nord-8">
-                      {(reading.voltage ?? 0).toFixed(2)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-success">
-                      {(reading.current ?? 0).toFixed(2)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-nord-15">
-                      {(reading.power ?? 0).toFixed(2)}
-                    </td>
-                    {reading.temperature && (
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-orange-600 dark:text-orange-400">
-                        {reading.temperature.toFixed(1)}
-                      </td>
-                    )}
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <DailyBreakdownCharts
+        allReadings={allReadings}
+        selectedDay={selectedDay}
+        onDaySelect={setSelectedDay}
+      />
 
       {/* Firmware Upload Modal */}
       <FirmwareUploadModal
@@ -1564,6 +1291,24 @@ export const MCDeviceDetail = () => {
           loadDeviceData();
           setIsFirmwareUploadModalOpen(false);
         }}
+      />
+
+      {/* Online Firmware Builder Modal */}
+      <OnlineFirmwareBuilder
+        isOpen={isOnlineBuilderOpen}
+        onClose={() => setIsOnlineBuilderOpen(false)}
+        deviceId={device?.id || 0}
+        deviceName={device?.name || ''}
+        deviceIp={device?.ip_address}
+      />
+
+      {/* OTA Firmware Upload Modal */}
+      <OTAFirmwareUpload
+        isOpen={isOTAUploadOpen}
+        onClose={() => setIsOTAUploadOpen(false)}
+        deviceId={device?.id || 0}
+        deviceName={device?.name || ''}
+        deviceIp={device?.ip_address}
       />
      
     </div>
