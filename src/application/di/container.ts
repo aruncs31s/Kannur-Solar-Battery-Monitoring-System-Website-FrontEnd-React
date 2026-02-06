@@ -18,6 +18,7 @@ import { CreateDeviceUseCase } from '../usecases/devices/CreateDeviceUseCase';
 import { CreateSolarDeviceUseCase } from '../usecases/devices/CreateSolarDeviceUseCase';
 import { SearchDevicesUseCase } from '../usecases/devices/SearchDevicesUseCase';
 import { SearchMicrocontrollersUseCase } from '../usecases/devices/SearchMicrocontrollersUseCase';
+import { GetMicrocontrollersUseCase } from '../usecases/devices/GetMicrocontrollersUseCase';
 import { GenerateDeviceTokenUseCase } from '../usecases/devices/GenerateDeviceTokenUseCase';
 import { GetDeviceTypeUseCase } from '../usecases/devices/GetDeviceTypeUseCase';
 import { UpdateDeviceUseCase } from '../usecases/devices/UpdateDeviceUseCase';
@@ -80,6 +81,10 @@ class DIContainer {
 
   getSearchMicrocontrollersUseCase() {
     return new SearchMicrocontrollersUseCase(this.deviceRepository);
+  }
+
+  getGetMicrocontrollersUseCase() {
+    return new GetMicrocontrollersUseCase(this.deviceRepository);
   }
 
   getGenerateDeviceTokenUseCase() {

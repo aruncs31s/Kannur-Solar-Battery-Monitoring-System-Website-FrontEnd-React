@@ -1,4 +1,4 @@
-import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO } from '../entities/Device';
+import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO, MicrocontrollerDTO } from '../entities/Device';
 import { DeviceTokenResponse } from '../../api/devices';
 import { Reading } from '../entities/Reading';
 
@@ -10,6 +10,7 @@ export interface IDeviceRepository {
   createSolarDevice(device: CreateSolarDeviceDTO): Promise<DeviceResponseDTO>;
   search(query: string): Promise<DeviceResponseDTO[]>;
   searchMicrocontrollers(query: string): Promise<DeviceSearchResultDTO[]>;
+  getMicrocontrollers(): Promise<MicrocontrollerDTO[]>;
   generateDeviceToken(deviceId: number): Promise<DeviceTokenResponse>;
   getDeviceType(deviceId: number): Promise<DeviceTypeDTO>;
   updateDevice(deviceId: number, data: UpdateDeviceDTO): Promise<DeviceResponseDTO>;

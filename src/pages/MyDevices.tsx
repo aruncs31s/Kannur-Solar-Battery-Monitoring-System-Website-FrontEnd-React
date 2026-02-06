@@ -47,7 +47,9 @@ export const MyDevices = () => {
         devicesAPI.getMySolarDevices()
       ]);
       // setDevices(devicesResponse);
-      setSolarDevices(solarDevicesResponse);
+      // Sort solar devices by ID in descending order (newest first)
+      const sortedSolarDevices = solarDevicesResponse.sort((a, b) => b.id - a.id);
+      setSolarDevices(sortedSolarDevices);
       setError('');
     } catch (err: any) {
       console.log('Error fetching devices:', err);
@@ -118,7 +120,6 @@ export const MyDevices = () => {
       {error && <FormError message={error} />}
       {success && <FormSuccess message={success} />}
        
-
       {/* Statistics Cards */}
       <div className="space-y-6 pb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -148,9 +149,8 @@ export const MyDevices = () => {
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         deviceTypes={deviceTypes}
-        onDeviceAdded={(device) => {
-          setSolarDevices([...solarDevices, device]);
-          fetchDevices();
+        onDeviceAdded={() => {
+          fetchDevices(); // Refetch to maintain sorted order
         }}
         onError={setError}
         onSuccess={setSuccess}
@@ -160,9 +160,8 @@ export const MyDevices = () => {
       <AddSolarDeviceModal
         isOpen={showSolarModal}
         onClose={() => setShowSolarModal(false)}
-        onDeviceAdded={(device) => {
-          setSolarDevices([...solarDevices, device]);
-          fetchDevices();
+        onDeviceAdded={() => {
+          fetchDevices(); // Refetch to maintain sorted order
         }}
         onError={setError}
         onSuccess={(message) => setSuccess(message)}

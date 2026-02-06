@@ -14,3 +14,6 @@ export { LiveReadingsSection } from './LiveReadingsSection';
 export { StatsCard, StatusBadge } from './Cards';
 export { FormError, FormSuccess, FormInput, FormField } from './FormComponents';
 export { DateRangeFilter } from './DateRangeFilter';
+export { MicrocontrollerCard } from './MicrocontrollerCard';
+export { MicrocontrollersSection } from './MicrocontrollersSection';
+export { FirmwareUploadModal } from './FirmwareUploadModal';

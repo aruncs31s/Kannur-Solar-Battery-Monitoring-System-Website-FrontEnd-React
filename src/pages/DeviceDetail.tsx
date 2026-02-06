@@ -1,19 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Settings, Activity, AlertCircle, TrendingUp, X, Plus, Search } from 'lucide-react';
+import { Power, PowerOff, Settings, RefreshCw, Activity, AlertCircle, TrendingUp, Calendar, History, Copy, Check, X, Edit, Plus } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
 import { readingsAPI } from '../api/readings';
 import { devicesAPI } from '../api/devices';
 import { StatusBadge } from '../components/Cards';
-import { FormField } from '../components/FormComponents';
-import { DeviceControlPanel } from '../components/DeviceControlPanel';
-import { DeviceInfoCard } from '../components/DeviceInfoCard';
-import { DeviceTokenModal } from '../components/DeviceTokenModal';
-import { UpdateDeviceModal } from '../components/UpdateDeviceModal';
-import { ReadingsTable } from '../components/ReadingsTable';
-import { DateRangeFilter } from '../components/DateRangeFilter';
+import { FormField, FormError } from '../components/FormComponents';
 import { Reading } from '../domain/entities/Reading';
-import { DeviceSearchResultDTO } from '../domain/entities/Device';
 
 interface DeviceInfo {
   id: number;
@@ -30,8 +23,9 @@ interface DeviceInfo {
 interface DeviceType {
   id: number;
   name: string;
-  features: {
-    can_control: boolean;
+  hardware_type?: number;
+  features?: {
+    can_control?: boolean;
   };
 }
 
@@ -60,6 +54,7 @@ export const DeviceDetail = () => {
   const [controlMessage, setControlMessage] = useState('');
   const [showTokenModal, setShowTokenModal] = useState(false);
   const [generatedToken, setGeneratedToken] = useState('');
+  const [tokenCopied, setTokenCopied] = useState(false);
   const [readingsLimit, setReadingsLimit] = useState(20);
   
   // Update device modal state
@@ -86,11 +81,6 @@ export const DeviceDetail = () => {
     ip_address: '',
     mac_address: ''
   });
-  
-  // Search microcontrollers state
-  const [microcontrollers, setMicrocontrollers] = useState<DeviceSearchResultDTO[]>([]);
-  const [microcontrollerSearch, setMicrocontrollerSearch] = useState('');
-  const [showMicrocontrollerDropdown, setShowMicrocontrollerDropdown] = useState(false);
   
   // Connected device readings modal state
   const [selectedConnectedDevice, setSelectedConnectedDevice] = useState<ConnectedDevice | null>(null);
@@ -155,29 +145,6 @@ export const DeviceDetail = () => {
     }
   };
 
-  const handleMicrocontrollerSearch = async (query: string) => {
-    if (query.length < 2) {
-      setMicrocontrollers([]);
-      setShowMicrocontrollerDropdown(false);
-      return;
-    }
-
-    try {
-      const results = await devicesAPI.searchMicrocontrollers(query);
-      setMicrocontrollers(results);
-      setShowMicrocontrollerDropdown(true);
-    } catch (err) {
-      console.error('Failed to search microcontrollers:', err);
-      setMicrocontrollers([]);
-    }
-  };
-
-  const selectMicrocontroller = (microcontroller: DeviceSearchResultDTO) => {
-    setNewConnectedDeviceId(microcontroller.id.toString());
-    setMicrocontrollerSearch(microcontroller.name);
-    setShowMicrocontrollerDropdown(false);
-  };
-
   const loadDeviceType = async () => {
     if (!id) return;
     
@@ -190,7 +157,11 @@ export const DeviceDetail = () => {
       if (!response.ok) throw new Error('Failed to load device type');
       
       const data = await response.json();
-      setDeviceType(data.device_type);
+      setDeviceType({
+        id: 0, // We don't have an ID from this API
+        name: data.name,
+        hardware_type: data.hardware_type
+      });
     } catch (err) {
       console.error('Failed to load device type:', err);
     }
@@ -229,8 +200,8 @@ export const DeviceDetail = () => {
       let response;
       
       if (addConnectedMode === 'existing') {
-        if (!newConnectedDeviceId || !microcontrollerSearch) {
-          setControlMessage('Please select a microcontroller');
+        if (!newConnectedDeviceId) {
+          setControlMessage('Please enter a device ID');
           setTimeout(() => setControlMessage(''), 3000);
           return;
         }
@@ -275,9 +246,6 @@ export const DeviceDetail = () => {
           ip_address: '',
           mac_address: ''
         });
-        setMicrocontrollerSearch('');
-        setMicrocontrollers([]);
-        setShowMicrocontrollerDropdown(false);
         setShowAddConnectedModal(false);
         loadConnectedDevices();
         setTimeout(() => setControlMessage(''), 3000);
@@ -287,30 +255,6 @@ export const DeviceDetail = () => {
       }
     } catch (err) {
       setControlMessage('Failed to add connected device');
-      setTimeout(() => setControlMessage(''), 3000);
-      console.error(err);
-    }
-  };
-
-  const removeConnectedDevice = async (connectedDeviceId: number) => {
-    if (!id) return;
-
-    if (!window.confirm('Are you sure you want to remove this connected device?')) {
-      return;
-    }
-
-    try {
-      const result = await devicesAPI.removeConnectedDevice(parseInt(id), connectedDeviceId);
-      if (result.success) {
-        setControlMessage('Connected device removed successfully!');
-        loadConnectedDevices();
-        setTimeout(() => setControlMessage(''), 3000);
-      } else {
-        setControlMessage(result.message || 'Failed to remove connected device');
-        setTimeout(() => setControlMessage(''), 3000);
-      }
-    } catch (err) {
-      setControlMessage('Failed to remove connected device');
       setTimeout(() => setControlMessage(''), 3000);
       console.error(err);
     }
@@ -353,7 +297,7 @@ export const DeviceDetail = () => {
       // Single device: fetch its latest reading
       setLoadingSingleReading(true);
       try {
-        const readings = await readingsAPI.getByDevice(supportedDevices[0].id.toString());
+        const readings = await readingsAPI.getByDevice(supportedDevices[0].id, 1);
         setSingleConnectedReading(readings.length > 0 ? readings[0] : null);
       } catch (err) {
         console.error('Failed to load single connected device reading:', err);
@@ -369,7 +313,7 @@ export const DeviceDetail = () => {
         await Promise.all(
           supportedDevices.map(async (device) => {
             try {
-              const readings = await readingsAPI.getByDevice(device.id.toString());
+              const readings = await readingsAPI.getByDevice(device.id, 1);
               readingsMap[device.id] = readings.length > 0 ? readings[0] : null;
             } catch (err) {
               console.error(`Failed to load readings for device ${device.id}:`, err);
@@ -462,6 +406,7 @@ export const DeviceDetail = () => {
       const response = await devicesAPI.generateDeviceToken(parseInt(id));
       setGeneratedToken(response.token);
       setShowTokenModal(true);
+      setTokenCopied(false);
     } catch (err: any) {
       setControlMessage('Failed to generate token');
       setTimeout(() => setControlMessage(''), 3000);
@@ -469,9 +414,20 @@ export const DeviceDetail = () => {
     }
   };
 
+  const copyToken = async () => {
+    try {
+      await navigator.clipboard.writeText(generatedToken);
+      setTokenCopied(true);
+      setTimeout(() => setTokenCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy token:', err);
+    }
+  };
+
   const closeTokenModal = () => {
     setShowTokenModal(false);
     setGeneratedToken('');
+    setTokenCopied(false);
   };
 
   const openUpdateModal = () => {
@@ -624,6 +580,17 @@ export const DeviceDetail = () => {
       4: 'decommissioned',
     };
     return states[stateId] || 'unknown';
+  };
+
+  const isMicrocontroller = (device: DeviceInfo): boolean => {
+    // Check if device type indicates it's a microcontroller
+    const type = device.type.toLowerCase();
+    return type.includes('esp') || 
+           type.includes('microcontroller') || 
+           type.includes('arduino') || 
+           type.includes('raspberry') ||
+           type.includes('controller') ||
+           deviceType?.hardware_type === 1;
   };
 
   const isDeviceOnline = (): boolean => {
@@ -800,22 +767,223 @@ export const DeviceDetail = () => {
       )}
 
       {/* Token Modal */}
-      <DeviceTokenModal
-        isOpen={showTokenModal}
-        token={generatedToken}
-        onClose={closeTokenModal}
-      />
+      {showTokenModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-surface-primary rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-border-primary flex justify-between items-center">
+              <h3 className="text-2xl font-bold text-text-primary">Device Authentication Token</h3>
+              <button
+                onClick={closeTokenModal}
+                className="text-text-secondary hover:text-text-primary transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" size={20} />
+                  <div className="text-sm text-blue-900 dark:text-blue-100">
+                    <p className="font-semibold mb-1">Important Security Information</p>
+                    <p>This token grants access to device data and control. Keep it secure and do not share it publicly.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-text-secondary mb-2">JWT Token</label>
+                <div className="relative">
+                  <div className="bg-surface-secondary border border-border-primary rounded-lg p-4 font-mono text-sm break-all text-text-primary max-h-48 overflow-y-auto">
+                    {generatedToken}
+                  </div>
+                  <button
+                    onClick={copyToken}
+                    className={`absolute top-2 right-2 px-3 py-1.5 rounded-md font-medium text-sm transition-all ${
+                      tokenCopied
+                        ? 'bg-success text-white'
+                        : 'bg-primary-500 hover:bg-primary-600 text-white'
+                    }`}
+                  >
+                    {tokenCopied ? (
+                      <span className="flex items-center gap-1">
+                        <Check size={16} />
+                        Copied!
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1">
+                        <Copy size={16} />
+                        Copy
+                      </span>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="font-semibold text-text-primary">How to use this token:</h4>
+                <ol className="list-decimal list-inside space-y-2 text-sm text-text-secondary">
+                  <li>Copy the token using the button above</li>
+                  <li>Use it in your API requests as a Bearer token</li>
+                  <li>Include it in the Authorization header: <code className="bg-surface-secondary px-2 py-1 rounded text-xs">Bearer YOUR_TOKEN</code></li>
+                  <li>The token contains your user ID and device ID for authentication</li>
+                </ol>
+              </div>
+            </div>
+            
+            <div className="p-6 border-t border-border-primary flex justify-end gap-3">
+              <button
+                onClick={closeTokenModal}
+                className="px-6 py-2 bg-surface-secondary hover:bg-surface-tertiary text-text-primary rounded-lg font-medium transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Update Device Modal */}
-      <UpdateDeviceModal
-        isOpen={showUpdateModal}
-        onClose={closeUpdateModal}
-        onSubmit={handleUpdateDevice}
-        formData={updateForm}
-        onFormChange={setUpdateForm}
-        deviceTypes={deviceTypes}
-        message={updateMessage}
-      />
+      {showUpdateModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-surface-primary rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-border-primary flex justify-between items-center">
+              <h3 className="text-2xl font-bold text-text-primary">Update Device</h3>
+              <button
+                onClick={closeUpdateModal}
+                className="text-text-secondary hover:text-text-primary transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleUpdateDevice} className="p-6 space-y-4">
+              {updateMessage && (
+                <div className={`p-4 rounded-lg ${
+                  updateMessage.includes('success') 
+                    ? 'bg-success/10 text-success' 
+                    : 'bg-error/10 text-error'
+                }`}>
+                  {updateMessage}
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
+                  Device Name *
+                </label>
+                <input
+                  type="text"
+                  value={updateForm.name}
+                  onChange={(e) => setUpdateForm({ ...updateForm, name: e.target.value })}
+                  required
+                  className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="Enter device name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
+                  Device Type
+                </label>
+                <select
+                  value={updateForm.type}
+                  onChange={(e) => setUpdateForm({ ...updateForm, type: parseInt(e.target.value) })}
+                  className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                >
+                  <option value="">Select device type</option>
+                  {deviceTypes.map((type) => (
+                    <option key={type.id} value={type.id}>
+                      {type.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
+                  IP Address
+                </label>
+                <input
+                  type="text"
+                  value={updateForm.ip_address}
+                  onChange={(e) => setUpdateForm({ ...updateForm, ip_address: e.target.value })}
+                  className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="192.168.1.100"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
+                  MAC Address
+                </label>
+                <input
+                  type="text"
+                  value={updateForm.mac_address}
+                  onChange={(e) => setUpdateForm({ ...updateForm, mac_address: e.target.value })}
+                  className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="AA:BB:CC:DD:EE:FF"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
+                  Firmware Version ID
+                </label>
+                <input
+                  type="number"
+                  value={updateForm.firmware_version_id}
+                  onChange={(e) => setUpdateForm({ ...updateForm, firmware_version_id: parseInt(e.target.value) })}
+                  className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="Enter firmware version ID"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
+                  Address
+                </label>
+                <input
+                  type="text"
+                  value={updateForm.address}
+                  onChange={(e) => setUpdateForm({ ...updateForm, address: e.target.value })}
+                  className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="123 Street Name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
+                  City
+                </label>
+                <input
+                  type="text"
+                  value={updateForm.city}
+                  onChange={(e) => setUpdateForm({ ...updateForm, city: e.target.value })}
+                  className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="Enter city"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={closeUpdateModal}
+                  className="px-6 py-2 bg-surface-secondary hover:bg-surface-tertiary text-text-primary rounded-lg font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors"
+                >
+                  Update Device
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Add Connected Device Modal */}
       {showAddConnectedModal && (
@@ -824,13 +992,7 @@ export const DeviceDetail = () => {
             <div className="p-6 border-b border-border-primary flex justify-between items-center">
               <h3 className="text-2xl font-bold text-text-primary">Add Connected Device</h3>
               <button
-                onClick={() => {
-                  setShowAddConnectedModal(false);
-                  setMicrocontrollerSearch('');
-                  setMicrocontrollers([]);
-                  setShowMicrocontrollerDropdown(false);
-                  setNewConnectedDeviceId('');
-                }}
+                onClick={() => setShowAddConnectedModal(false)}
                 className="text-text-secondary hover:text-text-primary transition-colors"
               >
                 <X size={24} />
@@ -842,13 +1004,7 @@ export const DeviceDetail = () => {
               <div className="flex gap-2 bg-surface-secondary rounded-lg p-1">
                 <button
                   type="button"
-                  onClick={() => {
-                    setAddConnectedMode('new');
-                    setMicrocontrollerSearch('');
-                    setMicrocontrollers([]);
-                    setShowMicrocontrollerDropdown(false);
-                    setNewConnectedDeviceId('');
-                  }}
+                  onClick={() => setAddConnectedMode('new')}
                   className={`flex-1 px-4 py-2 rounded-md font-medium text-sm transition-colors ${
                     addConnectedMode === 'new'
                       ? 'bg-primary-500 text-white'
@@ -859,15 +1015,7 @@ export const DeviceDetail = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    setAddConnectedMode('existing');
-                    setNewConnectedDeviceForm({
-                      name: '',
-                      type: 1,
-                      ip_address: '',
-                      mac_address: ''
-                    });
-                  }}
+                  onClick={() => setAddConnectedMode('existing')}
                   className={`flex-1 px-4 py-2 rounded-md font-medium text-sm transition-colors ${
                     addConnectedMode === 'existing'
                       ? 'bg-primary-500 text-white'
@@ -883,39 +1031,18 @@ export const DeviceDetail = () => {
               {addConnectedMode === 'existing' ? (
                 <div>
                   <label className="block text-sm font-semibold text-text-secondary mb-2">
-                    Search Microcontroller *
+                    Device ID *
                   </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={microcontrollerSearch}
-                      onChange={(e) => {
-                        setMicrocontrollerSearch(e.target.value);
-                        handleMicrocontrollerSearch(e.target.value);
-                      }}
-                      onFocus={() => setShowMicrocontrollerDropdown(microcontrollers.length > 0)}
-                      onBlur={() => setTimeout(() => setShowMicrocontrollerDropdown(false), 200)}
-                      placeholder="Search microcontrollers..."
-                      autoComplete="off"
-                      className="w-full px-4 py-2 pl-10 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    />
-                    <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary" />
-                  </div>
-                  {showMicrocontrollerDropdown && microcontrollers.length > 0 && (
-                    <div className="absolute z-10 w-full mt-1 bg-surface-primary border border-border-primary rounded-lg shadow-lg max-h-40 overflow-y-auto">
-                      {microcontrollers.map((mc) => (
-                        <div
-                          key={mc.id}
-                          onClick={() => selectMicrocontroller(mc)}
-                          className="px-4 py-2 hover:bg-surface-secondary cursor-pointer text-text-primary"
-                        >
-                          {mc.name}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <input
+                    type="number"
+                    value={newConnectedDeviceId}
+                    onChange={(e) => setNewConnectedDeviceId(e.target.value)}
+                    required
+                    placeholder="Enter device ID to connect"
+                    className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
                   <p className="text-xs text-text-secondary mt-1">
-                    Search and select an existing microcontroller to connect
+                    Enter the ID of an existing device you want to connect
                   </p>
                 </div>
               ) : (
@@ -1076,26 +1203,126 @@ export const DeviceDetail = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* Device Info */}
-        <DeviceInfoCard
-          device={device}
-          status={getStatusType(device.device_state, deviceOnline)}
-          latestReading={latestReading}
-          onUpdate={openUpdateModal}
-          onViewHistory={() => navigate(`/devices/${id}/state-history`)}
-        />
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Device Information</h2>
+            <div className="flex gap-2">
+              {/* <button
+                onClick={() => setShowCreateModal(true)}
+                className="p-2 text-nord-8 hover:text-nord-9 hover:bg-nord-6 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                title="Create New Device"
+              >
+                <Plus size={20} />
+              </button> */}
+              <button
+                onClick={openUpdateModal}
+                className="p-2 text-nord-8 hover:text-nord-9 hover:bg-nord-6 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                title="Update Device"
+              >
+                <Edit size={20} />
+              </button>
+            </div>
+          </div>
+          <div className="space-y-3">
+            <div>
+              <span className="text-gray-600 dark:text-gray-400 text-sm">Status</span>
+              <div className="mt-1 space-y-1">
+                <StatusBadge status={getStatusType(device.device_state, deviceOnline)} />
+                {latestReading && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Last reading: {new Date(latestReading.timestamp).toLocaleString()}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div>
+              <span className="text-gray-600 dark:text-gray-400 text-sm">Type</span>
+              <div className="flex items-center gap-2">
+                <p className="text-gray-900 dark:text-white font-medium">{device.type}</p>
+                {isMicrocontroller(device) && (
+                  <span className="px-2 py-1 bg-orange-100 dark:bg-orange-900/20 text-orange-800 dark:text-orange-300 text-xs font-medium rounded-full border border-orange-200 dark:border-orange-800">
+                    Microcontroller
+                  </span>
+                )}
+              </div>
+            </div>
+            <div>
+              <span className="text-gray-600 dark:text-gray-400 text-sm">IP Address</span>
+              <p className="text-gray-900 dark:text-white font-medium">{device.ip_address}</p>
+            </div>
+            <div>
+              <span className="text-gray-600 dark:text-gray-400 text-sm">MAC Address</span>
+              <p className="text-gray-900 dark:text-white font-medium">{device.mac_address}</p>
+            </div>
+            <div>
+              <span className="text-gray-600 dark:text-gray-400 text-sm">Firmware</span>
+              <p className="text-gray-900 dark:text-white font-medium">{device.firmware_version}</p>
+            </div>
+            <div>
+              <span className="text-gray-600 dark:text-gray-400 text-sm">Location</span>
+              <p className="text-gray-900 dark:text-white font-medium">{device.address}, {device.city}</p>
+            </div>
+          </div>
+          <button
+            onClick={() => navigate(`/devices/${id}/state-history`)}
+            className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2 bg-nord-8 hover:bg-nord-9 text-white rounded-lg transition-colors"
+          >
+            <History size={16} />
+            View State History
+          </button>
+        </div>
 
         {/* Control Panel or Connected Devices */}
-        {deviceType?.features?.can_control ? (
-          <DeviceControlPanel
-            deviceState={device.device_state}
-            canControl={deviceType?.features?.can_control}
-            onControl={controlDevice}
-            onRefresh={() => {
-              loadDeviceData();
-              loadReadings();
-            }}
-            onGenerateToken={generateToken}
-          />
+        {(deviceType?.features?.can_control || deviceType?.hardware_type === 1) ? (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Control Panel</h2>
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                onClick={() => controlDevice(4)}
+                disabled={device.device_state === 1}
+                className="flex flex-col items-center justify-center p-4 bg-success hover:bg-success/80 disabled:bg-nord-3 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+              >
+                <Power size={24} />
+                <span className="mt-2 text-sm font-medium">Turn On</span>
+              </button>
+              <button
+                onClick={() => controlDevice(5)}
+                disabled={device.device_state === 2}
+                className="flex flex-col items-center justify-center p-4 bg-error hover:bg-error/80 disabled:bg-nord-3 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+              >
+                <PowerOff size={24} />
+                <span className="mt-2 text-sm font-medium">Turn Off</span>
+              </button>
+              <button
+                onClick={() => controlDevice(6)}
+                disabled={device.device_state === 3 || device.device_state === 4}
+                className="flex flex-col items-center justify-center p-4 bg-nord-8 hover:bg-nord-9 disabled:bg-nord-3 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+              >
+                <Settings size={24} />
+                <span className="mt-2 text-sm font-medium">Configure</span>
+              </button>
+              <button
+                onClick={() => {
+                  loadDeviceData();
+                  loadReadings();
+                }}
+                className="flex flex-col items-center justify-center p-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+              >
+                <RefreshCw size={24} />
+                <span className="mt-2 text-sm font-medium">Refresh</span>
+              </button>
+            </div>
+            
+            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <button
+                onClick={generateToken}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              >
+                <Activity size={20} />
+                Generate Device Token
+              </button>
+            </div>
+          </div>
         ) : (
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <div className="flex justify-between items-center mb-4">
@@ -1114,28 +1341,14 @@ export const DeviceDetail = () => {
                 {connectedDevices.map((connectedDevice) => (
                   <div 
                     key={connectedDevice.id} 
-                    className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                    onClick={() => handleConnectedDeviceClick(connectedDevice)}
+                    className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                   >
-                    <div 
-                      onClick={() => handleConnectedDeviceClick(connectedDevice)}
-                      className="flex-1 cursor-pointer"
-                    >
+                    <div>
                       <h3 className="font-medium text-gray-900 dark:text-white">{connectedDevice.name}</h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400">{connectedDevice.type} • {connectedDevice.ip_address}</p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <StatusBadge status={getStatusType(connectedDevice.device_state, false)} />
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeConnectedDevice(connectedDevice.id);
-                        }}
-                        className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                        title="Remove connected device"
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
+                    <StatusBadge status={getStatusType(connectedDevice.device_state, false)} />
                   </div>
                 ))}
               </div>
@@ -1594,36 +1807,156 @@ export const DeviceDetail = () => {
       )}
 
       {/* Date Filter */}
-      <DateRangeFilter
-        useDateFilter={useDateFilter}
-        startDate={startDate}
-        endDate={endDate}
-        onUseDateFilterChange={setUseDateFilter}
-        onStartDateChange={setStartDate}
-        onEndDateChange={setEndDate}
-        onSetLast7Days={() => {
-          const dates = getDefaultDates();
-          setStartDate(dates.start);
-          setEndDate(dates.end);
-        }}
-        onSetLast30Days={() => {
-          const endDate = new Date();
-          const startDate = new Date();
-          startDate.setDate(startDate.getDate() - 30);
-          setStartDate(startDate.toISOString().split('T')[0]);
-          setEndDate(endDate.toISOString().split('T')[0]);
-        }}
-      />
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="flex items-center gap-4 flex-wrap">
+          <div className="flex items-center gap-2">
+            <Calendar className="text-primary-500" size={20} />
+            <span className="text-sm font-medium text-gray-900 dark:text-white">Date Range:</span>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="useDateFilter"
+              checked={useDateFilter}
+              onChange={(e) => setUseDateFilter(e.target.checked)}
+              className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+            />
+            <label htmlFor="useDateFilter" className="text-sm text-gray-700 dark:text-gray-300">
+              Enable Date Filter
+            </label>
+          </div>
+          
+          {useDateFilter && (
+            <>
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-gray-600 dark:text-gray-400">From:</label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                />
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-gray-600 dark:text-gray-400">To:</label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                />
+              </div>
+              
+              <button
+                onClick={() => {
+                  const dates = getDefaultDates();
+                  setStartDate(dates.start);
+                  setEndDate(dates.end);
+                }}
+                className="px-3 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors"
+              >
+                Last 7 Days
+              </button>
+              
+              <button
+                onClick={() => {
+                  const endDate = new Date();
+                  const startDate = new Date();
+                  startDate.setDate(startDate.getDate() - 30);
+                  setStartDate(startDate.toISOString().split('T')[0]);
+                  setEndDate(endDate.toISOString().split('T')[0]);
+                }}
+                className="px-3 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors"
+              >
+                Last 30 Days
+              </button>
+            </>
+          )}
+        </div>
+      </div>
 
       {/* Readings Table */}
-      <ReadingsTable
-        readings={readings}
-        useDateFilter={useDateFilter}
-        startDate={startDate}
-        endDate={endDate}
-        readingsLimit={readingsLimit}
-        onReadingsLimitChange={setReadingsLimit}
-      />
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            {useDateFilter ? `Readings (${startDate} to ${endDate})` : 'Recent Readings'}
+          </h2>
+          <div className="flex items-center gap-4">
+            <label className="text-sm text-gray-600 dark:text-gray-400">
+              Show:
+              <select
+                value={readingsLimit}
+                onChange={(e) => setReadingsLimit(Number(e.target.value))}
+                className="ml-2 px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+                <option value={500}>500</option>
+              </select>
+            </label>
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-900">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Timestamp
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Voltage (V)
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Current (A)
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Power (W)
+                </th>
+                {readings.some(r => r.temperature) && (
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Temperature (°C)
+                  </th>
+                )}
+              </tr>
+            </thead>
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+              {readings.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                    No readings available
+                  </td>
+                </tr>
+              ) : (
+                readings.map((reading) => (
+                  <tr key={reading.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                      {new Date(reading.timestamp).toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-nord-8">
+                      {(reading.voltage ?? 0).toFixed(2)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-success">
+                      {(reading.current ?? 0).toFixed(2)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-nord-15">
+                      {(reading.power ?? 0).toFixed(2)}
+                    </td>
+                    {reading.temperature && (
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-orange-600 dark:text-orange-400">
+                        {reading.temperature.toFixed(1)}
+                      </td>
+                    )}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
      
     </div>

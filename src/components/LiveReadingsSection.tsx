@@ -11,13 +11,15 @@ interface LiveReadingsSectionProps {
   readings: any[];
   selectedDeviceId: number | null;
   onDeviceChange: (deviceId: number) => void;
+  loading?: boolean;
 }
 
 export const LiveReadingsSection = ({ 
   devices, 
   readings, 
   selectedDeviceId, 
-  onDeviceChange 
+  onDeviceChange,
+  loading = false
 }: LiveReadingsSectionProps) => {
   const [selectedMetric, setSelectedMetric] = useState<'all' | 'voltage' | 'current' | 'power' | 'avg_voltage' | 'avg_current'>('all');
 
@@ -66,7 +68,14 @@ export const LiveReadingsSection = ({
       icon={Activity}
       headerAction={headerAction}
     >
-      {devices.length > 0 ? (
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-400">Loading live readings...</p>
+          </div>
+        </div>
+      ) : devices.length > 0 ? (
         <div className="space-y-6">
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">

@@ -1,5 +1,5 @@
 import { container } from '../application/di/container';
-import { CreateDeviceDTO, CreateSolarDeviceDTO, CreateSensorDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, SolarDeviceView, UpdateDeviceDTO } from '../domain/entities/Device';
+import { CreateDeviceDTO, CreateSolarDeviceDTO, CreateSensorDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, SolarDeviceView, MicrocontrollerDTO } from '../domain/entities/Device';
 import { DeviceTypeDTO } from '../domain/entities/Device';
 
 export interface CreateDeviceTypeDTO {
@@ -100,6 +100,10 @@ export const devicesAPI = {
     return await container.getGenerateDeviceTokenUseCase().execute(deviceId);
   },
 
+  getMicrocontrollers: async (): Promise<MicrocontrollerDTO[]> => {
+    return await container.getGetMicrocontrollersUseCase().execute();
+  },
+
   getDevice: async (deviceId: string | number): Promise<{ device: any }> => {
     const token = localStorage.getItem('token');
     const response = await fetch(`http://localhost:8080/api/devices/${deviceId}`, {
@@ -113,19 +117,25 @@ export const devicesAPI = {
     return await response.json();
   },
 
-  getDeviceType: async (deviceId: number): Promise<DeviceTypeDTO> => {
-    return await container.getGetDeviceTypeUseCase().execute(deviceId);
-  },
+  uploadFirmware: async (deviceId: number, firmwareFile: File): Promise<{ message: string }> => {
+    const token = localStorage.getItem('token');
+    const formData = new FormData();
+    formData.append('firmware', firmwareFile);
+    formData.append('device_id', deviceId.toString());
 
-  updateDevice: async (deviceId: number, data: UpdateDeviceDTO): Promise<DeviceResponseDTO> => {
-    return await container.getUpdateDeviceUseCase().execute(deviceId, data);
-  },
+    const response = await fetch('/api/codegen/upload', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    });
 
-  controlDevice: async (deviceId: number, action: number): Promise<{ success: boolean; message: string }> => {
-    return await container.getControlDeviceUseCase().execute(deviceId, action);
-  },
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to upload firmware');
+    }
 
-  removeConnectedDevice: async (deviceId: number, connectedDeviceId: number): Promise<{ success: boolean; message: string }> => {
-    return await container.getRemoveConnectedDeviceUseCase().execute(deviceId, connectedDeviceId);
+    return await response.json();
   },
 };

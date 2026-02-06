@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 
 import { useDevicesStore } from '../store/devicesStore';
@@ -21,6 +21,8 @@ export const Dashboard = () => {
   const [recentDevices, setRecentDevices] = useState<any[]>([]);
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
   const [offlineDevices, setOfflineDevices] = useState<any[]>([]);
+  const [loadingRecent, setLoadingRecent] = useState(true);
+  const [loadingReadings, setLoadingReadings] = useState(false);
 
   useEffect(() => {
     const fetchDevices = async () => {
@@ -43,12 +45,15 @@ export const Dashboard = () => {
 
   useEffect(() => {
     const fetchRecentDevices = async () => {
+      setLoadingRecent(true);
       try {
         const getRecentDevicesUseCase = container.getGetRecentDevicesUseCase();
         const recent = await getRecentDevicesUseCase.execute();
         setRecentDevices(recent.slice(0, 5)); // Show only last 5
       } catch (err) {
         console.error('Failed to fetch recent devices:', err);
+      } finally {
+        setLoadingRecent(false);
       }
     };
 
@@ -72,6 +77,7 @@ export const Dashboard = () => {
   useEffect(() => {
     const fetchReadings = async () => {
       if (!selectedDeviceId) return;
+      setLoadingReadings(true);
       try {
         const data = await readingsAPI.getProgressiveByDevice(selectedDeviceId);
         setReadings(data.slice(0, 10));
@@ -79,6 +85,8 @@ export const Dashboard = () => {
       } catch (err) {
         console.error('Failed to fetch readings:', err);
         setReadings([]);
+      } finally {
+        setLoadingReadings(false);
       }
     };
 
@@ -90,17 +98,27 @@ export const Dashboard = () => {
   }, [selectedDeviceId]);
 
   const activeDevices = devices.filter((d) => d.device_state === 1).length;
-  const avgVoltage =
-    readings.length > 0
+
+  // Calculate system-wide stats using useMemo for performance
+  const systemStats = useMemo(() => {
+    const totalDevices = devices.length;
+    const activeCount = activeDevices;
+    
+    // For voltage and power, we'd need readings from all devices
+    // For now, using selected device as proxy, but this could be improved
+    // by fetching readings for all devices or caching them
+    const avgVoltage = readings.length > 0
       ? (readings.reduce((sum, r) => sum + r.voltage, 0) / readings.length).toFixed(2)
       : '0.00';
-  const totalPower =
-    readings.length > 0
+    const totalPower = readings.length > 0
       ? readings[0].power.toFixed(2)
       : '0.00';
 
-  // Generate alerts
-  const generateAlerts = () => {
+    return { totalDevices, activeCount, avgVoltage, totalPower };
+  }, [devices, readings, activeDevices]);
+
+  // Generate alerts with improved logic
+  const generateAlerts = useMemo(() => {
     const alerts: any[] = [];
 
     // Check offline devices
@@ -115,9 +133,11 @@ export const Dashboard = () => {
       });
     });
 
-    // Check voltage anomalies (assuming solar system, normal range 180-250V)
-    if (readings.length > 0) {
+    // Check voltage anomalies for selected device (assuming solar system, normal range 180-250V)
+    if (readings.length > 0 && selectedDeviceId) {
       const latestReading = readings[0];
+      const deviceName = devices.find(d => d.id === selectedDeviceId)?.name || 'Unknown Device';
+
       if (latestReading.voltage > 250) {
         alerts.push({
           id: `high-voltage-${selectedDeviceId}`,
@@ -125,7 +145,7 @@ export const Dashboard = () => {
           title: 'High Voltage Detected',
           message: `Voltage is ${latestReading.voltage.toFixed(2)}V, which is above normal range.`,
           deviceId: selectedDeviceId,
-          deviceName: devices.find(d => d.id === selectedDeviceId)?.name,
+          deviceName,
         });
       } else if (latestReading.voltage < 180) {
         alerts.push({
@@ -134,7 +154,7 @@ export const Dashboard = () => {
           title: 'Low Voltage Detected',
           message: `Voltage is ${latestReading.voltage.toFixed(2)}V, which is below normal range.`,
           deviceId: selectedDeviceId,
-          deviceName: devices.find(d => d.id === selectedDeviceId)?.name,
+          deviceName,
         });
       }
 
@@ -146,15 +166,15 @@ export const Dashboard = () => {
           title: 'No Power Generation',
           message: `Device is not generating power. Current power: ${latestReading.power.toFixed(2)}W.`,
           deviceId: selectedDeviceId,
-          deviceName: devices.find(d => d.id === selectedDeviceId)?.name,
+          deviceName,
         });
       }
     }
 
     return alerts.filter(alert => !dismissedAlerts.has(alert.id));
-  };
+  }, [offlineDevices, readings, selectedDeviceId, devices, dismissedAlerts]);
 
-  const alerts = generateAlerts();
+  const alerts = generateAlerts;
 
   const handleDismissAlert = (alertId: string) => {
     setDismissedAlerts(prev => new Set(prev).add(alertId));
@@ -181,15 +201,15 @@ export const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard
           title="Total Devices"
-          value={devices.length}
+          value={systemStats.totalDevices}
           icon={<Package size={28} />} 
           color="blue" 
           subtitle="Connected devices" 
           onClick={() => navigate('/devices')}
           />
-        <StatsCard title="Active Devices" value={activeDevices} icon={<CheckCircle size={28} />} color="green" subtitle="Currently online" trend={activeDevices > 0 ? 5 : 0} />
-        <StatsCard title="Avg Voltage" value={`${avgVoltage}V`} icon={<Zap size={28} />} color="purple" subtitle="System average" />
-        <StatsCard title="Total Power" value={`${totalPower}W`} icon={<Battery size={28} />} color="indigo" subtitle="Current output" />
+        <StatsCard title="Active Devices" value={systemStats.activeCount} icon={<CheckCircle size={28} />} color="green" subtitle="Currently online" trend={systemStats.activeCount > 0 ? 5 : 0} />
+        <StatsCard title="Avg Voltage" value={`${systemStats.avgVoltage}V`} icon={<Zap size={28} />} color="purple" subtitle="System average" />
+        <StatsCard title="Total Power" value={`${systemStats.totalPower}W`} icon={<Battery size={28} />} color="indigo" subtitle="Current output" />
       </div>
 
       <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }}>
@@ -198,6 +218,7 @@ export const Dashboard = () => {
           readings={readings}
           selectedDeviceId={selectedDeviceId}
           onDeviceChange={setSelectedDeviceId}
+          loading={loadingReadings}
         />
       </motion.div>
 
@@ -205,7 +226,12 @@ export const Dashboard = () => {
 
       <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }}>
         <Section title="Recently Created Devices" icon={Clock}>
-          {recentDevices.length > 0 ? (
+          {loadingRecent ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+              <span className="ml-2 text-gray-600 dark:text-gray-400">Loading recent devices...</span>
+            </div>
+          ) : recentDevices.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {recentDevices.map((device) => (
                 <div key={device.id} className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">

@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom';
-import { Database, UserCheck, Cpu } from 'lucide-react';
+import { Database, UserCheck, Cpu, CircuitBoard } from 'lucide-react';
 
 export const ManagementModules = () => {
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-text-primary">Management Modules</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Link
           to="/admin/devices"
           className="bg-surface-primary rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 border border-border-primary cursor-pointer group"
@@ -50,6 +50,22 @@ export const ManagementModules = () => {
             </div>
             <div className="bg-green-500/10 text-green-500 p-3 rounded-xl group-hover:bg-green-500/20 transition-colors">
               <Cpu size={32} />
+            </div>
+          </div>
+        </Link>
+
+        <Link
+          to="/admin/esp-devices"
+          className="bg-surface-primary rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 border border-border-primary cursor-pointer group"
+        >
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <p className="text-text-tertiary text-sm font-medium mb-2">ESP Device Management</p>
+              <p className="text-2xl font-bold text-text-primary mb-1">ESP Devices</p>
+              <p className="text-xs text-text-secondary">Manage ESP microcontrollers</p>
+            </div>
+            <div className="bg-orange-500/10 text-orange-500 p-3 rounded-xl group-hover:bg-orange-500/20 transition-colors">
+              <CircuitBoard size={32} />
             </div>
           </div>
         </Link>

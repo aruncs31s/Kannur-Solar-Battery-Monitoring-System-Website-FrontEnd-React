@@ -1,5 +1,5 @@
 import { IDeviceRepository } from '../../domain/repositories/IDeviceRepository';
-import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO } from '../../domain/entities/Device';
+import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO, MicrocontrollerDTO } from '../../domain/entities/Device';
 import { DeviceTokenResponse } from '../../api/devices';
 import { Reading } from '../../domain/entities/Reading';
 import { httpClient } from '../http/HttpClient';
@@ -136,6 +136,11 @@ export class DeviceRepository implements IDeviceRepository {
 
   async searchMicrocontrollers(query: string): Promise<DeviceSearchResultDTO[]> {
     return await httpClient.get<DeviceSearchResultDTO[]>(`/devices/search/microcontrollers?q=${encodeURIComponent(query)}`);
+  }
+
+  async getMicrocontrollers(): Promise<MicrocontrollerDTO[]> {
+    const response = await httpClient.get<{ devices: MicrocontrollerDTO[] }>('/devices/microcontrollers');
+    return response.devices;
   }
 
   async generateDeviceToken(deviceId: number): Promise<DeviceTokenResponse> {

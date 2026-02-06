@@ -94,6 +94,18 @@ export interface UpdateDeviceDTO {
   city: string;
 }
 
+export interface MicrocontrollerDTO {
+  id: number;
+  parent_id: number;
+  name: string;
+  ip_address: string;
+  mac_address: string;
+  status: string;
+  used_by: string;
+  firmware_version: string;
+  connected_sensors: any | null;
+}
+
 export interface IDeviceTypesRepository {
   getAll(): Promise<DeviceTypeDTO[]>;
   getHardwareTypes(): Promise<DeviceTypeDTO[]>;

@@ -7,6 +7,7 @@ import { Register } from './pages/Register';
 import { Dashboard } from './pages/Dashboard';
 import { Devices } from './pages/Devices';
 import { MyDevices } from './pages/MyDevices';
+import { MyMicrocontrollers } from './pages/MyMicrocontrollers';
 import { DeviceDetail } from './pages/DeviceDetail';
 import { DeviceReadingsHistory } from './pages/DeviceReadingsHistory';
 import { DeviceStateHistory } from './pages/DeviceStateHistory';
@@ -17,6 +18,7 @@ import { Admin } from './pages/Admin';
 import { AdminDeviceManagement } from './pages/AdminDeviceManagement';
 import { AdminUserManagement } from './pages/AdminUserManagement';
 import { AdminDeviceTypeManagement } from './pages/AdminDeviceTypeManagement';
+import { AdminESPDeviceManagement } from './pages/AdminESPDeviceManagement';
 import { AuditLogs } from './pages/AuditLogs';
 import { Configuration } from './pages/Configuration';
 import { Versions } from './pages/Versions';
@@ -71,6 +73,16 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <MyDevices />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/my-microcontrollers"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <MyMicrocontrollers />
               </Layout>
             </ProtectedRoute>
           }
@@ -181,6 +193,16 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <AdminDeviceTypeManagement />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/esp-devices"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <AdminESPDeviceManagement />
               </Layout>
             </ProtectedRoute>
           }

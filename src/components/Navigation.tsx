@@ -27,6 +27,7 @@ export const Navigation = () => {
   const navItems = [
     { name: 'Dashboard', path: '/' },
     { name: 'My Devices', path: '/my-devices' },
+    { name: 'My Microcontrollers', path: '/my-microcontrollers' },
     { name: 'Devices', path: '/devices' },
     { name: 'Readings', path: '/readings' },
     { name: 'Map', path: '/map' },
@@ -51,8 +52,8 @@ export const Navigation = () => {
     fetchSearchResults();
   }, [query]);
 
-  const mainNavItems = navItems.slice(0, 3); // Dashboard, My Devices, Readings
-  const moreNavItems = navItems.slice(3); // Devices, Map, Audit, Admin
+  const mainNavItems = navItems.slice(0, 4); // Dashboard, My Devices, My Microcontrollers, Devices
+  const moreNavItems = navItems.slice(4); // Readings, Map, Audit, Admin
 
   const isActivePath = (path: string) => {
     return location.pathname === path;
