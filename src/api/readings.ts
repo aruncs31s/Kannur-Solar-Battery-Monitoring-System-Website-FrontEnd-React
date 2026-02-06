@@ -2,8 +2,8 @@ import { container } from "../application/di/container";
 import { Reading, ReadingFilters } from "../domain/entities/Reading";
 
 export const readingsAPI = {
-  getByDevice: async (deviceId: string): Promise<Reading[]> => {
-    return await container.getGetDeviceReadingsUseCase().execute(deviceId);
+  getByDevice: async (deviceId: string | number, limit?: number): Promise<Reading[]> => {
+    return await container.getGetDeviceReadingsUseCase().execute(deviceId.toString(), limit);
   },
 
   getProgressiveByDevice: async (deviceId: number): Promise<Reading[]> => {

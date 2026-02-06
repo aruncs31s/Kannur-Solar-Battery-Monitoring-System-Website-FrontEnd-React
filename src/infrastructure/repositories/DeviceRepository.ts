@@ -1,5 +1,5 @@
 import { IDeviceRepository } from '../../domain/repositories/IDeviceRepository';
-import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO, MicrocontrollerDTO } from '../../domain/entities/Device';
+import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO, MicrocontrollerDTO, CreateSensorDeviceDTO, SolarDeviceView, DeviceStateHistoryResponse, DeviceStateHistoryFilters, CreateDeviceTypeDTO, DeviceState, CreateDeviceStateDTO, UpdateDeviceStateDTO } from '../../domain/entities/Device';
 import { DeviceTokenResponse } from '../../api/devices';
 import { Reading } from '../../domain/entities/Reading';
 import { httpClient } from '../http/HttpClient';
@@ -207,5 +207,68 @@ export class DeviceRepository implements IDeviceRepository {
       power: 0, // Placeholder, will be added later
       timestamp: new Date(reading.created_at).getTime(),
     }));
+  }
+
+  async createDeviceType(data: CreateDeviceTypeDTO): Promise<{ message: string }> {
+    return await httpClient.post('/devices/types', data);
+  }
+
+  async createSensorDevice(data: CreateSensorDeviceDTO): Promise<DeviceResponseDTO> {
+    const response = await httpClient.post<any>('/devices/sensors', data);
+    return {
+      id: response.id,
+      name: response.name || '',
+      type: response.type || '',
+      ip_address: response.ip_address || '',
+      mac_address: response.mac_address || '',
+      firmware_version: response.firmware_version || '',
+      version_id: response.version_id || 0,
+      address: response.address || '',
+      city: response.city || '',
+      device_state: response.device_state || 0,
+    };
+  }
+
+  async getMySolarDevices(): Promise<SolarDeviceView[]> {
+    const response = await httpClient.get<{ devices: any[] }>('/devices/solar/my');
+    return response.devices || [];
+  }
+
+  async getDevice(deviceId: string | number): Promise<{ device: any }> {
+    return await httpClient.get(`/devices/${deviceId}`);
+  }
+
+  async uploadFirmware(deviceId: number, firmwareFile: File): Promise<{ message: string }> {
+    const formData = new FormData();
+    formData.append('firmware', firmwareFile);
+    formData.append('device_id', deviceId.toString());
+    return await httpClient.post('/codegen/upload', formData);
+  }
+
+  async getDeviceStateHistory(deviceId: string | number, filters?: DeviceStateHistoryFilters): Promise<DeviceStateHistoryResponse> {
+    const params = new URLSearchParams();
+    if (filters?.fromDate) params.append('from_date', filters.fromDate);
+    if (filters?.toDate) params.append('to_date', filters.toDate);
+    if (filters?.states) {
+      filters.states.forEach(state => params.append('states', state.toString()));
+    }
+    const url = `/devices/${deviceId}/states/history${params.toString() ? '?' + params.toString() : ''}`;
+    return await httpClient.get(url);
+  }
+
+  async getDeviceStates(): Promise<DeviceState[]> {
+    return await httpClient.get('/devices/states');
+  }
+
+  async getDeviceState(id: number): Promise<DeviceState> {
+    return await httpClient.get(`/devices/states/${id}`);
+  }
+
+  async createDeviceState(data: CreateDeviceStateDTO): Promise<DeviceState> {
+    return await httpClient.post('/devices/states', data);
+  }
+
+  async updateDeviceState(id: number, data: UpdateDeviceStateDTO): Promise<DeviceState> {
+    return await httpClient.put(`/devices/states/${id}`, data);
   }
 }

@@ -16,6 +16,12 @@ import { GetDeviceTypesUseCase } from '../usecases/devices/GetDeviceTypesUseCase
 import { GetHardwareDeviceTypesUseCase } from '../usecases/devices/GetHardwareDeviceTypesUseCase';
 import { CreateDeviceUseCase } from '../usecases/devices/CreateDeviceUseCase';
 import { CreateSolarDeviceUseCase } from '../usecases/devices/CreateSolarDeviceUseCase';
+import { CreateSensorDeviceUseCase } from '../usecases/devices/CreateSensorDeviceUseCase';
+import { CreateDeviceTypeUseCase } from '../usecases/devices/CreateDeviceTypeUseCase';
+import { GetMySolarDevicesUseCase } from '../usecases/devices/GetMySolarDevicesUseCase';
+import { GetDeviceUseCase } from '../usecases/devices/GetDeviceUseCase';
+import { UploadFirmwareUseCase } from '../usecases/devices/UploadFirmwareUseCase';
+import { GetDeviceStateHistoryUseCase } from '../usecases/devices/GetDeviceStateHistoryUseCase';
 import { SearchDevicesUseCase } from '../usecases/devices/SearchDevicesUseCase';
 import { SearchMicrocontrollersUseCase } from '../usecases/devices/SearchMicrocontrollersUseCase';
 import { GetMicrocontrollersUseCase } from '../usecases/devices/GetMicrocontrollersUseCase';
@@ -24,6 +30,10 @@ import { GetDeviceTypeUseCase } from '../usecases/devices/GetDeviceTypeUseCase';
 import { UpdateDeviceUseCase } from '../usecases/devices/UpdateDeviceUseCase';
 import { RemoveConnectedDeviceUseCase } from '../usecases/devices/RemoveConnectedDeviceUseCase';
 import { ControlDeviceUseCase } from '../usecases/devices/ControlDeviceUseCase';
+import { CreateDeviceStateUseCase } from '../usecases/devices/CreateDeviceStateUseCase';
+import { GetDeviceStateUseCase } from '../usecases/devices/GetDeviceStateUseCase';
+import { GetDeviceStatesUseCase } from '../usecases/devices/GetDeviceStatesUseCase';
+import { UpdateDeviceStateUseCase } from '../usecases/devices/UpdateDeviceStateUseCase';
 import { GetDeviceReadingsUseCase, GetReadingsByDateRangeUseCase } from '../usecases/readings/GetReadingsUseCase';
 import { GetAuditLogsUseCase } from '../usecases/audit/GetAuditLogsUseCase';
 import { GetUsersUseCase } from '../usecases/users/GetUsersUseCase';
@@ -75,6 +85,46 @@ class DIContainer {
     return new CreateSolarDeviceUseCase(this.deviceRepository);
   }
 
+  getCreateSensorDeviceUseCase() {
+    return new CreateSensorDeviceUseCase(this.deviceRepository);
+  }
+
+  getCreateDeviceTypeUseCase() {
+    return new CreateDeviceTypeUseCase(this.deviceRepository);
+  }
+
+  getGetMySolarDevicesUseCase() {
+    return new GetMySolarDevicesUseCase(this.deviceRepository);
+  }
+
+  getGetDeviceUseCase() {
+    return new GetDeviceUseCase(this.deviceRepository);
+  }
+
+  getUploadFirmwareUseCase() {
+    return new UploadFirmwareUseCase(this.deviceRepository);
+  }
+
+  getGetDeviceStateHistoryUseCase() {
+    return new GetDeviceStateHistoryUseCase(this.deviceRepository);
+  }
+
+  getGetDeviceStatesUseCase() {
+    return new GetDeviceStatesUseCase(this.deviceRepository);
+  }
+
+  getGetDeviceStateUseCase() {
+    return new GetDeviceStateUseCase(this.deviceRepository);
+  }
+
+  getCreateDeviceStateUseCase() {
+    return new CreateDeviceStateUseCase(this.deviceRepository);
+  }
+
+  getUpdateDeviceStateUseCase() {
+    return new UpdateDeviceStateUseCase(this.deviceRepository);
+  }
+
   getSearchDevicesUseCase() {
     return new SearchDevicesUseCase(this.deviceRepository);
   }
@@ -91,6 +141,14 @@ class DIContainer {
     return new GenerateDeviceTokenUseCase(this.deviceRepository);
   }
 
+  getRemoveConnectedDeviceUseCase() {
+    return new RemoveConnectedDeviceUseCase(this.deviceRepository);
+  }
+
+  getGetDeviceTypesUseCase() {
+    return new GetDeviceTypesUseCase(this.deviceTypesRepository);
+  }
+
   getGetDeviceTypeUseCase() {
     return new GetDeviceTypeUseCase(this.deviceRepository);
   }
@@ -99,16 +157,8 @@ class DIContainer {
     return new UpdateDeviceUseCase(this.deviceRepository);
   }
 
-  getRemoveConnectedDeviceUseCase() {
-    return new RemoveConnectedDeviceUseCase(this.deviceRepository);
-  }
-
   getControlDeviceUseCase() {
     return new ControlDeviceUseCase(this.deviceRepository);
-  }
-
-  getGetDeviceTypesUseCase() {
-    return new GetDeviceTypesUseCase(this.deviceTypesRepository);
   }
 
   getGetHardwareDeviceTypesUseCase() {

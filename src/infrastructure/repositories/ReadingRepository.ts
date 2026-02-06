@@ -3,8 +3,9 @@ import { Reading, ReadingFilters } from '../../domain/entities/Reading';
 import { httpClient } from '../http/HttpClient';
 
 export class ReadingRepository implements IReadingRepository {
-  async getByDevice(deviceId: string): Promise<Reading[]> {
-    const response = await httpClient.get<{ readings: any[]; latest: any }>(`/devices/${deviceId}/readings`);
+  async getByDevice(deviceId: string, limit?: number): Promise<Reading[]> {
+    const url = limit ? `/devices/${deviceId}/readings?limit=${limit}` : `/devices/${deviceId}/readings`;
+    const response = await httpClient.get<{ readings: any[]; latest: any }>(url);
     return response.readings.map(dto => ({
       id: dto.id.toString(),
       deviceId: dto.device_id.toString(),

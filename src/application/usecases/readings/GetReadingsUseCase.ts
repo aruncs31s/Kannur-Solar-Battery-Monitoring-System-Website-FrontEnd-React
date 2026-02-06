@@ -4,8 +4,8 @@ import { IReadingRepository } from '../../../domain/repositories/IReadingReposit
 export class GetDeviceReadingsUseCase {
   constructor(private readingRepository: IReadingRepository) {}
 
-  async execute(deviceId: string): Promise<Reading[]> {
-    return await this.readingRepository.getByDevice(deviceId);
+  async execute(deviceId: string, limit?: number): Promise<Reading[]> {
+    return await this.readingRepository.getByDevice(deviceId, limit);
   }
 }
 

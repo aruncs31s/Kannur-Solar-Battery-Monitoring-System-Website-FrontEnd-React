@@ -34,7 +34,7 @@ export const MicrocontrollerCard = ({ device, index = 0 }: MicrocontrollerCardPr
     >
       <div className="flex justify-between items-start mb-4">
         <div className="flex-1">
-          <Link to={`/devices/${device.id}`} className="block">
+          <Link to={`/devices/mc/${device.id}`} className="block">
             <h3 className="font-bold text-lg text-gray-800 dark:text-white mb-1 flex items-center gap-2">
               <Cpu size={20} className="text-blue-500" />
               {device.name}

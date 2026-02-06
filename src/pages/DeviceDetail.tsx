@@ -5,7 +5,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { readingsAPI } from '../api/readings';
 import { devicesAPI } from '../api/devices';
 import { StatusBadge } from '../components/Cards';
-import { FormField, FormError } from '../components/FormComponents';
+import { FormField } from '../components/FormComponents';
 import { Reading } from '../domain/entities/Reading';
 
 interface DeviceInfo {
@@ -112,6 +112,9 @@ export const DeviceDetail = () => {
   const [selectedMetric, setSelectedMetric] = useState<'all' | 'voltage' | 'current' | 'power'>('all'); // For filtering chart by metric
 
   useEffect(() => {
+    let isMounted = true;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
     if (id) {
       loadDeviceData();
       loadReadings();
@@ -120,13 +123,20 @@ export const DeviceDetail = () => {
       loadConnectedDevices();
       
       // Auto-refresh every 30 seconds
-      const interval = setInterval(() => {
-        loadDeviceData();
-        loadReadings();
+      intervalId = setInterval(() => {
+        if (isMounted) {
+          loadDeviceData();
+          loadReadings();
+        }
       }, 30000);
-      
-      return () => clearInterval(interval);
     }
+    
+    return () => {
+      isMounted = false;
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
   }, [id, readingsLimit, startDate, endDate, useDateFilter]);
 
   useEffect(() => {

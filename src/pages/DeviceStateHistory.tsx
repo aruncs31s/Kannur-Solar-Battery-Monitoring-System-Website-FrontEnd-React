@@ -1,18 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { History, ArrowLeft, Filter, Calendar, User, Activity } from 'lucide-react';
-
-interface DeviceStateHistoryEntry {
-  state_name: string;
-  action_caused: string;
-  changed_at: string;
-  changed_by: string;
-}
-
-interface DeviceStateHistoryResponse {
-  history: DeviceStateHistoryEntry[];
-  total_records: number;
-}
+import { devicesAPI } from '../api/devices';
+import { DeviceStateHistoryEntry } from '../domain/entities/Device';
 
 export const DeviceStateHistory = () => {
   const { id } = useParams<{ id: string }>();
@@ -41,14 +31,7 @@ export const DeviceStateHistory = () => {
 
   const loadDeviceInfo = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8080/api/devices/${id}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-
-      if (!response.ok) throw new Error('Failed to load device');
-
-      const data = await response.json();
+      const data = await devicesAPI.getDevice(id!);
       setDeviceName(data.device.name);
     } catch (err) {
       console.error('Failed to load device info:', err);
@@ -60,25 +43,13 @@ export const DeviceStateHistory = () => {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const params = new URLSearchParams();
+      const filters = {
+        fromDate: fromDate || undefined,
+        toDate: toDate || undefined,
+        states: selectedStates.length > 0 ? selectedStates : undefined,
+      };
 
-      if (fromDate) params.append('from_date', fromDate);
-      if (toDate) params.append('to_date', toDate);
-      selectedStates.forEach(state => params.append('states', state.toString()));
-
-      const url = `http://localhost:8080/api/devices/${id}/state-history${params.toString() ? '?' + params.toString() : ''}`;
-
-      const response = await fetch(url, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        throw new Error(`HTTP ${response.status}: ${errorData.error || response.statusText}`);
-      }
-
-      const data: DeviceStateHistoryResponse = await response.json();
+      const data = await devicesAPI.getDeviceStateHistory(id, filters);
       setHistory(data.history);
       setError('');
     } catch (err) {

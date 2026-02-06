@@ -1,12 +1,13 @@
 import { AlertCircle, CheckCircle, AlertTriangle, Settings, XCircle, HelpCircle, TrendingUp, TrendingDown } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { memo } from 'react';
 
 // Status Cards Shown above
 interface StatusBadgeProps {
   status: 'active' | 'inactive' | 'error' | 'maintenance' | 'decommissioned' | 'unknown' | 'online';
 }
 
-export const StatusBadge = ({ status }: StatusBadgeProps) => {
+export const StatusBadge = memo(({ status }: StatusBadgeProps) => {
   const configs = {
     active: {
       bg: 'bg-success',
@@ -67,7 +68,7 @@ export const StatusBadge = ({ status }: StatusBadgeProps) => {
       <span className="capitalize">{status}</span>
     </motion.div>
   );
-};
+});
 
 interface StatsCardProps {
   title: string;
@@ -78,7 +79,7 @@ interface StatsCardProps {
   subtitle?: string;
 }
 
-export const StatsCard = ({ title, value, icon, color, trend, subtitle, onClick }: StatsCardProps & { onClick?: () => void }) => {
+export const StatsCard = memo(({ title, value, icon, color, trend, subtitle, onClick }: StatsCardProps & { onClick?: () => void }) => {
   const colorClasses = {
     blue: {
       gradient: 'bg-primary-200',
@@ -148,4 +149,4 @@ export const StatsCard = ({ title, value, icon, color, trend, subtitle, onClick 
       </div>
     </motion.div>
   );
-};
+});

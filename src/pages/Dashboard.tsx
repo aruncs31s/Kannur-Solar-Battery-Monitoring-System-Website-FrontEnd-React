@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 
 import { useDevicesStore } from '../store/devicesStore';
@@ -12,6 +12,7 @@ import { AlertsBanner } from '../components/AlertsBanner';
 import { container } from '../application/di/container';
 import { Package, CheckCircle, Zap, Battery, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { limitArraySize } from '../utils/performanceConfig';
 
 export const Dashboard = () => {
   const navigate = useNavigate();
@@ -25,77 +26,111 @@ export const Dashboard = () => {
   const [loadingReadings, setLoadingReadings] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
     const fetchDevices = async () => {
       setLoading(true);
       try {
         const response = await devicesAPI.getAllDevices();
-        setDevices(response);
-        if (response.length > 0) {
-          setSelectedDeviceId(response[0].id);
+        if (isMounted) {
+          setDevices(response);
+          if (response.length > 0) {
+            setSelectedDeviceId(response[0].id);
+          }
         }
       } catch (err) {
-        setError('Failed to fetch devices');
+        if (isMounted) {
+          setError('Failed to fetch devices');
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchDevices();
-  }, []);
+    return () => { isMounted = false; };
+  }, [setDevices, setLoading, setError]);
 
   useEffect(() => {
+    let isMounted = true;
     const fetchRecentDevices = async () => {
       setLoadingRecent(true);
       try {
         const getRecentDevicesUseCase = container.getGetRecentDevicesUseCase();
         const recent = await getRecentDevicesUseCase.execute();
-        setRecentDevices(recent.slice(0, 5)); // Show only last 5
+        if (isMounted) {
+          setRecentDevices(recent.slice(0, 5)); // Show only last 5
+        }
       } catch (err) {
         console.error('Failed to fetch recent devices:', err);
       } finally {
-        setLoadingRecent(false);
+        if (isMounted) {
+          setLoadingRecent(false);
+        }
       }
     };
 
     fetchRecentDevices();
+    return () => { isMounted = false; };
   }, []);
 
   useEffect(() => {
+    let isMounted = true;
     const fetchOfflineDevices = async () => {
       try {
         const getOfflineDevicesUseCase = container.getGetOfflineDevicesUseCase();
         const offline = await getOfflineDevicesUseCase.execute();
-        setOfflineDevices(offline);
+        if (isMounted) {
+          setOfflineDevices(offline);
+        }
       } catch (err) {
         console.error('Failed to fetch offline devices:', err);
       }
     };
 
     fetchOfflineDevices();
+    return () => { isMounted = false; };
   }, []);
 
   useEffect(() => {
+    let isMounted = true;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
     const fetchReadings = async () => {
-      if (!selectedDeviceId) return;
+      if (!selectedDeviceId || !isMounted) return;
       setLoadingReadings(true);
       try {
         const data = await readingsAPI.getProgressiveByDevice(selectedDeviceId);
-        setReadings(data.slice(0, 10));
-        setError('');
+        if (isMounted) {
+          // Limit readings to prevent memory bloat
+          setReadings(limitArraySize(data, 50));
+          setError('');
+        }
       } catch (err) {
         console.error('Failed to fetch readings:', err);
-        setReadings([]);
+        if (isMounted) {
+          setReadings([]);
+        }
       } finally {
-        setLoadingReadings(false);
+        if (isMounted) {
+          setLoadingReadings(false);
+        }
       }
     };
 
     if (selectedDeviceId) {
       fetchReadings();
-      const interval = setInterval(fetchReadings, 30000);
-      return () => clearInterval(interval);
+      intervalId = setInterval(fetchReadings, 30000);
     }
-  }, [selectedDeviceId]);
+
+    return () => {
+      isMounted = false;
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [selectedDeviceId, setError]);
 
   const activeDevices = devices.filter((d) => d.device_state === 1).length;
 
@@ -176,18 +211,18 @@ export const Dashboard = () => {
 
   const alerts = generateAlerts;
 
-  const handleDismissAlert = (alertId: string) => {
+  const handleDismissAlert = useCallback((alertId: string) => {
     setDismissedAlerts(prev => new Set(prev).add(alertId));
-  };
+  }, []);
 
-  const handleViewDevice = (deviceId: number) => {
+  const handleViewDevice = useCallback((deviceId: number) => {
     navigate(`/devices/${deviceId}`);
-  };
+  }, [navigate]);
 
-  const handleAcknowledgeAlert = (alertId: string) => {
+  const handleAcknowledgeAlert = useCallback((alertId: string) => {
     // For now, just dismiss
     handleDismissAlert(alertId);
-  };
+  }, [handleDismissAlert]);
 
   return (
     <div className="space-y-6 pb-8">

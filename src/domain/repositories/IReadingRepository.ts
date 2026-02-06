@@ -1,6 +1,6 @@
 import { Reading, ReadingFilters } from '../entities/Reading';
 
 export interface IReadingRepository {
-  getByDevice(deviceId: string): Promise<Reading[]>;
+  getByDevice(deviceId: string, limit?: number): Promise<Reading[]>;
   getByDateRange(filters: ReadingFilters): Promise<Reading[]>;
 }

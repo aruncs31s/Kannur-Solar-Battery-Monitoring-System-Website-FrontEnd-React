@@ -31,6 +31,10 @@ export interface DeviceResponseDTO {
 
 export type DeviceStatus = "active" | "inactive" | "error" | "maintenance" | "decommissioned" | "unknown";
 
+export type DeviceStates = {
+  [key: number]: DeviceStatus;
+};
+
 export interface CreateDeviceDTO {
   name: string;
   type: number;
@@ -104,6 +108,45 @@ export interface MicrocontrollerDTO {
   used_by: string;
   firmware_version: string;
   connected_sensors: any | null;
+}
+
+export interface DeviceStateHistoryEntry {
+  state_name: string;
+  action_caused: string;
+  changed_at: string;
+  changed_by: string;
+}
+
+export interface DeviceStateHistoryResponse {
+  history: DeviceStateHistoryEntry[];
+  total_records: number;
+}
+
+export interface DeviceStateHistoryFilters {
+  fromDate?: string;
+  toDate?: string;
+  states?: number[];
+}
+
+export interface CreateDeviceTypeDTO {
+  name: string;
+  hardware_type: number;
+}
+
+export interface DeviceState {
+  id: number;
+  name: string;
+  description?: string;
+}
+
+export interface CreateDeviceStateDTO {
+  name: string;
+  description?: string;
+}
+
+export interface UpdateDeviceStateDTO {
+  name?: string;
+  description?: string;
 }
 
 export interface IDeviceTypesRepository {

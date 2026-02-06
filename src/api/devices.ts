@@ -1,11 +1,6 @@
 import { container } from '../application/di/container';
-import { CreateDeviceDTO, CreateSolarDeviceDTO, CreateSensorDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, SolarDeviceView, MicrocontrollerDTO } from '../domain/entities/Device';
+import { CreateDeviceDTO, CreateSolarDeviceDTO, CreateSensorDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, SolarDeviceView, MicrocontrollerDTO, DeviceStateHistoryResponse, DeviceStateHistoryFilters, CreateDeviceTypeDTO, UpdateDeviceDTO, DeviceState, CreateDeviceStateDTO, UpdateDeviceStateDTO } from '../domain/entities/Device';
 import { DeviceTypeDTO } from '../domain/entities/Device';
-
-export interface CreateDeviceTypeDTO {
-  name: string;
-  hardware_type: number;
-}
 
 export interface DeviceTokenResponse {
   token: string;
@@ -26,21 +21,12 @@ export const devicesAPI = {
     return await container.getGetDeviceTypesUseCase().execute();
   },
 
+  getDeviceType: async (deviceId: number): Promise<DeviceTypeDTO> => {
+    return await container.getGetDeviceTypeUseCase().execute(deviceId);
+  },
+
   createDeviceType: async (data: CreateDeviceTypeDTO): Promise<{ message: string }> => {
-    const response = await fetch('/api/devices/types', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to create device type');
-    }
-
-    return await response.json();
+    return await container.getCreateDeviceTypeUseCase().execute(data);
   },
 
   getHardwareDeviceTypes: async (): Promise<{ device_type: DeviceTypeDTO[] }> => {
@@ -56,36 +42,11 @@ export const devicesAPI = {
   },
 
   createSensorDevice: async (data: CreateSensorDeviceDTO): Promise<DeviceResponseDTO> => {
-    const response = await fetch('/api/devices/sensors', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to create sensor device');
-    }
-
-    return await response.json();
+    return await container.getCreateSensorDeviceUseCase().execute(data);
   },
 
   getMySolarDevices: async (): Promise<SolarDeviceView[]> => {
-    const response = await fetch('/api/devices/solar/my', {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch solar devices');
-    }
-
-    const data = await response.json();
-    return data.devices || [];
+    return await container.getGetMySolarDevicesUseCase().execute();
   },
 
   searchDevices: async (query: string): Promise<DeviceResponseDTO[]> => {
@@ -105,37 +66,38 @@ export const devicesAPI = {
   },
 
   getDevice: async (deviceId: string | number): Promise<{ device: any }> => {
-    const token = localStorage.getItem('token');
-    const response = await fetch(`http://localhost:8080/api/devices/${deviceId}`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
+    return await container.getGetDeviceUseCase().execute(deviceId);
+  },
 
-    if (!response.ok) {
-      throw new Error('Failed to load device');
-    }
+  updateDevice: async (deviceId: number, data: UpdateDeviceDTO): Promise<DeviceResponseDTO> => {
+    return await container.getUpdateDeviceUseCase().execute(deviceId, data);
+  },
 
-    return await response.json();
+  controlDevice: async (deviceId: number, action: number): Promise<{ success: boolean; message: string }> => {
+    return await container.getControlDeviceUseCase().execute(deviceId, action);
   },
 
   uploadFirmware: async (deviceId: number, firmwareFile: File): Promise<{ message: string }> => {
-    const token = localStorage.getItem('token');
-    const formData = new FormData();
-    formData.append('firmware', firmwareFile);
-    formData.append('device_id', deviceId.toString());
+    return await container.getUploadFirmwareUseCase().execute(deviceId, firmwareFile);
+  },
 
-    const response = await fetch('/api/codegen/upload', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-      body: formData,
-    });
+  getDeviceStateHistory: async (deviceId: string | number, filters?: DeviceStateHistoryFilters): Promise<DeviceStateHistoryResponse> => {
+    return await container.getGetDeviceStateHistoryUseCase().execute(deviceId, filters);
+  },
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to upload firmware');
-    }
+  getDeviceStates: async (): Promise<DeviceState[]> => {
+    return await container.getGetDeviceStatesUseCase().execute();
+  },
 
-    return await response.json();
+  getDeviceState: async (id: number): Promise<DeviceState> => {
+    return await container.getGetDeviceStateUseCase().execute(id);
+  },
+
+  createDeviceState: async (data: CreateDeviceStateDTO): Promise<DeviceState> => {
+    return await container.getCreateDeviceStateUseCase().execute(data);
+  },
+
+  updateDeviceState: async (id: number, data: UpdateDeviceStateDTO): Promise<DeviceState> => {
+    return await container.getUpdateDeviceStateUseCase().execute(id, data);
   },
 };

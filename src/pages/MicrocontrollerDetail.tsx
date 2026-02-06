@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Activity, AlertCircle, TrendingUp, Calendar, Copy, Check, X, Settings, Download, Code } from 'lucide-react';
+import { Activity, AlertCircle, Calendar, Copy, Check, X, Settings, Download, Code } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
 import { readingsAPI } from '../api/readings';
 import { devicesAPI } from '../api/devices';
 import { UpdateDeviceModal } from '../components/UpdateDeviceModal';
 import { DeviceControlPanel } from '../components/DeviceControlPanel';
 import { DeviceInfoCard } from '../components/DeviceInfoCard';
+import { FirmwareUploadModal } from '../components';
 import { Reading } from '../domain/entities/Reading';
 
 const formatMetric = (value: number | null | undefined, unit: string) => {
@@ -65,6 +66,14 @@ export const MCDeviceDetail = () => {
     build_tool: 'platformio'
   });
   
+  // Token management for firmware builder
+  const [useManualToken, setUseManualToken] = useState(false);
+  const [manualToken, setManualToken] = useState('');
+  const [firmwareToken, setFirmwareToken] = useState('');
+  
+  // Firmware upload state
+  const [isFirmwareUploadModalOpen, setIsFirmwareUploadModalOpen] = useState(false);
+  
   // Update device modal state
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [updateForm, setUpdateForm] = useState({
@@ -96,12 +105,14 @@ export const MCDeviceDetail = () => {
   const [useDateFilter, setUseDateFilter] = useState(false); // Default to disabled to show all readings
   const [allReadings, setAllReadings] = useState<Reading[]>([]); // Store all readings for breakdown
   const [selectedDay, setSelectedDay] = useState<string | null>(null); // For zooming into daily view
-  const [selectedMetric, setSelectedMetric] = useState<'all' | 'voltage' | 'current' | 'power'>('all'); // For filtering chart by metric
 
 
 
 
   useEffect(() => {
+    let isMounted = true;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
     if (id) {
       loadDeviceData();
       loadReadings();
@@ -109,13 +120,20 @@ export const MCDeviceDetail = () => {
       loadDeviceType();
       
       // Auto-refresh every 30 seconds
-      const interval = setInterval(() => {
-        loadDeviceData();
-        loadReadings();
+      intervalId = setInterval(() => {
+        if (isMounted) {
+          loadDeviceData();
+          loadReadings();
+        }
       }, 30000);
-      
-      return () => clearInterval(interval);
     }
+      
+    return () => {
+      isMounted = false;
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
   }, [id, readingsLimit, startDate, endDate, useDateFilter]);
 
   const loadDeviceTypes = async () => {
@@ -228,7 +246,6 @@ export const MCDeviceDetail = () => {
 
   const closeTokenModal = () => {
     setShowTokenModal(false);
-    setGeneratedToken('');
     setTokenCopied(false);
   };
 
@@ -264,6 +281,17 @@ export const MCDeviceDetail = () => {
         device_name: device.name,
         build_tool: 'platformio'
       });
+      
+      // Initialize token state
+      if (generatedToken) {
+        setUseManualToken(false);
+        setFirmwareToken(generatedToken);
+      } else {
+        setUseManualToken(false);
+        setFirmwareToken('');
+      }
+      setManualToken('');
+      
       setShowFirmwareModal(true);
       setFirmwareMessage('');
     }
@@ -273,6 +301,24 @@ export const MCDeviceDetail = () => {
     setShowFirmwareModal(false);
     setFirmwareMessage('');
     setFirmwareBuilding(false);
+    setUseManualToken(false);
+    setManualToken('');
+    setFirmwareToken('');
+  };
+
+  const generateFirmwareToken = async () => {
+    if (!id) return;
+    
+    try {
+      const response = await devicesAPI.generateDeviceToken(parseInt(id));
+      setFirmwareToken(response.token);
+      setGeneratedToken(response.token); // Also update the global token
+      setFirmwareMessage('Token generated successfully!');
+      setTimeout(() => setFirmwareMessage(''), 2000);
+    } catch (err: any) {
+      setFirmwareMessage('Failed to generate token');
+      console.error('Token generation error:', err);
+    }
   };
 
   const buildAndDownloadFirmware = async () => {
@@ -282,8 +328,9 @@ export const MCDeviceDetail = () => {
       return;
     }
 
-    if (!generatedToken) {
-      setFirmwareMessage('Please generate a device token first');
+    const deviceToken = useManualToken ? manualToken : firmwareToken;
+    if (!deviceToken) {
+      setFirmwareMessage('Please provide or generate a device token first');
       return;
     }
 
@@ -300,7 +347,7 @@ export const MCDeviceDetail = () => {
         },
         body: JSON.stringify({
           ...firmwareConfig,
-          token: generatedToken
+          token: deviceToken
         })
       });
 
@@ -353,8 +400,9 @@ export const MCDeviceDetail = () => {
       return;
     }
 
-    if (!generatedToken) {
-      setFirmwareMessage('Please generate a device token first');
+    const deviceToken = useManualToken ? manualToken : firmwareToken;
+    if (!deviceToken) {
+      setFirmwareMessage('Please provide or generate a device token first');
       return;
     }
 
@@ -370,7 +418,7 @@ export const MCDeviceDetail = () => {
         },
         body: JSON.stringify({
           ...firmwareConfig,
-          token: generatedToken
+          token: deviceToken
         })
       });
 
@@ -527,25 +575,6 @@ export const MCDeviceDetail = () => {
     return readings.length > 0 ? readings[0] : null;
   };
 
-  const getAverages = () => {
-    if (readings.length === 0) return { voltage: 0, current: 0, power: 0 };
-    
-    const sum = readings.reduce(
-      (acc, r) => ({
-        voltage: acc.voltage + (r.voltage ?? 0),
-        current: acc.current + (r.current ?? 0),
-        power: acc.power + (r.power ?? 0),
-      }),
-      { voltage: 0, current: 0, power: 0 }
-    );
-    
-    return {
-      voltage: sum.voltage / readings.length,
-      current: sum.current / readings.length,
-      power: sum.power / readings.length,
-    };
-  };
-
   // Prepare data for main aggregate chart
   const getAggregateChartData = () => {
     const chartData = readings
@@ -559,15 +588,6 @@ export const MCDeviceDetail = () => {
         timestamp: reading.timestamp
       }));
     
-    // Add average lines if a specific metric is selected
-    if (selectedMetric !== 'all') {
-      const avgValue = selectedMetric === 'voltage' ? averages.voltage : 
-                      selectedMetric === 'current' ? averages.current : averages.power;
-      chartData.forEach((dataPoint: any) => {
-        dataPoint[`${selectedMetric}Avg`] = avgValue;
-      });
-    }
-    
     return chartData;
   };
 
@@ -579,15 +599,6 @@ export const MCDeviceDetail = () => {
     if (!dayData) return [];
     
     const chartData = dayData.chartData;
-    
-    // Add average lines if a specific metric is selected
-    if (selectedMetric !== 'all') {
-      const avgValue = selectedMetric === 'voltage' ? dayData.avgVoltage : 
-                      selectedMetric === 'current' ? dayData.avgCurrent : dayData.avgPower;
-      chartData.forEach((dataPoint: any) => {
-        dataPoint[`${selectedMetric}Avg`] = avgValue;
-      });
-    }
     
     return chartData;
   };
@@ -659,7 +670,6 @@ export const MCDeviceDetail = () => {
   }
 
   const latestReading = getLatestReading();
-  const averages = getAverages();
   const deviceOnline = isDeviceOnline();
 
   return (
@@ -685,6 +695,13 @@ export const MCDeviceDetail = () => {
             <span className="rounded-full bg-surface-secondary px-4 py-1 text-sm font-semibold text-text-secondary">
               Last updated: {formatTimestamp(latestReading?.timestamp)}
             </span>
+            <button
+              onClick={generateToken}
+              className="rounded-full bg-blue-600 hover:bg-blue-700 px-4 py-1 text-sm font-semibold text-white transition-colors flex items-center gap-2"
+            >
+              <Activity size={16} />
+              Generate Token
+            </button>
             <button
               onClick={() => navigate('/devices')}
               className="rounded-full border border-border-primary px-4 py-1 text-sm font-semibold text-text-secondary transition-colors hover:text-text-primary"
@@ -921,6 +938,97 @@ export const MCDeviceDetail = () => {
                 </div>
               </div>
 
+              {/* Token Management Section */}
+              <div className="border-t border-border-primary pt-6">
+                <h4 className="text-lg font-semibold text-text-primary mb-4">Device Authentication Token</h4>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="tokenType"
+                        checked={!useManualToken}
+                        onChange={() => setUseManualToken(false)}
+                        disabled={firmwareBuilding}
+                      />
+                      <span className="text-sm font-medium text-text-primary">Auto-generate token</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="tokenType"
+                        checked={useManualToken}
+                        onChange={() => setUseManualToken(true)}
+                        disabled={firmwareBuilding}
+                      />
+                      <span className="text-sm font-medium text-text-primary">Provide custom token</span>
+                    </label>
+                  </div>
+
+                  {!useManualToken ? (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-text-secondary">Current Token:</span>
+                        <button
+                          onClick={generateFirmwareToken}
+                          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                          disabled={firmwareBuilding}
+                        >
+                          <Activity size={16} />
+                          Generate Token
+                        </button>
+                      </div>
+                      {firmwareToken ? (
+                        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                          <div className="flex items-start gap-3">
+                            <Check className="text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" size={20} />
+                            <div className="text-sm text-green-900 dark:text-green-100">
+                              <p className="font-semibold mb-1">Token Generated Successfully</p>
+                              <p className="font-mono text-xs break-all">{firmwareToken}</p>
+                              <p className="mt-2 text-xs">This token will be used for firmware building.</p>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                          <div className="flex items-start gap-3">
+                            <AlertCircle className="text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" size={20} />
+                            <div className="text-sm text-yellow-900 dark:text-yellow-100">
+                              <p className="font-semibold mb-1">No Token Available</p>
+                              <p>Please generate a device token to proceed with firmware building.</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <label className="block text-sm font-semibold text-text-secondary">Custom Token</label>
+                      <textarea
+                        value={manualToken}
+                        onChange={(e) => setManualToken(e.target.value)}
+                        className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500 font-mono text-sm"
+                        placeholder="Paste your JWT token here..."
+                        rows={3}
+                        disabled={firmwareBuilding}
+                      />
+                      {manualToken && (
+                        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                          <div className="flex items-start gap-3">
+                            <Check className="text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" size={20} />
+                            <div className="text-sm text-green-900 dark:text-green-100">
+                              <p className="font-semibold mb-1">Custom Token Provided</p>
+                              <p>This token will be used for firmware building.</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {firmwareMessage && (
                 <div className={`p-4 rounded-lg ${
                   firmwareMessage.includes('Error') || firmwareMessage.includes('failed') 
@@ -933,17 +1041,17 @@ export const MCDeviceDetail = () => {
                 </div>
               )}
 
-              {!generatedToken && (
+              {(!useManualToken && !firmwareToken) || (useManualToken && !manualToken) ? (
                 <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
                   <div className="flex items-start gap-3">
                     <AlertCircle className="text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" size={20} />
                     <div className="text-sm text-yellow-900 dark:text-yellow-100">
                       <p className="font-semibold mb-1">Device Token Required</p>
-                      <p>Please generate a device token first using the "Generate Token" button in the control panel.</p>
+                      <p>Please {!useManualToken ? 'generate a device token' : 'provide a custom token'} to proceed with firmware building.</p>
                     </div>
                   </div>
                 </div>
-              )}
+              ) : null}
             </div>
             
             <div className="p-6 border-t border-border-primary flex justify-end gap-3">
@@ -957,7 +1065,7 @@ export const MCDeviceDetail = () => {
               <button
                 onClick={buildAndDownloadFirmwareDirect}
                 className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={firmwareBuilding || !generatedToken}
+                disabled={firmwareBuilding || (!useManualToken && !firmwareToken) || (useManualToken && !manualToken)}
               >
                 {firmwareBuilding ? (
                   <>
@@ -974,7 +1082,7 @@ export const MCDeviceDetail = () => {
               <button
                 onClick={buildAndDownloadFirmware}
                 className="px-6 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={firmwareBuilding || !generatedToken}
+                disabled={firmwareBuilding || (!useManualToken && !firmwareToken) || (useManualToken && !manualToken)}
               >
                 {firmwareBuilding ? (
                   <>
@@ -993,7 +1101,7 @@ export const MCDeviceDetail = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
 
         {/* Device Info */}
         <DeviceInfoCard
@@ -1002,18 +1110,6 @@ export const MCDeviceDetail = () => {
           latestReading={latestReading}
           onUpdate={openUpdateModal}
           onViewHistory={() => navigate(`/devices/${id}/state-history`)}
-        />
-
-        {/* Control Panel */}
-        <DeviceControlPanel
-          deviceState={device.device_state}
-          canControl={deviceType?.features?.can_control || false}
-          onControl={controlDevice}
-          onRefresh={() => {
-            loadDeviceData();
-            loadReadings();
-          }}
-          onGenerateToken={generateToken}
         />
 
         {/* Latest Reading */}
@@ -1054,129 +1150,92 @@ export const MCDeviceDetail = () => {
             <div className="text-gray-500 dark:text-gray-400">No readings available</div>
           )}
         </div>
+
+        {/* Control Panel */}
+        <DeviceControlPanel
+          deviceState={device.device_state}
+          canControl={deviceType?.features?.can_control || false}
+          onControl={controlDevice}
+          onRefresh={() => {
+            loadDeviceData();
+            loadReadings();
+          }}
+          onGenerateToken={generateToken}
+        />
+
+        {/* Custom Firmware Builder */}
+        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl border-2 border-indigo-200 dark:border-indigo-800 p-6 shadow-lg lg:col-span-2">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-500/15">
+                <Code className="text-indigo-600 dark:text-indigo-400" size={24} />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">Custom Firmware Builder</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Build and download custom firmware for your ESP32 microcontroller with your specific configuration.
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 gap-4 mt-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Step 1</p>
+              </div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Generate device token using the control panel</p>
+            </div>
+            
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Step 2</p>
+              </div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Configure WiFi and network settings</p>
+            </div>
+            
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Step 3</p>
+              </div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Build and download firmware binary</p>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 mt-6">
+            <button
+              onClick={openFirmwareModal}
+              className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 shadow-md hover:shadow-lg"
+            >
+              <Code size={20} />
+              Open Firmware Builder
+            </button>
+            
+            <button
+              onClick={() => setIsFirmwareUploadModalOpen(true)}
+              className="px-6 py-3 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 shadow-md hover:shadow-lg"
+            >
+              <Settings size={20} />
+              Upload Firmware
+            </button>
+            
+            {generatedToken ? (
+              <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+                <Check size={16} />
+                <span className="font-medium">Device token ready</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-sm text-yellow-600 dark:text-yellow-400">
+                <AlertCircle size={16} />
+                <span className="font-medium">Generate device token first</span>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
-
-      {/* Firmware Builder Section */}
-      <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl border-2 border-indigo-200 dark:border-indigo-800 p-6 shadow-lg">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-500/15">
-              <Code className="text-indigo-600 dark:text-indigo-400" size={24} />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">Custom Firmware Builder</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Build and download custom firmware for your ESP32 microcontroller with your specific configuration.
-              </p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Step 1</p>
-            </div>
-            <p className="text-xs text-gray-600 dark:text-gray-400">Generate device token using the control panel</p>
-          </div>
-          
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-2 h-2 rounded-full bg-green-500"></div>
-              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Step 2</p>
-            </div>
-            <p className="text-xs text-gray-600 dark:text-gray-400">Configure WiFi and network settings</p>
-          </div>
-          
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Step 3</p>
-            </div>
-            <p className="text-xs text-gray-600 dark:text-gray-400">Build and download firmware binary</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3 mt-6">
-          <button
-            onClick={openFirmwareModal}
-            className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 shadow-md hover:shadow-lg"
-          >
-            <Code size={20} />
-            Open Firmware Builder
-          </button>
-          
-          {generatedToken ? (
-            <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
-              <Check size={16} />
-              <span className="font-medium">Device token ready</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 text-sm text-yellow-600 dark:text-yellow-400">
-              <AlertCircle size={16} />
-              <span className="font-medium">Generate device token first</span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Averages */}
-      {readings.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div 
-            className={`bg-gradient-to-br from-nord-9 to-nord-8 text-white rounded-lg shadow p-6 cursor-pointer transition-all duration-200 ${
-              selectedMetric === 'voltage' ? 'ring-2 ring-blue-400 scale-105' : 'hover:scale-105'
-            }`}
-            onClick={() => setSelectedMetric(selectedMetric === 'voltage' ? 'all' : 'voltage')}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-nord-4 text-sm">Average Voltage</p>
-                <p className="text-3xl font-bold mt-1">{averages.voltage.toFixed(2)}V</p>
-                {selectedMetric === 'voltage' && (
-                  <p className="text-xs text-blue-200 mt-1">Click to show all metrics</p>
-                )}
-              </div>
-              <Activity size={40} className="text-nord-5" />
-            </div>
-          </div>
-          <div 
-            className={`bg-gradient-to-br from-success to-nord-14 text-white rounded-lg shadow p-6 cursor-pointer transition-all duration-200 ${
-              selectedMetric === 'current' ? 'ring-2 ring-blue-400 scale-105' : 'hover:scale-105'
-            }`}
-            onClick={() => setSelectedMetric(selectedMetric === 'current' ? 'all' : 'current')}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-nord-4 text-sm">Average Current</p>
-                <p className="text-3xl font-bold mt-1">{averages.current.toFixed(2)}A</p>
-                {selectedMetric === 'current' && (
-                  <p className="text-xs text-blue-200 mt-1">Click to show all metrics</p>
-                )}
-              </div>
-              <TrendingUp size={40} className="text-nord-5" />
-            </div>
-          </div>
-          <div 
-            className={`bg-gradient-to-br from-nord-15 to-nord-9 text-white rounded-lg shadow p-6 cursor-pointer transition-all duration-200 ${
-              selectedMetric === 'power' ? 'ring-2 ring-blue-400 scale-105' : 'hover:scale-105'
-            }`}
-            onClick={() => setSelectedMetric(selectedMetric === 'power' ? 'all' : 'power')}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-nord-4 text-sm">Average Power</p>
-                <p className="text-3xl font-bold mt-1">{averages.power.toFixed(2)}W</p>
-                {selectedMetric === 'power' && (
-                  <p className="text-xs text-blue-200 mt-1">Click to show all metrics</p>
-                )}
-              </div>
-              <AlertCircle size={40} className="text-purple-200" />
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Main Aggregate Chart */}
       {readings.length > 0 && (
@@ -1184,12 +1243,6 @@ export const MCDeviceDetail = () => {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
               {selectedDay ? `Detailed View - ${selectedDay}` : 'Aggregate Performance Chart'}
-              {selectedMetric !== 'all' && (
-                <span className="text-blue-600 dark:text-blue-400 ml-2">
-                  ({selectedMetric === 'voltage' ? 'Voltage Only' : 
-                    selectedMetric === 'current' ? 'Current Only' : 'Power Only'})
-                </span>
-              )}
             </h2>
             {selectedDay && (
               <button
@@ -1241,48 +1294,30 @@ export const MCDeviceDetail = () => {
                 }} 
               />
               <Legend />
-              {(selectedMetric === 'all' || selectedMetric === 'voltage') && (
-                <Area 
-                  type="monotone" 
-                  dataKey="voltage" 
-                  stroke="#5E81AC" 
-                  fillOpacity={1}
-                  fill="url(#colorVoltage)" 
-                  name="Voltage (V)"
-                />
-              )}
-              {(selectedMetric === 'all' || selectedMetric === 'current') && (
-                <Area 
-                  type="monotone" 
-                  dataKey="current" 
-                  stroke="#A3BE8C" 
-                  fillOpacity={1}
-                  fill="url(#colorCurrent)" 
-                  name="Current (A)"
-                />
-              )}
-              {(selectedMetric === 'all' || selectedMetric === 'power') && (
-                <Area 
-                  type="monotone" 
-                  dataKey="power" 
-                  stroke="#B48EAD" 
-                  fillOpacity={1}
-                  fill="url(#colorPower)" 
-                  name="Power (W)"
-                />
-              )}
-              {selectedMetric !== 'all' && (
-                <Line 
-                  type="monotone" 
-                  dataKey={`${selectedMetric}Avg`}
-                  stroke="#3B82F6" 
-                  strokeWidth={3}
-                  strokeDasharray="5 5"
-                  dot={false}
-                  name={`Avg ${selectedMetric === 'voltage' ? 'Voltage' : selectedMetric === 'current' ? 'Current' : 'Power'}`}
-                  connectNulls={false}
-                />
-              )}
+              <Area 
+                type="monotone" 
+                dataKey="voltage" 
+                stroke="#5E81AC" 
+                fillOpacity={1}
+                fill="url(#colorVoltage)" 
+                name="Voltage (V)"
+              />
+              <Area 
+                type="monotone" 
+                dataKey="current" 
+                stroke="#A3BE8C" 
+                fillOpacity={1}
+                fill="url(#colorCurrent)" 
+                name="Current (A)"
+              />
+              <Area 
+                type="monotone" 
+                dataKey="power" 
+                stroke="#B48EAD" 
+                fillOpacity={1}
+                fill="url(#colorPower)" 
+                name="Power (W)"
+              />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -1518,6 +1553,18 @@ export const MCDeviceDetail = () => {
         </div>
       </div>
 
+      {/* Firmware Upload Modal */}
+      <FirmwareUploadModal
+        isOpen={isFirmwareUploadModalOpen}
+        onClose={() => setIsFirmwareUploadModalOpen(false)}
+        deviceId={device?.id || 0}
+        deviceName={device?.name || ''}
+        onUploadSuccess={() => {
+          // Refresh device data after successful upload
+          loadDeviceData();
+          setIsFirmwareUploadModalOpen(false);
+        }}
+      />
      
     </div>
   );
