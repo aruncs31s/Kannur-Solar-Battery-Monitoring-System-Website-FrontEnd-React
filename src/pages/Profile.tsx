@@ -17,6 +17,8 @@ import { auditAPI } from '../api/audit';
 import { DeviceResponseDTO } from '../domain/entities/Device';
 import { AuditLog } from '../domain/entities/AuditLog';
 import { Link } from 'react-router-dom';
+import { LoadingState } from '../components/LoadingState';
+import { PageHeader } from '../components/PageHeader';
 
 export const Profile = () => {
   const { user } = useAuthStore();
@@ -103,19 +105,17 @@ export const Profile = () => {
 
   return (
     <div className="space-y-8 max-w-7xl">
-      <div>
-        <h1 className="text-4xl font-bold text-text-primary">User Profile</h1>
-        <p className="text-text-secondary mt-2">View your account information, devices, and activity</p>
-      </div>
+      <PageHeader 
+        title="User Profile"
+        description="View your account information, devices, and activity"
+      />
 
       {error && <FormError message={error} />}
 
       {/* User Info Card */}
       <div className="bg-surface-primary rounded-lg shadow-md p-8">
         {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-          </div>
+          <LoadingState message="Loading profile..." minHeight="py-12" />
         ) : (
           <div className="space-y-6">
             <div className="flex items-center gap-4">
