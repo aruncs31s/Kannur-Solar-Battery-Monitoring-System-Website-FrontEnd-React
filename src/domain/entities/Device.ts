@@ -149,6 +149,30 @@ export interface UpdateDeviceStateDTO {
   description?: string;
 }
 
+export interface ConnectedDeviceDTO {
+  id: number;
+  name: string;
+  type: string;
+  ip_address: string;
+  mac_address: string;
+  firmware_version: string;
+  address: string;
+  city: string;
+  device_state: number;
+  hardware_type?: number;
+}
+
+export interface AddConnectedDeviceDTO {
+  child_id: number;
+}
+
+export interface CreateConnectedDeviceDTO {
+  name: string;
+  type: number;
+  ip_address?: string;
+  mac_address?: string;
+}
+
 export interface IDeviceTypesRepository {
   getAll(): Promise<DeviceTypeDTO[]>;
   getHardwareTypes(): Promise<DeviceTypeDTO[]>;

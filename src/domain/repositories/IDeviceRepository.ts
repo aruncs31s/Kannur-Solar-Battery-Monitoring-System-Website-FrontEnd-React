@@ -1,4 +1,4 @@
-import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO, MicrocontrollerDTO, CreateSensorDeviceDTO, SolarDeviceView, DeviceStateHistoryResponse, DeviceStateHistoryFilters, CreateDeviceTypeDTO, DeviceState, CreateDeviceStateDTO, UpdateDeviceStateDTO } from '../entities/Device';
+import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO, MicrocontrollerDTO, CreateSensorDeviceDTO, SolarDeviceView, DeviceStateHistoryResponse, DeviceStateHistoryFilters, CreateDeviceTypeDTO, DeviceState, CreateDeviceStateDTO, UpdateDeviceStateDTO, ConnectedDeviceDTO, CreateConnectedDeviceDTO } from '../entities/Device';
 import { DeviceTokenResponse, MicrocontrollerStats } from '../../api/devices';
 import { Reading } from '../entities/Reading';
 
@@ -16,6 +16,9 @@ export interface IDeviceRepository {
   getDeviceType(deviceId: number): Promise<DeviceTypeDTO>;
   updateDevice(deviceId: number, data: UpdateDeviceDTO): Promise<DeviceResponseDTO>;
   controlDevice(deviceId: number, action: number): Promise<{ success: boolean; message: string }>;
+  getConnectedDevices(deviceId: number): Promise<ConnectedDeviceDTO[]>;
+  addConnectedDevice(deviceId: number, childId: number): Promise<{ message: string }>;
+  createAndConnectDevice(deviceId: number, data: CreateConnectedDeviceDTO): Promise<{ message: string }>;
   removeConnectedDevice(deviceId: number, connectedDeviceId: number): Promise<{ success: boolean; message: string }>;
   getRecentDevices(): Promise<DeviceResponseDTO[]>;
   getOfflineDevices(): Promise<DeviceResponseDTO[]>;

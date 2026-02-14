@@ -1,5 +1,5 @@
 import { IDeviceRepository } from '../../domain/repositories/IDeviceRepository';
-import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO, MicrocontrollerDTO, CreateSensorDeviceDTO, SolarDeviceView, DeviceStateHistoryResponse, DeviceStateHistoryFilters, CreateDeviceTypeDTO, DeviceState, CreateDeviceStateDTO, UpdateDeviceStateDTO, DeviceStatus } from '../../domain/entities/Device';
+import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO, MicrocontrollerDTO, CreateSensorDeviceDTO, SolarDeviceView, DeviceStateHistoryResponse, DeviceStateHistoryFilters, CreateDeviceTypeDTO, DeviceState, CreateDeviceStateDTO, UpdateDeviceStateDTO, DeviceStatus, ConnectedDeviceDTO, CreateConnectedDeviceDTO } from '../../domain/entities/Device';
 import { DeviceTokenResponse, MicrocontrollerStats } from '../../api/devices';
 import { Reading } from '../../domain/entities/Reading';
 import { httpClient } from '../http/HttpClient';
@@ -201,6 +201,21 @@ export class DeviceRepository implements IDeviceRepository {
       `/devices/${deviceId}/connected/${connectedDeviceId}`
     );
     return response;
+  }
+
+  async getConnectedDevices(deviceId: number): Promise<ConnectedDeviceDTO[]> {
+    const response = await httpClient.get<{ connected_devices: ConnectedDeviceDTO[] }>(
+      `/devices/${deviceId}/connected`
+    );
+    return response.connected_devices || [];
+  }
+
+  async addConnectedDevice(deviceId: number, childId: number): Promise<{ message: string }> {
+    return await httpClient.post(`/devices/${deviceId}/connected`, { child_id: childId });
+  }
+
+  async createAndConnectDevice(deviceId: number, data: CreateConnectedDeviceDTO): Promise<{ message: string }> {
+    return await httpClient.post(`/devices/${deviceId}/connected/new`, data);
   }
 
   async getProgressiveReadings(deviceId: number): Promise<Reading[]> {

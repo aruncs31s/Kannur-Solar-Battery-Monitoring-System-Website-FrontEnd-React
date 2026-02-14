@@ -34,6 +34,9 @@ import { GenerateDeviceTokenUseCase } from '../usecases/devices/GenerateDeviceTo
 import { GetDeviceTypeUseCase } from '../usecases/devices/GetDeviceTypeUseCase';
 import { UpdateDeviceUseCase } from '../usecases/devices/UpdateDeviceUseCase';
 import { RemoveConnectedDeviceUseCase } from '../usecases/devices/RemoveConnectedDeviceUseCase';
+import { GetConnectedDevicesUseCase } from '../usecases/devices/GetConnectedDevicesUseCase';
+import { AddConnectedDeviceUseCase } from '../usecases/devices/AddConnectedDeviceUseCase';
+import { CreateAndConnectDeviceUseCase } from '../usecases/devices/CreateAndConnectDeviceUseCase';
 import { ControlDeviceUseCase } from '../usecases/devices/ControlDeviceUseCase';
 import { CreateDeviceStateUseCase } from '../usecases/devices/CreateDeviceStateUseCase';
 import { GetDeviceStateUseCase } from '../usecases/devices/GetDeviceStateUseCase';
@@ -172,6 +175,18 @@ class DIContainer {
 
   getRemoveConnectedDeviceUseCase() {
     return new RemoveConnectedDeviceUseCase(this.deviceRepository);
+  }
+
+  getGetConnectedDevicesUseCase() {
+    return new GetConnectedDevicesUseCase(this.deviceRepository);
+  }
+
+  getAddConnectedDeviceUseCase() {
+    return new AddConnectedDeviceUseCase(this.deviceRepository);
+  }
+
+  getCreateAndConnectDeviceUseCase() {
+    return new CreateAndConnectDeviceUseCase(this.deviceRepository);
   }
 
   getGetDeviceTypesUseCase() {

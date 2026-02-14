@@ -1,5 +1,5 @@
 import { container } from '../application/di/container';
-import { CreateDeviceDTO, CreateSolarDeviceDTO, CreateSensorDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, SolarDeviceView, MicrocontrollerDTO, DeviceStateHistoryResponse, DeviceStateHistoryFilters, CreateDeviceTypeDTO, UpdateDeviceDTO, DeviceState, CreateDeviceStateDTO, UpdateDeviceStateDTO } from '../domain/entities/Device';
+import { CreateDeviceDTO, CreateSolarDeviceDTO, CreateSensorDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, SolarDeviceView, MicrocontrollerDTO, DeviceStateHistoryResponse, DeviceStateHistoryFilters, CreateDeviceTypeDTO, UpdateDeviceDTO, DeviceState, CreateDeviceStateDTO, UpdateDeviceStateDTO, ConnectedDeviceDTO, CreateConnectedDeviceDTO } from '../domain/entities/Device';
 import { DeviceTypeDTO } from '../domain/entities/Device';
 
 export interface DeviceTokenResponse {
@@ -149,5 +149,17 @@ export const devicesAPI = {
 
   downloadFirmware: async (buildId: string): Promise<Blob> => {
     return await container.getDownloadFirmwareUseCase().execute(buildId);
+  },
+
+  getConnectedDevices: async (deviceId: number): Promise<ConnectedDeviceDTO[]> => {
+    return await container.getGetConnectedDevicesUseCase().execute(deviceId);
+  },
+
+  addConnectedDevice: async (deviceId: number, childId: number): Promise<{ message: string }> => {
+    return await container.getAddConnectedDeviceUseCase().execute(deviceId, childId);
+  },
+
+  createAndConnectDevice: async (deviceId: number, data: CreateConnectedDeviceDTO): Promise<{ message: string }> => {
+    return await container.getCreateAndConnectDeviceUseCase().execute(deviceId, data);
   },
 };
