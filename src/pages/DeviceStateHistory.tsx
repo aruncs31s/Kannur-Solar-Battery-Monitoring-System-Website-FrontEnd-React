@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { History, ArrowLeft, Filter, Calendar, User, Activity } from 'lucide-react';
 import { devicesAPI } from '../api/devices';
 import { DeviceStateHistoryEntry } from '../domain/entities/Device';
+import { LoadingState } from '../components/LoadingState';
 
 export const DeviceStateHistory = () => {
   const { id } = useParams<{ id: string }>();
@@ -98,11 +99,7 @@ export const DeviceStateHistory = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-lg text-gray-600 dark:text-gray-400">Loading state history...</div>
-      </div>
-    );
+    return <LoadingState message="Loading state history..." minHeight="h-64" />;
   }
 
   if (error) {

@@ -4,6 +4,7 @@ import { Calendar, Download, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
 import { readingsAPI } from '../api/readings';
 import { Reading } from '../domain/entities/Reading';
+import { LoadingState } from '../components/LoadingState';
 
 // Calendar View Component
 interface CalendarViewProps {
@@ -561,9 +562,7 @@ export const DeviceReadingsHistory = () => {
         
         <div className="overflow-x-auto">
           {loading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="text-lg text-text-secondary">Loading readings...</div>
-            </div>
+            <LoadingState message="Loading readings..." minHeight="h-64" />
           ) : (
             <table className="min-w-full divide-y divide-border-primary">
               <thead className="bg-surface-secondary">
@@ -640,9 +639,7 @@ export const DeviceReadingsHistory = () => {
                   datesWithReadings={getDatesWithReadings()}
                 />
               ) : calendarLoading ? (
-                <div className="flex justify-center items-center h-64">
-                  <div className="text-lg text-text-secondary">Loading readings...</div>
-                </div>
+                <LoadingState message="Loading readings..." minHeight="h-64" />
               ) : calendarReadings.length > 0 ? (
                 <div>
                   <div className="h-80 mb-4">

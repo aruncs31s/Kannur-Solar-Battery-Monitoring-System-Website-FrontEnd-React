@@ -12,6 +12,7 @@ import { DeviceControlPanel } from '../components/DeviceControlPanel';
 import { DeviceInfoCard } from '../components/DeviceInfoCard';
 import { ConnectedDeviceDTO, DeviceTypeDTO } from '../domain/entities/Device';
 import { Reading } from '../domain/entities/Reading';
+import { LoadingState } from '../components/LoadingState';
 
 export const DeviceDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -515,11 +516,7 @@ export const DeviceDetail = () => {
   // --- Render ---
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-lg text-gray-600 dark:text-gray-400">Loading device...</div>
-      </div>
-    );
+    return <LoadingState message="Loading device..." minHeight="h-64" />;
   }
 
   if (error || !device) {
@@ -720,9 +717,7 @@ export const DeviceDetail = () => {
 
             <div className="p-6 space-y-4">
               {loadingConnectedReadings ? (
-                <div className="flex justify-center items-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-                </div>
+                <LoadingState minHeight="py-12" />
               ) : connectedDeviceReadings.length > 0 ? (
                 <div className="bg-surface-secondary rounded-lg p-4">
                   <h4 className="text-sm font-semibold text-text-secondary mb-3">Latest Readings</h4>
@@ -853,9 +848,7 @@ export const DeviceDetail = () => {
                     <p className="text-xs text-primary-500 mt-1">From connected device: {connectedDev.name}</p>
                   </div>
                   {loadingSingleReading ? (
-                    <div className="flex justify-center items-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
-                    </div>
+                    <LoadingState size="sm" minHeight="py-8" />
                   ) : singleConnectedReading ? (
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
@@ -900,9 +893,7 @@ export const DeviceDetail = () => {
                     <p className="text-xs text-text-secondary mt-1">{supportedDevices.length} devices with latest data</p>
                   </div>
                   {loadingMultipleReadings ? (
-                    <div className="flex justify-center items-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
-                    </div>
+                    <LoadingState size="sm" minHeight="py-8" />
                   ) : (
                     <div className="space-y-3">
                       {supportedDevices.map((dev) => {
