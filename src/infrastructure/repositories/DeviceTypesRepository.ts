@@ -7,6 +7,7 @@ export class DeviceTypesRepository implements IDeviceTypesRepository {
     return response.device_types.map(dto => ({
       id: dto.id,
       name: dto.name || '',
+      features: dto.features,
     }));
   }
 

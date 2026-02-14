@@ -33,4 +33,5 @@ export interface IDeviceRepository {
   getDeviceState(id: number): Promise<DeviceState>;
   createDeviceState(data: CreateDeviceStateDTO): Promise<DeviceState>;
   updateDeviceState(id: number, data: UpdateDeviceStateDTO): Promise<DeviceState>;
+  getDevicesByLocation(locationId: number): Promise<SolarDeviceView[]>;
 }

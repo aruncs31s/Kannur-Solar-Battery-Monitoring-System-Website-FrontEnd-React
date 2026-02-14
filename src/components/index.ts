@@ -1,4 +1,5 @@
 // Common UI Components - Centralized exports
+// TODO: Find out more?
 export { LoadingState } from './LoadingState';
 export { BackButton } from './BackButton';
 export { PageHeader } from './PageHeader';
@@ -20,3 +21,8 @@ export { FirmwareUploadModal } from './FirmwareUploadModal';
 export { OnlineFirmwareBuilder } from './OnlineFirmwareBuilder';
 export { OTAFirmwareUpload } from './OTAFirmwareUpload';
 export { DailyBreakdownCharts } from './DailyBreakdownCharts';
+export { LocationDeviceCard } from './LocationDeviceCard';
+export { Codegen } from './Codegen';
+export { DeviceHeader } from './DeviceHeader';
+export { FirmwareBuilderModal } from './FirmwareBuilderModal';
+export { DeviceTokenModal } from './DeviceTokenModal';

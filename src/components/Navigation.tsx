@@ -31,6 +31,7 @@ export const Navigation = () => {
     { name: 'Devices', path: '/devices' },
     { name: 'Readings', path: '/readings' },
     { name: 'Map', path: '/map' },
+    { name: 'Locations', path: '/locations' },
     { name: 'Audit', path: '/audit' },
     { name: 'Admin', path: '/admin' },
   ];

@@ -16,3 +16,11 @@ export class GetReadingsByDateRangeUseCase {
     return await this.readingRepository.getByDateRange(filters);
   }
 }
+
+export class GetSevenDaysReadingsByLocationUseCase {
+  constructor(private readingRepository: IReadingRepository) {}
+
+  async execute(locationId: number): Promise<Reading[]> {
+    return await this.readingRepository.getSevenDaysByLocation(locationId);
+  }
+}

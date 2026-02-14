@@ -22,6 +22,8 @@ import { AdminESPDeviceManagement } from './pages/AdminESPDeviceManagement';
 import { AuditLogs } from './pages/AuditLogs';
 import { Configuration } from './pages/Configuration';
 import { Versions } from './pages/Versions';
+import { Locations } from './pages/Locations';
+import { LocationDetails } from './pages/LocationDetails';
 import { Layout } from './components/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { MCDeviceDetail } from './pages/MicrocontrollerDetail';
@@ -143,6 +145,26 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <MapView />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/locations"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Locations />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/locations/:id/devices"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <LocationDetails />
               </Layout>
             </ProtectedRoute>
           }

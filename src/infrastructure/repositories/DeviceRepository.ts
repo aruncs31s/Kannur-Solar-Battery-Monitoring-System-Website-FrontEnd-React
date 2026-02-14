@@ -1,5 +1,5 @@
 import { IDeviceRepository } from '../../domain/repositories/IDeviceRepository';
-import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO, MicrocontrollerDTO, CreateSensorDeviceDTO, SolarDeviceView, DeviceStateHistoryResponse, DeviceStateHistoryFilters, CreateDeviceTypeDTO, DeviceState, CreateDeviceStateDTO, UpdateDeviceStateDTO } from '../../domain/entities/Device';
+import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO, MicrocontrollerDTO, CreateSensorDeviceDTO, SolarDeviceView, DeviceStateHistoryResponse, DeviceStateHistoryFilters, CreateDeviceTypeDTO, DeviceState, CreateDeviceStateDTO, UpdateDeviceStateDTO, DeviceStatus } from '../../domain/entities/Device';
 import { DeviceTokenResponse, MicrocontrollerStats } from '../../api/devices';
 import { Reading } from '../../domain/entities/Reading';
 import { httpClient } from '../http/HttpClient';
@@ -154,6 +154,9 @@ export class DeviceRepository implements IDeviceRepository {
 
   async getDeviceType(deviceId: number): Promise<DeviceTypeDTO> {
     const response = await httpClient.get<{ device_type: DeviceTypeDTO }>(`/devices/${deviceId}/type`);
+    if (!response.device_type) {
+      throw new Error(`Device type not found for device ${deviceId}`);
+    }
     return {
       id: response.device_type.id,
       name: response.device_type.name,
@@ -291,5 +294,22 @@ export class DeviceRepository implements IDeviceRepository {
 
   async updateDeviceState(id: number, data: UpdateDeviceStateDTO): Promise<DeviceState> {
     return await httpClient.put(`/devices/states/${id}`, data);
+  }
+
+  async getDevicesByLocation(_locationId: number): Promise<SolarDeviceView[]> {
+    // For now, we'll get all solar devices
+    // In a real implementation, this would call an API endpoint that filters by location
+    const response = await httpClient.get<{ devices: any[] }>('/devices/solar');
+    return response.devices.map(dto => ({
+      id: dto.id,
+      name: dto.name || '',
+      charging_current: dto.charging_current || 0,
+      battery_voltage: dto.battery_voltage || 0,
+      led_status: dto.led_status || 'unknown',
+      connected_device_ip: dto.connected_device_ip || null,
+      address: dto.address || '',
+      city: dto.city || '',
+      status: (dto.status || 'unknown') as DeviceStatus,
+    }));
   }
 }

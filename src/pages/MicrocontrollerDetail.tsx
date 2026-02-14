@@ -1,25 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Activity, AlertCircle, Copy, Check, X, Settings, Download, Code } from 'lucide-react';
+import { Activity, X } from 'lucide-react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
 import { readingsAPI } from '../api/readings';
 import { devicesAPI } from '../api/devices';
 import { UpdateDeviceModal } from '../components/UpdateDeviceModal';
 import { DeviceControlPanel } from '../components/DeviceControlPanel';
 import { DeviceInfoCard } from '../components/DeviceInfoCard';
-import { FirmwareUploadModal, OnlineFirmwareBuilder, OTAFirmwareUpload } from '../components';
+import { FirmwareUploadModal, OnlineFirmwareBuilder, OTAFirmwareUpload, Codegen, DeviceHeader, FirmwareBuilderModal } from '../components';
 import { DailyBreakdownCharts } from '../components/DailyBreakdownCharts';
+import { DeviceTokenModal } from '../components/DeviceTokenModal';
+import { DeviceTypeDTO } from '../domain/entities/Device';
 import { Reading } from '../domain/entities/Reading';
 
-const formatMetric = (value: number | null | undefined, unit: string) => {
-  if (value === null || value === undefined || Number.isNaN(value)) return '—';
-  return `${value.toFixed(2)} ${unit}`;
-};
-
-const formatTimestamp = (timestamp?: number) => {
-  if (!timestamp) return 'No data';
-  return new Date(timestamp).toLocaleString();
-};
 interface DeviceInfo {
   id: number;
   name: string;
@@ -32,14 +25,6 @@ interface DeviceInfo {
   device_state: number;
 }
 
-interface DeviceType {
-  id: number;
-  name: string;
-  features?: {
-    can_control?: boolean;
-  };
-}
-
 export const MCDeviceDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -50,28 +35,11 @@ export const MCDeviceDetail = () => {
   const [controlMessage, setControlMessage] = useState('');
   const [showTokenModal, setShowTokenModal] = useState(false);
   const [generatedToken, setGeneratedToken] = useState('');
-  const [tokenCopied, setTokenCopied] = useState(false);
   const [readingsLimit] = useState(20);
 
   // Firmware builder state
   const [showFirmwareModal, setShowFirmwareModal] = useState(false);
-  const [firmwareBuilding, setFirmwareBuilding] = useState(false);
-  const [firmwareMessage, setFirmwareMessage] = useState('');
-  const [firmwareConfig, setFirmwareConfig] = useState({
-    ip: '',
-    host_ip: '',
-    host_ssid: '',
-    host_pass: '',
-    port: 8080,
-    device_name: '',
-    build_tool: 'platformio'
-  });
-  
-  // Token management for firmware builder
-  const [useManualToken, setUseManualToken] = useState(false);
-  const [manualToken, setManualToken] = useState('');
-  const [firmwareToken, setFirmwareToken] = useState('');
-  
+
   // Firmware upload state
   const [isFirmwareUploadModalOpen, setIsFirmwareUploadModalOpen] = useState(false);
   const [isOnlineBuilderOpen, setIsOnlineBuilderOpen] = useState(false);
@@ -89,8 +57,10 @@ export const MCDeviceDetail = () => {
     city: ''
   });
   const [updateMessage, setUpdateMessage] = useState('');
-  const [deviceTypes, setDeviceTypes] = useState<Array<{ id: number; name: string }>>([]);
-  const [deviceType, setDeviceType] = useState<DeviceType | null>(null);
+  const [deviceTypes, setDeviceTypes] = useState<DeviceTypeDTO[]>([]);
+  
+  // Computed device type based on device.type matching deviceTypes
+  const deviceType = device ? deviceTypes.find(type => type.name === device.type) : null;
   
   
   // Date picker state - default to today
@@ -120,7 +90,6 @@ export const MCDeviceDetail = () => {
       loadDeviceData();
       loadReadings();
       loadDeviceTypes();
-      loadDeviceType();
       
       // Auto-refresh every 30 seconds
       intervalId = setInterval(() => {
@@ -145,16 +114,6 @@ export const MCDeviceDetail = () => {
       setDeviceTypes(data);
     } catch (err) {
       console.error('Failed to load device types:', err);
-    }
-  };
-
-  const loadDeviceType = async () => {
-    if (!id) return;
-    try {
-      const data = await devicesAPI.getDeviceType(parseInt(id));
-      setDeviceType(data);
-    } catch (err) {
-      console.error('Failed to load device type:', err);
     }
   };
 
@@ -229,7 +188,6 @@ export const MCDeviceDetail = () => {
       const response = await devicesAPI.generateDeviceToken(parseInt(id));
       setGeneratedToken(response.token);
       setShowTokenModal(true);
-      setTokenCopied(false);
     } catch (err: any) {
       setControlMessage('Failed to generate token');
       setTimeout(() => setControlMessage(''), 3000);
@@ -237,26 +195,16 @@ export const MCDeviceDetail = () => {
     }
   };
 
-  const copyToken = async () => {
-    try {
-      await navigator.clipboard.writeText(generatedToken);
-      setTokenCopied(true);
-      setTimeout(() => setTokenCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy token:', err);
-    }
-  };
-
   const closeTokenModal = () => {
     setShowTokenModal(false);
-    setTokenCopied(false);
   };
 
   const openUpdateModal = () => {
     if (device) {
+      const deviceTypeObj = deviceTypes.find(type => type.name === device.type);
       setUpdateForm({
         name: device.name,
-        type: 1, // You may need to map device.type to its ID
+        type: deviceTypeObj?.id || 1,
         ip_address: device.ip_address,
         mac_address: device.mac_address,
         firmware_version_id: 1, // You may need to map firmware_version to its ID
@@ -274,183 +222,63 @@ export const MCDeviceDetail = () => {
   };
 
   const openFirmwareModal = () => {
-    if (device) {
-      setFirmwareConfig({
-        ip: device.ip_address || '',
-        host_ip: '',
-        host_ssid: '',
-        host_pass: '',
-        port: 8080,
-        device_name: device.name,
-        build_tool: 'platformio'
-      });
-      
-      // Initialize token state
-      if (generatedToken) {
-        setUseManualToken(false);
-        setFirmwareToken(generatedToken);
-      } else {
-        setUseManualToken(false);
-        setFirmwareToken('');
-      }
-      setManualToken('');
-      
-      setShowFirmwareModal(true);
-      setFirmwareMessage('');
-    }
+    setShowFirmwareModal(true);
   };
 
   const closeFirmwareModal = () => {
     setShowFirmwareModal(false);
-    setFirmwareMessage('');
-    setFirmwareBuilding(false);
-    setUseManualToken(false);
-    setManualToken('');
-    setFirmwareToken('');
   };
 
-  const generateFirmwareToken = async () => {
-    if (!id) return;
-    
+  const generateFirmwareToken = async (): Promise<string> => {
+    if (!id) throw new Error('Device ID not found');
+
     try {
       const response = await devicesAPI.generateDeviceToken(parseInt(id));
-      setFirmwareToken(response.token);
       setGeneratedToken(response.token); // Also update the global token
-      setFirmwareMessage('Token generated successfully!');
-      setTimeout(() => setFirmwareMessage(''), 2000);
+      return response.token;
     } catch (err: any) {
-      setFirmwareMessage('Failed to generate token');
       console.error('Token generation error:', err);
+      throw err;
     }
   };
 
-  const buildAndDownloadFirmware = async () => {
+  const buildAndDownloadFirmwareDirect = async (config: any, deviceToken: string) => {
     const token = localStorage.getItem('token');
     if (!token) {
-      setFirmwareMessage('Please login to build firmware');
-      return;
+      throw new Error('Please login to build firmware');
     }
 
-    const deviceToken = useManualToken ? manualToken : firmwareToken;
     if (!deviceToken) {
-      setFirmwareMessage('Please provide or generate a device token first');
-      return;
+      throw new Error('Please provide or generate a device token first');
     }
 
-    setFirmwareBuilding(true);
-    setFirmwareMessage('Building firmware...');
+    const response = await fetch('/api/codegen/build-and-download', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        ...config,
+        token: deviceToken
+      })
+    });
 
-    try {
-      // Step 1: Build firmware
-      const buildResponse = await fetch('/api/codegen/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          ...firmwareConfig,
-          token: deviceToken
-        })
-      });
-
-      if (!buildResponse.ok) {
-        const errorData = await buildResponse.json();
-        throw new Error(errorData.error || 'Build failed');
-      }
-
-      const { build_id } = await buildResponse.json();
-      setFirmwareMessage(`Build successful! Downloading firmware...`);
-
-      // Step 2: Download the built firmware
-      const downloadResponse = await fetch(`/api/codegen/download/${build_id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!downloadResponse.ok) {
-        throw new Error('Download failed');
-      }
-
-      // Trigger download
-      const blob = await downloadResponse.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${firmwareConfig.device_name || 'firmware'}_${build_id}.bin`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-
-      setFirmwareMessage('Firmware downloaded successfully!');
-      setTimeout(() => {
-        closeFirmwareModal();
-      }, 2000);
-    } catch (err: any) {
-      setFirmwareMessage(`Error: ${err.message || 'Failed to build/download firmware'}`);
-      console.error('Firmware build error:', err);
-    } finally {
-      setFirmwareBuilding(false);
-    }
-  };
-
-  const buildAndDownloadFirmwareDirect = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setFirmwareMessage('Please login to build firmware');
-      return;
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Build failed');
     }
 
-    const deviceToken = useManualToken ? manualToken : firmwareToken;
-    if (!deviceToken) {
-      setFirmwareMessage('Please provide or generate a device token first');
-      return;
-    }
-
-    setFirmwareBuilding(true);
-    setFirmwareMessage('Building and downloading firmware...');
-
-    try {
-      const response = await fetch('/api/codegen/build-and-download', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          ...firmwareConfig,
-          token: deviceToken
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Build failed');
-      }
-
-      // Trigger download
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${firmwareConfig.device_name || 'firmware'}.bin`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-
-      setFirmwareMessage('Firmware downloaded successfully!');
-      setTimeout(() => {
-        closeFirmwareModal();
-      }, 2000);
-    } catch (err: any) {
-      setFirmwareMessage(`Error: ${err.message || 'Failed to build/download firmware'}`);
-      console.error('Firmware download error:', err);
-    } finally {
-      setFirmwareBuilding(false);
-    }
+    // Trigger download
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${config.device_name || 'firmware'}.bin`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
   };
 
 
@@ -609,60 +437,14 @@ export const MCDeviceDetail = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="rounded-2xl border border-border-primary bg-gradient-to-br from-blue-500/10 via-sky-500/10 to-emerald-500/10 p-6 shadow-lg">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-500/15 text-primary-600 dark:text-primary-300">
-              <Settings size={24} />
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary">Microcontroller</p>
-              <h1 className="text-3xl font-bold text-text-primary">{device.name}</h1>
-              <p className="text-sm text-text-secondary">{device.type} • {device.city}</p>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <span className={`inline-flex items-center gap-2 rounded-full px-4 py-1 text-sm font-semibold ${deviceOnline ? 'bg-success/15 text-success' : 'bg-error/15 text-error'}`}>
-              <span className={`h-2.5 w-2.5 rounded-full ${deviceOnline ? 'bg-success' : 'bg-error'}`} />
-              {deviceOnline ? 'Online' : 'Offline'}
-            </span>
-            <span className="rounded-full bg-surface-secondary px-4 py-1 text-sm font-semibold text-text-secondary">
-              Last updated: {formatTimestamp(latestReading?.timestamp)}
-            </span>
-            <button
-              onClick={generateToken}
-              className="rounded-full bg-blue-600 hover:bg-blue-700 px-4 py-1 text-sm font-semibold text-white transition-colors flex items-center gap-2"
-            >
-              <Activity size={16} />
-              Generate Token
-            </button>
-            <button
-              onClick={() => navigate('/devices')}
-              className="rounded-full border border-border-primary px-4 py-1 text-sm font-semibold text-text-secondary transition-colors hover:text-text-primary"
-            >
-              ← Back to Devices
-            </button>
-          </div>
-        </div>
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-xl border border-border-primary bg-surface-primary/70 p-4">
-            <p className="text-xs font-semibold uppercase tracking-widest text-text-secondary">Latest Voltage</p>
-            <p className="mt-2 text-2xl font-bold text-text-primary">{formatMetric(latestReading?.voltage ?? null, 'V')}</p>
-          </div>
-          <div className="rounded-xl border border-border-primary bg-surface-primary/70 p-4">
-            <p className="text-xs font-semibold uppercase tracking-widest text-text-secondary">Latest Current</p>
-            <p className="mt-2 text-2xl font-bold text-text-primary">{formatMetric(latestReading?.current ?? null, 'A')}</p>
-          </div>
-          <div className="rounded-xl border border-border-primary bg-surface-primary/70 p-4">
-            <p className="text-xs font-semibold uppercase tracking-widest text-text-secondary">Latest Power</p>
-            <p className="mt-2 text-2xl font-bold text-text-primary">{formatMetric(latestReading?.power ?? null, 'W')}</p>
-          </div>
-          <div className="rounded-xl border border-border-primary bg-surface-primary/70 p-4">
-            <p className="text-xs font-semibold uppercase tracking-widest text-text-secondary">Readings Count</p>
-            <p className="mt-2 text-2xl font-bold text-text-primary">{readings.length}</p>
-          </div>
-        </div>
-      </div>
+      <DeviceHeader
+        device={device}
+        deviceOnline={deviceOnline}
+        latestReading={latestReading}
+        onGenerateToken={generateToken}
+        onBack={() => navigate('/devices')}
+        onUpdate={openUpdateModal}
+      />
 
       {/* Control Message */}
       {controlMessage && (
@@ -672,81 +454,11 @@ export const MCDeviceDetail = () => {
       )}
 
       {/* Token Modal */}
-      {showTokenModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-surface-primary rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-border-primary flex justify-between items-center">
-              <h3 className="text-2xl font-bold text-text-primary">Device Authentication Token</h3>
-              <button
-                onClick={closeTokenModal}
-                className="text-text-secondary hover:text-text-primary transition-colors"
-              >
-                <X size={24} />
-              </button>
-            </div>
-            
-            <div className="p-6 space-y-4">
-              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" size={20} />
-                  <div className="text-sm text-blue-900 dark:text-blue-100">
-                    <p className="font-semibold mb-1">Important Security Information</p>
-                    <p>This token grants access to device data and control. Keep it secure and do not share it publicly.</p>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-text-secondary mb-2">JWT Token</label>
-                <div className="relative">
-                  <div className="bg-surface-secondary border border-border-primary rounded-lg p-4 font-mono text-sm break-all text-text-primary max-h-48 overflow-y-auto">
-                    {generatedToken}
-                  </div>
-                  <button
-                    onClick={copyToken}
-                    className={`absolute top-2 right-2 px-3 py-1.5 rounded-md font-medium text-sm transition-all ${
-                      tokenCopied
-                        ? 'bg-success text-white'
-                        : 'bg-primary-500 hover:bg-primary-600 text-white'
-                    }`}
-                  >
-                    {tokenCopied ? (
-                      <span className="flex items-center gap-1">
-                        <Check size={16} />
-                        Copied!
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-1">
-                        <Copy size={16} />
-                        Copy
-                      </span>
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <h4 className="font-semibold text-text-primary">How to use this token:</h4>
-                <ol className="list-decimal list-inside space-y-2 text-sm text-text-secondary">
-                  <li>Copy the token using the button above</li>
-                  <li>Use it in your API requests as a Bearer token</li>
-                  <li>Include it in the Authorization header: <code className="bg-surface-secondary px-2 py-1 rounded text-xs">Bearer YOUR_TOKEN</code></li>
-                  <li>The token contains your user ID and device ID for authentication</li>
-                </ol>
-              </div>
-            </div>
-            
-            <div className="p-6 border-t border-border-primary flex justify-end gap-3">
-              <button
-                onClick={closeTokenModal}
-                className="px-6 py-2 bg-surface-secondary hover:bg-surface-tertiary text-text-primary rounded-lg font-medium transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeviceTokenModal
+        isOpen={showTokenModal}
+        token={generatedToken}
+        onClose={closeTokenModal}
+      />
 
       {/* Update Device Modal */}
       <UpdateDeviceModal
@@ -760,280 +472,13 @@ export const MCDeviceDetail = () => {
       />
 
       {/* Firmware Builder Modal */}
-      {showFirmwareModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-surface-primary rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-border-primary flex justify-between items-center">
-              <h3 className="text-2xl font-bold text-text-primary">Build Custom Firmware</h3>
-              <button
-                onClick={closeFirmwareModal}
-                className="text-text-secondary hover:text-text-primary transition-colors"
-                disabled={firmwareBuilding}
-              >
-                <X size={24} />
-              </button>
-            </div>
-            
-            <div className="p-6 space-y-4">
-              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <Code className="text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" size={20} />
-                  <div className="text-sm text-blue-900 dark:text-blue-100">
-                    <p className="font-semibold mb-1">Firmware Configuration</p>
-                    <p>Configure your ESP32 microcontroller settings and build custom firmware. Make sure to generate a device token first.</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-text-secondary mb-2">Device Name</label>
-                  <input
-                    type="text"
-                    value={firmwareConfig.device_name}
-                    onChange={(e) => setFirmwareConfig({ ...firmwareConfig, device_name: e.target.value })}
-                    className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    placeholder="ESP32_STATION_1"
-                    disabled={firmwareBuilding}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-text-secondary mb-2">Device IP Address</label>
-                  <input
-                    type="text"
-                    value={firmwareConfig.ip}
-                    onChange={(e) => setFirmwareConfig({ ...firmwareConfig, ip: e.target.value })}
-                    className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    placeholder="192.168.1.50"
-                    disabled={firmwareBuilding}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-text-secondary mb-2">Host IP Address</label>
-                  <input
-                    type="text"
-                    value={firmwareConfig.host_ip}
-                    onChange={(e) => setFirmwareConfig({ ...firmwareConfig, host_ip: e.target.value })}
-                    className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    placeholder="192.168.1.100"
-                    disabled={firmwareBuilding}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-text-secondary mb-2">Port</label>
-                  <input
-                    type="number"
-                    value={firmwareConfig.port}
-                    onChange={(e) => setFirmwareConfig({ ...firmwareConfig, port: parseInt(e.target.value) || 8080 })}
-                    className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    placeholder="8080"
-                    disabled={firmwareBuilding}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-text-secondary mb-2">WiFi SSID</label>
-                  <input
-                    type="text"
-                    value={firmwareConfig.host_ssid}
-                    onChange={(e) => setFirmwareConfig({ ...firmwareConfig, host_ssid: e.target.value })}
-                    className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    placeholder="MyWiFi"
-                    disabled={firmwareBuilding}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-text-secondary mb-2">WiFi Password</label>
-                  <input
-                    type="password"
-                    value={firmwareConfig.host_pass}
-                    onChange={(e) => setFirmwareConfig({ ...firmwareConfig, host_pass: e.target.value })}
-                    className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    placeholder="password123"
-                    disabled={firmwareBuilding}
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-text-secondary mb-2">Build Tool</label>
-                  <select
-                    value={firmwareConfig.build_tool}
-                    onChange={(e) => setFirmwareConfig({ ...firmwareConfig, build_tool: e.target.value })}
-                    className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    disabled={firmwareBuilding}
-                  >
-                    <option value="platformio">PlatformIO</option>
-                    <option value="arduino">Arduino IDE</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Token Management Section */}
-              <div className="border-t border-border-primary pt-6">
-                <h4 className="text-lg font-semibold text-text-primary mb-4">Device Authentication Token</h4>
-                
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="tokenType"
-                        checked={!useManualToken}
-                        onChange={() => setUseManualToken(false)}
-                        disabled={firmwareBuilding}
-                      />
-                      <span className="text-sm font-medium text-text-primary">Auto-generate token</span>
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="tokenType"
-                        checked={useManualToken}
-                        onChange={() => setUseManualToken(true)}
-                        disabled={firmwareBuilding}
-                      />
-                      <span className="text-sm font-medium text-text-primary">Provide custom token</span>
-                    </label>
-                  </div>
-
-                  {!useManualToken ? (
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-text-secondary">Current Token:</span>
-                        <button
-                          onClick={generateFirmwareToken}
-                          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
-                          disabled={firmwareBuilding}
-                        >
-                          <Activity size={16} />
-                          Generate Token
-                        </button>
-                      </div>
-                      {firmwareToken ? (
-                        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                          <div className="flex items-start gap-3">
-                            <Check className="text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" size={20} />
-                            <div className="text-sm text-green-900 dark:text-green-100">
-                              <p className="font-semibold mb-1">Token Generated Successfully</p>
-                              <p className="font-mono text-xs break-all">{firmwareToken}</p>
-                              <p className="mt-2 text-xs">This token will be used for firmware building.</p>
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-                          <div className="flex items-start gap-3">
-                            <AlertCircle className="text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" size={20} />
-                            <div className="text-sm text-yellow-900 dark:text-yellow-100">
-                              <p className="font-semibold mb-1">No Token Available</p>
-                              <p>Please generate a device token to proceed with firmware building.</p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <label className="block text-sm font-semibold text-text-secondary">Custom Token</label>
-                      <textarea
-                        value={manualToken}
-                        onChange={(e) => setManualToken(e.target.value)}
-                        className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500 font-mono text-sm"
-                        placeholder="Paste your JWT token here..."
-                        rows={3}
-                        disabled={firmwareBuilding}
-                      />
-                      {manualToken && (
-                        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                          <div className="flex items-start gap-3">
-                            <Check className="text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" size={20} />
-                            <div className="text-sm text-green-900 dark:text-green-100">
-                              <p className="font-semibold mb-1">Custom Token Provided</p>
-                              <p>This token will be used for firmware building.</p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {firmwareMessage && (
-                <div className={`p-4 rounded-lg ${
-                  firmwareMessage.includes('Error') || firmwareMessage.includes('failed') 
-                    ? 'bg-error/10 text-error' 
-                    : firmwareMessage.includes('success') 
-                    ? 'bg-success/10 text-success'
-                    : 'bg-blue-50 dark:bg-blue-900/20 text-blue-900 dark:text-blue-100'
-                }`}>
-                  {firmwareMessage}
-                </div>
-              )}
-
-              {(!useManualToken && !firmwareToken) || (useManualToken && !manualToken) ? (
-                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-                  <div className="flex items-start gap-3">
-                    <AlertCircle className="text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" size={20} />
-                    <div className="text-sm text-yellow-900 dark:text-yellow-100">
-                      <p className="font-semibold mb-1">Device Token Required</p>
-                      <p>Please {!useManualToken ? 'generate a device token' : 'provide a custom token'} to proceed with firmware building.</p>
-                    </div>
-                  </div>
-                </div>
-              ) : null}
-            </div>
-            
-            <div className="p-6 border-t border-border-primary flex justify-end gap-3">
-              <button
-                onClick={closeFirmwareModal}
-                className="px-6 py-2 bg-surface-secondary hover:bg-surface-tertiary text-text-primary rounded-lg font-medium transition-colors"
-                disabled={firmwareBuilding}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={buildAndDownloadFirmwareDirect}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={firmwareBuilding || (!useManualToken && !firmwareToken) || (useManualToken && !manualToken)}
-              >
-                {firmwareBuilding ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Building...
-                  </>
-                ) : (
-                  <>
-                    <Download size={20} />
-                    Build & Download (Direct)
-                  </>
-                )}
-              </button>
-              <button
-                onClick={buildAndDownloadFirmware}
-                className="px-6 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={firmwareBuilding || (!useManualToken && !firmwareToken) || (useManualToken && !manualToken)}
-              >
-                {firmwareBuilding ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Building...
-                  </>
-                ) : (
-                  <>
-                    <Download size={20} />
-                    Build & Download (2-Step)
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <FirmwareBuilderModal
+        isOpen={showFirmwareModal}
+        onClose={closeFirmwareModal}
+        device={device}
+        onBuildAndDownload={buildAndDownloadFirmwareDirect}
+        onGenerateToken={generateFirmwareToken}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
 
@@ -1098,93 +543,13 @@ export const MCDeviceDetail = () => {
         />
 
         {/* Custom Firmware Builder */}
-        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl border-2 border-indigo-200 dark:border-indigo-800 p-6 shadow-lg lg:col-span-2">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-500/15">
-                <Code className="text-indigo-600 dark:text-indigo-400" size={24} />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">Custom Firmware Builder</h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Build and download custom firmware for your ESP32 microcontroller with your specific configuration.
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 gap-4 mt-6">
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Step 1</p>
-              </div>
-              <p className="text-xs text-gray-600 dark:text-gray-400">Generate device token using the control panel</p>
-            </div>
-            
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Step 2</p>
-              </div>
-              <p className="text-xs text-gray-600 dark:text-gray-400">Configure WiFi and network settings</p>
-            </div>
-            
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Step 3</p>
-              </div>
-              <p className="text-xs text-gray-600 dark:text-gray-400">Build and download firmware binary</p>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-3 mt-6">
-            <button
-              onClick={openFirmwareModal}
-              className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 shadow-md hover:shadow-lg"
-            >
-              <Code size={20} />
-              Open Firmware Builder
-            </button>
-            
-            <button
-              onClick={() => setIsOnlineBuilderOpen(true)}
-              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 shadow-md hover:shadow-lg"
-            >
-              <Code size={20} />
-              Build Online
-            </button>
-            
-            <button
-              onClick={() => setIsOTAUploadOpen(true)}
-              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 shadow-md hover:shadow-lg"
-            >
-              <Settings size={20} />
-              OTA Upload
-            </button>
-            
-            <button
-              onClick={() => setIsFirmwareUploadModalOpen(true)}
-              className="px-6 py-3 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 shadow-md hover:shadow-lg"
-            >
-              <Settings size={20} />
-              Upload to Server
-            </button>
-            
-            {generatedToken ? (
-              <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
-                <Check size={16} />
-                <span className="font-medium">Device token ready</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 text-sm text-yellow-600 dark:text-yellow-400">
-                <AlertCircle size={16} />
-                <span className="font-medium">Generate device token first</span>
-              </div>
-            )}
-          </div>
-        </div>
+        <Codegen
+          onOpenFirmwareModal={openFirmwareModal}
+          onOpenOnlineBuilder={() => setIsOnlineBuilderOpen(true)}
+          onOpenOTAUpload={() => setIsOTAUploadOpen(true)}
+          onOpenFirmwareUpload={() => setIsFirmwareUploadModalOpen(true)}
+          generatedToken={generatedToken}
+        />
       </div>
 
       {/* Main Aggregate Chart */}

@@ -50,6 +50,10 @@ export const devicesAPI = {
     return await container.getGetMyDevicesUseCase().execute();
   },
 
+  getMySolarDevices: async (): Promise<SolarDeviceView[]> => {
+    return await container.getGetMySolarDevicesUseCase().execute();
+  },
+
   getDeviceTypes: async (): Promise<DeviceTypeDTO[]> => {
     return await container.getGetDeviceTypesUseCase().execute();
   },
@@ -76,10 +80,6 @@ export const devicesAPI = {
 
   createSensorDevice: async (data: CreateSensorDeviceDTO): Promise<DeviceResponseDTO> => {
     return await container.getCreateSensorDeviceUseCase().execute(data);
-  },
-
-  getMySolarDevices: async (): Promise<SolarDeviceView[]> => {
-    return await container.getGetMySolarDevicesUseCase().execute();
   },
 
   searchDevices: async (query: string): Promise<DeviceResponseDTO[]> => {

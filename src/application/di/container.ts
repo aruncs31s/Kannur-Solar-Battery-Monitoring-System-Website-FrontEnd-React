@@ -5,6 +5,7 @@ import { UserRepository } from '../../infrastructure/repositories/UserRepository
 import { ReadingRepository } from '../../infrastructure/repositories/ReadingRepository';
 import { AuditRepository } from '../../infrastructure/repositories/AuditRepository';
 import { VersionRepository } from '../../infrastructure/repositories/VersionRepository';
+import { LocationRepository } from '../../infrastructure/repositories/LocationRepository';
 import { LoginUseCase } from '../usecases/auth/LoginUseCase';
 import { LogoutUseCase } from '../usecases/auth/LogoutUseCase';
 import { GetAllDevicesUseCase } from '../usecases/devices/GetAllDevicesUseCase';
@@ -38,11 +39,18 @@ import { CreateDeviceStateUseCase } from '../usecases/devices/CreateDeviceStateU
 import { GetDeviceStateUseCase } from '../usecases/devices/GetDeviceStateUseCase';
 import { GetDeviceStatesUseCase } from '../usecases/devices/GetDeviceStatesUseCase';
 import { UpdateDeviceStateUseCase } from '../usecases/devices/UpdateDeviceStateUseCase';
-import { GetDeviceReadingsUseCase, GetReadingsByDateRangeUseCase } from '../usecases/readings/GetReadingsUseCase';
+import { GetDeviceReadingsUseCase, GetReadingsByDateRangeUseCase, GetSevenDaysReadingsByLocationUseCase } from '../usecases/readings/GetReadingsUseCase';
 import { GetAuditLogsUseCase } from '../usecases/audit/GetAuditLogsUseCase';
 import { GetUsersUseCase } from '../usecases/users/GetUsersUseCase';
 // import { CreateUserUseCase } from '../usecases/users/CreateUserUseCase';
 import { DeleteUserUseCase } from '../usecases/users/DeleteUserUseCase';
+import { GetAllLocationsUseCase } from '../usecases/locations/GetAllLocationsUseCase';
+import { GetLocationUseCase } from '../usecases/locations/GetLocationUseCase';
+import { SearchLocationsUseCase } from '../usecases/locations/SearchLocationsUseCase';
+import { CreateLocationUseCase } from '../usecases/locations/CreateLocationUseCase';
+import { UpdateLocationUseCase } from '../usecases/locations/UpdateLocationUseCase';
+import { DeleteLocationUseCase } from '../usecases/locations/DeleteLocationUseCase';
+import { GetDevicesByLocationUseCase } from '../usecases/locations/GetDevicesByLocationUseCase';
 
 class DIContainer {
   private authRepository = new AuthRepository();
@@ -52,6 +60,7 @@ class DIContainer {
   private readingRepository = new ReadingRepository();
   private auditRepository = new AuditRepository();
   private versionRepository = new VersionRepository();
+  private locationRepository = new LocationRepository();
 
   getLoginUseCase() {
     return new LoginUseCase(this.authRepository);
@@ -193,6 +202,10 @@ class DIContainer {
     return new GetReadingsByDateRangeUseCase(this.readingRepository);
   }
 
+  getGetSevenDaysReadingsByLocationUseCase() {
+    return new GetSevenDaysReadingsByLocationUseCase(this.readingRepository);
+  }
+
   getGetAuditLogsUseCase() {
     return new GetAuditLogsUseCase(this.auditRepository);
   }
@@ -235,6 +248,38 @@ class DIContainer {
 
   getVersionRepository() {
     return this.versionRepository;
+  }
+
+  getLocationRepository() {
+    return this.locationRepository;
+  }
+
+  getGetAllLocationsUseCase() {
+    return new GetAllLocationsUseCase(this.locationRepository);
+  }
+
+  getGetLocationUseCase() {
+    return new GetLocationUseCase(this.locationRepository);
+  }
+
+  getSearchLocationsUseCase() {
+    return new SearchLocationsUseCase(this.locationRepository);
+  }
+
+  getCreateLocationUseCase() {
+    return new CreateLocationUseCase(this.locationRepository);
+  }
+
+  getUpdateLocationUseCase() {
+    return new UpdateLocationUseCase(this.locationRepository);
+  }
+
+  getDeleteLocationUseCase() {
+    return new DeleteLocationUseCase(this.locationRepository);
+  }
+
+  getGetDevicesByLocationUseCase() {
+    return new GetDevicesByLocationUseCase(this.locationRepository);
   }
 }
 

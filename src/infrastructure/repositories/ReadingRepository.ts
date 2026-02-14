@@ -39,4 +39,21 @@ export class ReadingRepository implements IReadingRepository {
       timestamp: new Date(dto.created_at).getTime(),
     }));
   }
+
+  async getSevenDaysByLocation(locationId: number): Promise<Reading[]> {
+    const response = await httpClient.get<{ readings: any[] }>(
+      `/locations/${locationId}/readings/seven`
+    );
+
+    return response.readings.map(dto => ({
+      id: dto.id?.toString() || `location-${locationId}-${dto.created_at}`,
+      deviceId: `location-${locationId}`, // Since this is location-based, not device-specific
+      voltage: dto.voltage,
+      current: dto.current,
+      power: dto.voltage && dto.current ? dto.voltage * dto.current : undefined,
+      temperature: undefined,
+      humidity: undefined,
+      timestamp: new Date(dto.created_at).getTime(),
+    }));
+  }
 }

@@ -13,4 +13,8 @@ export const readingsAPI = {
   getByDateRange: async (filters: ReadingFilters): Promise<Reading[]> => {
     return await container.getGetReadingsByDateRangeUseCase().execute(filters);
   },
+
+  getSevenDaysByLocation: async (locationId: number): Promise<Reading[]> => {
+    return await container.getGetSevenDaysReadingsByLocationUseCase().execute(locationId);
+  },
 };
