@@ -43,6 +43,17 @@ Catalog of 46+ reusable React components with usage examples.
 - Feature Components
 - Device-Specific Components
 
+### 🔄 [State Management & Utilities](./state-management.md)
+Complete guide to Zustand stores and utility functions.
+
+**Key Topics:**
+- Zustand store patterns
+- Authentication store
+- Devices store
+- Theme store
+- Performance utilities (debounce, throttle, etc.)
+- Best practices and common pitfalls
+
 ---
 
 ## Quick Start Guide
