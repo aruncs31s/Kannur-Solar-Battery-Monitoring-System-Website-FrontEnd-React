@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { X, Plus, Search } from 'lucide-react';
 import { devicesAPI } from '../api/devices';
+import { locationsAPI } from '../api/locations';
 import { FormField } from './FormComponents';
 import { DeviceSearchResultDTO } from '../domain/entities/Device';
+import { LocationResponseDTO } from '../domain/entities/Location';
 
 interface AddSolarDeviceModalProps {
   isOpen: boolean;
@@ -17,11 +19,13 @@ export const AddSolarDeviceModal = ({ isOpen, onClose, onDeviceAdded, onError, o
   const [microcontrollers, setMicrocontrollers] = useState<DeviceSearchResultDTO[]>([]);
   const [microcontrollerSearch, setMicrocontrollerSearch] = useState('');
   const [showMicrocontrollerDropdown, setShowMicrocontrollerDropdown] = useState(false);
+  const [locations, setLocations] = useState<LocationResponseDTO[]>([]);
+  const [locationSearch, setLocationSearch] = useState('');
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     device_type_id: 1,
-    address: '',
-    city: '',
+    location_id: 0,
     connected_microcontroller_id: 0,
   });
 
@@ -64,6 +68,23 @@ export const AddSolarDeviceModal = ({ isOpen, onClose, onDeviceAdded, onError, o
     }
   };
 
+  const handleLocationSearch = async (query: string) => {
+    setLocationSearch(query);
+    if (query.length > 0) {
+      try {
+        const results = await locationsAPI.searchLocations(query);
+        setLocations(results);
+        setShowLocationDropdown(true);
+      } catch (err) {
+        console.error('Failed to search locations:', err);
+        setLocations([]);
+      }
+    } else {
+      setLocations([]);
+      setShowLocationDropdown(false);
+    }
+  };
+
   const selectMicrocontroller = (microcontroller: DeviceSearchResultDTO) => {
     setFormData((prev) => ({
       ...prev,
@@ -78,12 +99,26 @@ export const AddSolarDeviceModal = ({ isOpen, onClose, onDeviceAdded, onError, o
     }, 0);
   };
 
+  const selectLocation = (location: LocationResponseDTO) => {
+    setFormData((prev) => ({
+      ...prev,
+      location_id: location.id,
+    }));
+    setLocationSearch(location.name);
+    setShowLocationDropdown(false);
+    // Keep focus on the input to maintain styling
+    setTimeout(() => {
+      const input = document.querySelector('input[placeholder="Search locations..."]') as HTMLInputElement;
+      if (input) input.focus();
+    }, 0);
+  };
+
   const handleAddDevice = async (e: React.FormEvent) => {
     e.preventDefault();
     onError('');
     onSuccess('');
 
-    if (!formData.name || !formData.address || !formData.city) {
+    if (!formData.name) {
       onError('Please fill in all required fields');
       return;
     }
@@ -95,10 +130,11 @@ export const AddSolarDeviceModal = ({ isOpen, onClose, onDeviceAdded, onError, o
       setFormData({
         name: '',
         device_type_id: 1,
-        address: '',
-        city: '',
+        location_id: 0,
         connected_microcontroller_id: 1,
       });
+      setLocationSearch('');
+      setLocations([]);
       setMicrocontrollerSearch('');
       setMicrocontrollers([]);
       onClose();
@@ -154,22 +190,37 @@ export const AddSolarDeviceModal = ({ isOpen, onClose, onDeviceAdded, onError, o
                 ))}
               </select>
             </div>
-            <FormField
-              label="Address"
-              name="address"
-              value={formData.address}
-              onChange={handleInputChange}
-              placeholder="123 Solar Street"
-              required
-            />
-            <FormField
-              label="City"
-              name="city"
-              value={formData.city}
-              onChange={handleInputChange}
-              placeholder="Solar City"
-              required
-            />
+            <div className="relative">
+              <label className="block text-sm font-medium text-text-secondary mb-2">
+                Location <span className="text-gray-400 text-xs">(Optional)</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={locationSearch}
+                  onChange={(e) => handleLocationSearch(e.target.value)}
+                  onFocus={() => setShowLocationDropdown(locations.length > 0)}
+                  onBlur={() => setTimeout(() => setShowLocationDropdown(false), 200)}
+                  placeholder="Search locations..."
+                  autoComplete="off"
+                  className="w-full px-4 py-2 pl-10 border border-border-primary rounded-lg focus:ring-2 focus:ring-primary-500 bg-surface-secondary text-text-primary focus:bg-surface-secondary focus:text-text-primary"
+                />
+                <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary" />
+              </div>
+              {showLocationDropdown && locations.length > 0 && (
+                <div className="absolute z-10 w-full mt-1 bg-surface-primary border border-border-primary rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                  {locations.map((location) => (
+                    <div
+                      key={location.id}
+                      onClick={() => selectLocation(location)}
+                      className="px-4 py-2 hover:bg-surface-secondary cursor-pointer text-text-primary"
+                    >
+                      {location.name}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
             <div className="relative">
               <label className="block text-sm font-medium text-text-secondary mb-2">
                 Connected Microcontroller

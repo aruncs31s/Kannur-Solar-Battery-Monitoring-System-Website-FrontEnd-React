@@ -1,9 +1,13 @@
 export interface Version {
-  id: string;
-  name: string;
+  id: string | number;
+  name?: string;
+  Version?: string;
   description?: string;
   created_at?: string;
   updated_at?: string;
+  CreatedAt?: string;
+  UpdatedAt?: string;
+  Features?: Feature[] | null;
 }
 
 export interface CreateVersionDTO {
@@ -17,12 +21,17 @@ export interface UpdateVersionDTO {
 }
 
 export interface Feature {
-  id: string;
-  version_id: string;
-  name: string;
+  id: string | number;
+  ID?: number;
+  version_id?: string;
+  name?: string;
+  FeatureName?: string;
   description?: string;
+  Enabled?: boolean;
   created_at?: string;
   updated_at?: string;
+  CreatedAt?: string;
+  UpdatedAt?: string;
 }
 
 export interface CreateFeatureDTO {

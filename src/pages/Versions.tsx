@@ -15,6 +15,31 @@ import {
   Tag,
 } from 'lucide-react';
 
+// Helper function to normalize version data from API
+const normalizeVersion = (version: any): Version => {
+  return {
+    id: version.ID || version.id,
+    name: version.Version || version.name,
+    description: version.description,
+    CreatedAt: version.CreatedAt || version.created_at,
+    UpdatedAt: version.UpdatedAt || version.updated_at,
+    Features: version.Features,
+  };
+};
+
+// Helper function to normalize feature data from API
+const normalizeFeature = (feature: any): Feature => {
+  return {
+    id: feature.ID || feature.id,
+    name: feature.FeatureName || feature.name,
+    Enabled: feature.Enabled ?? true,
+    description: feature.description,
+    version_id: feature.version_id,
+    CreatedAt: feature.CreatedAt || feature.created_at,
+    UpdatedAt: feature.UpdatedAt || feature.updated_at,
+  };
+};
+
 export const Versions = () => {
   const [versions, setVersions] = useState<Version[]>([]);
   const [devices, setDevices] = useState<Device[]>([]);
@@ -55,7 +80,9 @@ export const Versions = () => {
         versionsAPI.getAll(),
         devicesAPI.getAllDevices()
       ]);
-      setVersions(versionsResponse);
+      // Normalize versions data
+      const normalizedVersions = versionsResponse.map(normalizeVersion);
+      setVersions(normalizedVersions);
       setDevices(devicesResponse);
       setError('');
     } catch (err) {
@@ -63,10 +90,18 @@ export const Versions = () => {
     }
   };
 
-  const fetchFeatures = async (versionId: string) => {
+  const fetchFeatures = async (versionId: string | number) => {
     try {
-      const response = await versionsAPI.getFeaturesByVersion(versionId);
-      setFeatures(response);
+      // If the version has embedded features, use those
+      const version = versions.find(v => v.id === versionId);
+      if (version?.Features && version.Features.length > 0) {
+        const normalizedFeatures = version.Features.map(normalizeFeature);
+        setFeatures(normalizedFeatures);
+      } else {
+        const response = await versionsAPI.getFeaturesByVersion(versionId.toString());
+        const normalizedFeatures = response.map(normalizeFeature);
+        setFeatures(normalizedFeatures);
+      }
     } catch (err) {
       setError('Failed to fetch features');
     }
@@ -76,7 +111,7 @@ export const Versions = () => {
     e.preventDefault();
     if (!selectedVersion) return;
     const data: CreateFeatureDTO = {
-      version_id: selectedVersion.id,
+      version_id: selectedVersion.id.toString(),
       name: featureForm.name,
     };
     try {
@@ -131,8 +166,8 @@ export const Versions = () => {
     setFeatureForm({ name: '' });
   };
 
-  const getDevicesByVersion = (versionId: string) => {
-    return devices.filter(d => d.version_id.toString() === versionId);
+  const getDevicesByVersion = (versionId: string | number) => {
+    return devices.filter(d => d.version_id.toString() === versionId.toString());
   };
 
   const handleVersionChange = (version: Version) => {
@@ -164,7 +199,7 @@ export const Versions = () => {
           
           <div className="space-y-2 max-h-[600px] overflow-y-auto">
             {devices.map((device) => {
-              const version = versions.find(v => v.id === device.version_id.toString());
+              const version = versions.find(v => v.id.toString() === device.version_id.toString());
               const isSelected = selectedDevice?.id === device.id;
               return (
                 <div
@@ -346,11 +381,24 @@ export const Versions = () => {
                 {features.map((feature) => (
                   <div
                     key={feature.id}
-                    className="p-4 bg-surface-secondary rounded-lg border border-border-primary hover:border-primary/50 transition-all"
+                    className={`p-4 bg-surface-secondary rounded-lg border transition-all ${
+                      feature.Enabled
+                        ? 'border-border-primary hover:border-primary/50'
+                        : 'border-border-primary/50 opacity-70'
+                    }`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <p className="font-semibold text-text-primary">{feature.name}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-text-primary">{feature.name}</p>
+                          <span className={`text-xs px-2 py-1 rounded ${
+                            feature.Enabled
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-gray-100 text-gray-600'
+                          }`}>
+                            {feature.Enabled ? 'Enabled' : 'Disabled'}
+                          </span>
+                        </div>
                       </div>
                       <div className="flex gap-2">
                         <button
@@ -361,7 +409,7 @@ export const Versions = () => {
                           <Edit size={16} />
                         </button>
                         <button
-                          onClick={() => handleDeleteFeature(feature.id)}
+                          onClick={() => handleDeleteFeature(feature.id.toString())}
                           className="text-red-600 hover:text-red-800 p-1"
                           title="Delete feature"
                         >
