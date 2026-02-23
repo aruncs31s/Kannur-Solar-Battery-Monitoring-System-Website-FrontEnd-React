@@ -12,6 +12,7 @@ import { DailyBreakdownCharts } from '../components/DailyBreakdownCharts';
 import { DeviceTokenModal } from '../components/DeviceTokenModal';
 import { DeviceTypeDTO } from '../domain/entities/Device';
 import { Reading } from '../domain/entities/Reading';
+import { LoadingState } from '../components/LoadingState';
 
 interface DeviceInfo {
   id: number;
@@ -416,11 +417,7 @@ export const MCDeviceDetail = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-lg text-gray-600 dark:text-gray-400">Loading device...</div>
-      </div>
-    );
+    return <LoadingState message="Loading device..." minHeight="h-64" />;
   }
 
   if (error || !device) {

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { RefreshCw, Download } from 'lucide-react';
+import { LoadingState } from '../components/LoadingState';
+import { PageHeader } from '../components/PageHeader';
 
 interface DeviceReading {
   id: string;
@@ -104,40 +106,31 @@ export const AllReadings = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-lg text-gray-600 dark:text-gray-400">Loading readings...</div>
-      </div>
-    );
+    return <LoadingState message="Loading readings..." minHeight="h-64" />;
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">All Readings</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
-            View readings from all devices
-          </p>
-        </div>
-        <div className="flex gap-3">
-          <button
-            onClick={loadAllReadings}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-          >
-            <RefreshCw size={18} />
-            Refresh
-          </button>
-          <button
-            onClick={exportToCSV}
-            disabled={readings.length === 0}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-          >
-            <Download size={18} />
-            Export CSV
-          </button>
-        </div>
-      </div>
+      <PageHeader 
+        title="All Readings"
+        description="View readings from all devices"
+      >
+        <button
+          onClick={loadAllReadings}
+          className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors flex items-center gap-2"
+        >
+          <RefreshCw size={18} />
+          Refresh
+        </button>
+        <button
+          onClick={exportToCSV}
+          disabled={readings.length === 0}
+          className="px-4 py-2 bg-success-500 text-white rounded-lg hover:bg-success-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+        >
+          <Download size={18} />
+          Export CSV
+        </button>
+      </PageHeader>
 
       {error && (
         <div className="bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 p-4 rounded-lg">
