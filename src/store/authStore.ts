@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { User } from '../domain/entities/User';
+import { decodeJWT } from '../utils/jwt';
 
 interface AuthStore {
   token: string | null;
@@ -20,7 +21,20 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   setToken: (token: string) => {
     localStorage.setItem('token', token);
-    set({ token, isAuthenticated: true, isLoading: false });
+    const payload = decodeJWT(token);
+    const userRole = payload?.role || 'user';
+    set({
+      token,
+      isAuthenticated: true,
+      isLoading: false,
+      user: payload ? new User(
+        payload.id || '',
+        payload.username || '',
+        payload.name,
+        payload.email,
+        userRole
+      ) : null
+    });
   },
 
   setUser: (user: User) => {
@@ -38,10 +52,28 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   initAuth: () => {
     const token = localStorage.getItem('token');
-    set({
-      token,
-      isAuthenticated: !!token,
-      isLoading: false,
-    });
+    if (token) {
+      const payload = decodeJWT(token);
+      const userRole = payload?.role || 'user';
+      set({
+        token,
+        isAuthenticated: true,
+        isLoading: false,
+        user: payload ? new User(
+          payload.id || '',
+          payload.username || '',
+          payload.name,
+          payload.email,
+          userRole
+        ) : null
+      });
+    } else {
+      set({
+        token: null,
+        isAuthenticated: false,
+        isLoading: false,
+        user: null
+      });
+    }
   },
 }));

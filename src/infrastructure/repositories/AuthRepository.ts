@@ -1,7 +1,7 @@
 import { IAuthRepository } from '../../domain/repositories/IAuthRepository';
 import { User, UserCredentials } from '../../domain/entities/User';
 import { httpClient } from '../http/HttpClient';
-import {  UserResponse } from '../../application/types/user';
+import { UserResponse } from '../../application/types/user';
 
 export class AuthRepository implements IAuthRepository {
   async login(credentials: UserCredentials): Promise<string> {
@@ -31,21 +31,21 @@ export class AuthRepository implements IAuthRepository {
     email?: string
   ): Promise<{ token: string; user: User }> {
     // Using the /register endpoint
-    const response = await httpClient.post<{ token: string; user: UserResponse }>('/register', { 
-      name, 
+    const response = await httpClient.post<{ token: string; user: UserResponse }>('/register', {
+      name,
       username,
-      email, 
-      password 
+      email,
+      password
     });
     return {
       token: response.token,
-      user: {
-        id: response.user.id.toString(),
-        username: response.user.username,
-        name: response.user.name,
-        email: response.user.email,
-        role: response.user.role || 'user'
-      }
+      user: new User(
+        response.user.id.toString(),
+        response.user.username,
+        response.user.name,
+        response.user.email,
+        response.user.role || 'user'
+      )
     };
   }
 }

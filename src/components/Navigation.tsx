@@ -12,7 +12,7 @@ export const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
-  const [searchResults, setSearchResults] = useState<Array<{id: number, name: string}>>([]);
+  const [searchResults, setSearchResults] = useState<Array<{ id: number, name: string }>>([]);
   const navigate = useNavigate();
   const location = useLocation();
   const { logout, user } = useAuthStore();
@@ -33,8 +33,13 @@ export const Navigation = () => {
     { name: 'Map', path: '/map' },
     { name: 'Locations', path: '/locations' },
     { name: 'Audit', path: '/audit' },
-    { name: 'Admin', path: '/admin' },
+    { name: 'Admin', path: '/admin', roles: ['admin'] },
   ];
+
+  const filteredNavItems = navItems.filter(item => {
+    if (!item.roles) return true;
+    return user && item.roles.includes(user.role || '');
+  });
 
   useEffect(() => {
     const fetchSearchResults = async () => {
@@ -53,8 +58,8 @@ export const Navigation = () => {
     fetchSearchResults();
   }, [query]);
 
-  const mainNavItems = navItems.slice(0, 4); // Dashboard, My Devices, My Microcontrollers, Devices
-  const moreNavItems = navItems.slice(4); // Readings, Map, Audit, Admin
+  const mainNavItems = filteredNavItems.slice(0, 4); // Dashboard, My Devices, My Microcontrollers, Devices
+  const moreNavItems = filteredNavItems.slice(4); // Readings, Map, Audit, Admin
 
   const isActivePath = (path: string) => {
     return location.pathname === path;
@@ -89,11 +94,10 @@ export const Navigation = () => {
                 to={item.path}
                 className="relative px-4 py-2 rounded-xl font-medium text-sm transition-all"
               >
-                <span className={`relative z-10 ${
-                  isActivePath(item.path)
+                <span className={`relative z-10 ${isActivePath(item.path)
                     ? 'text-text-primary'
                     : 'text-text-secondary hover:text-text-accent'
-                }`}>
+                  }`}>
                   {item.name}
                 </span>
                 {isActivePath(item.path) && (
@@ -126,11 +130,10 @@ export const Navigation = () => {
                         <Link
                           key={item.path}
                           to={item.path}
-                          className={`block px-4 py-2 text-sm transition-all ${
-                            isActivePath(item.path)
+                          className={`block px-4 py-2 text-sm transition-all ${isActivePath(item.path)
                               ? 'bg-primary-200 text-text-primary'
                               : 'text-text-secondary hover:bg-surface-secondary'
-                          }`}
+                            }`}
                           onClick={() => setIsMoreOpen(false)}
                         >
                           {item.name}
@@ -164,14 +167,14 @@ export const Navigation = () => {
             >
               {isDark ? <Sun size={18} /> : <Moon size={18} />}
             </motion.button>
-            
+
             <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-surface-secondary border border-border-primary">
               <div className="p-1.5 bg-primary-200 rounded-lg">
                 <User size={14} className="text-text-primary" />
               </div>
               <span className="text-sm font-semibold text-text-primary">{user?.username || 'User'}</span>
             </div>
-            
+
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -213,7 +216,7 @@ export const Navigation = () => {
               className="md:hidden overflow-hidden border-t border-border-primary"
             >
               <div className="py-4 space-y-2">
-                {navItems.map((item, idx) => (
+                {filteredNavItems.map((item, idx) => (
                   <motion.div
                     key={item.path}
                     initial={{ x: -20, opacity: 0 }}
@@ -222,11 +225,10 @@ export const Navigation = () => {
                   >
                     <Link
                       to={item.path}
-                      className={`block px-4 py-3 rounded-xl font-medium text-sm transition-all ${
-                        isActivePath(item.path)
+                      className={`block px-4 py-3 rounded-xl font-medium text-sm transition-all ${isActivePath(item.path)
                           ? 'bg-primary-200 text-text-primary shadow-lg'
                           : 'text-text-secondary hover:bg-surface-secondary'
-                      }`}
+                        }`}
                       onClick={() => setIsOpen(false)}
                     >
                       {item.name}
@@ -236,7 +238,7 @@ export const Navigation = () => {
                 <motion.div
                   initial={{ x: -20, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: navItems.length * 0.05 }}
+                  transition={{ delay: filteredNavItems.length * 0.05 }}
                   className="pt-4 border-t border-border-primary"
                 >
                   <div className="flex items-center gap-2 px-4 py-2 mb-2 rounded-xl bg-surface-secondary">

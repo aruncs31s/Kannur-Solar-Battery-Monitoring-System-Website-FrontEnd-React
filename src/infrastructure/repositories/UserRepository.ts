@@ -5,13 +5,13 @@ import { httpClient } from '../http/HttpClient';
 export class UserRepository implements IUserRepository {
   async getById(id: number): Promise<User> {
     const response = await httpClient.get<any>(`/users/${id}`);
-    return {
-      id: response.id.toString(),
-      username: response.username,
-      name: response.name,
-      email: response.email,
-      role: response.role || 'user'
-    };
+    return new User(
+      response.id.toString(),
+      response.username,
+      response.name,
+      response.email,
+      response.role || 'user'
+    );
   }
 
   async getCurrent(): Promise<User> {
@@ -21,13 +21,13 @@ export class UserRepository implements IUserRepository {
       throw new Error('Not authenticated');
     }
     const response = await httpClient.get<any>('/me');
-    return {
-      id: response.id.toString(),
-      username: response.username,
-      name: response.name,
-      email: response.email,
-      role: response.role || 'user'
-    };
+    return new User(
+      response.id.toString(),
+      response.username,
+      response.name,
+      response.email,
+      response.role || 'user'
+    );
   }
 
   async update(id: number, data: Partial<User>): Promise<User> {
@@ -37,24 +37,24 @@ export class UserRepository implements IUserRepository {
       email: data.email,
       role: data.role
     });
-    return {
-      id: response.id.toString(),
-      username: response.username,
-      name: response.name,
-      email: response.email || '',
-      role: response.role || 'user'
-    };
+    return new User(
+      response.id.toString(),
+      response.username,
+      response.name,
+      response.email || '',
+      response.role || 'user'
+    );
   }
 
   async getAll(): Promise<User[]> {
     const response = await httpClient.get<{ users: any[] }>('/users');
-    return response.users.map(dto => ({
-      id: dto.id.toString(),
-      name: dto.name,
-      username: dto.username,
-      email: dto.email,
-      role: dto.role || 'user'
-    }));
+    return response.users.map(dto => new User(
+      dto.id.toString(),
+      dto.username,
+      dto.name,
+      dto.email,
+      dto.role || 'user'
+    ));
   }
 
   async create(data: Omit<CreateUserDTO, 'id'>): Promise<User> {
@@ -67,13 +67,13 @@ export class UserRepository implements IUserRepository {
     };
     console.log('Sending user creation request:', requestData);
     const response = await httpClient.post<any>('/users', requestData);
-    return {
-      id: response.id.toString(),
-      username: response.username,
-      name: response.name,
-      email: response.email,
-      role: response.role || 'user'
-    };
+    return new User(
+      response.id.toString(),
+      response.username,
+      response.name,
+      response.email,
+      response.role || 'user'
+    );
   }
 
   async delete(id: number): Promise<void> {

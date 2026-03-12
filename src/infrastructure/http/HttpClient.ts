@@ -9,7 +9,7 @@ class HttpClient {
   constructor() {
     this.client = axios.create({
       baseURL: API_BASE_URL,
-      headers: { 
+      headers: {
         'Accept': 'application/json'
         // Note: Content-Type is intentionally NOT set here
         // It will be set automatically by axios based on data type
@@ -29,7 +29,7 @@ class HttpClient {
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
-        
+
         // Set Content-Type based on data type
         // For FormData, let axios set it automatically with boundary
         // For regular JSON requests, set it explicitly
@@ -38,7 +38,7 @@ class HttpClient {
         }
         // If it's FormData, axios will automatically set:
         // Content-Type: multipart/form-data; boundary=----WebKitFormBoundary...
-        
+
         return config;
       },
       (error: AxiosError) => Promise.reject(error)
@@ -51,14 +51,22 @@ class HttpClient {
           localStorage.removeItem('token');
           window.location.href = '/login';
         }
-        
+
         if (error.code === 'ERR_NETWORK') {
           console.error('❌ Backend server is not running or not accessible at:', API_BASE_URL);
           console.error('Please ensure your Go backend is running on http://localhost:8080');
+          if (window.location.pathname !== '/server-error') {
+            window.location.href = '/server-error';
+          }
+        } else if (error.response?.status && error.response.status >= 500) {
+          console.error('API Error:', error.message, error.response?.data);
+          if (window.location.pathname !== '/server-error') {
+            window.location.href = '/server-error';
+          }
         } else {
           console.error('API Error:', error.message, error.response?.data);
         }
-        
+
         return Promise.reject(error);
       }
     );

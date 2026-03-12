@@ -14,10 +14,10 @@ interface LiveReadingsSectionProps {
   loading?: boolean;
 }
 
-export const LiveReadingsSection = ({ 
-  devices, 
-  readings, 
-  selectedDeviceId, 
+export const LiveReadingsSection = ({
+  devices,
+  readings,
+  selectedDeviceId,
   onDeviceChange,
   loading = false
 }: LiveReadingsSectionProps) => {
@@ -44,11 +44,11 @@ export const LiveReadingsSection = ({
 
     // Add average lines if a specific metric is selected
     if (selectedMetric !== 'all') {
-      const avgValue = selectedMetric === 'voltage' ? averages.voltage : 
-                      selectedMetric === 'current' ? averages.current : 
-                      selectedMetric === 'power' ? averages.power :
-                      selectedMetric === 'avg_voltage' ? averages.avg_voltage :
-                      averages.avg_current;
+      const avgValue = selectedMetric === 'voltage' ? averages.voltage :
+        selectedMetric === 'current' ? averages.current :
+          selectedMetric === 'power' ? averages.power :
+            selectedMetric === 'avg_voltage' ? averages.avg_voltage :
+              averages.avg_current;
       dataPoint[`${selectedMetric}Avg`] = avgValue;
     }
 
@@ -130,9 +130,8 @@ export const LiveReadingsSection = ({
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <motion.div
                   whileHover={{ scale: 1.02 }}
-                  className={`bg-gradient-to-br from-blue-600 to-blue-800 text-white rounded-2xl p-6 cursor-pointer transition-all duration-200 shadow-lg ${
-                    selectedMetric === 'voltage' ? 'ring-2 ring-blue-400 scale-105' : 'hover:scale-105'
-                  }`}
+                  className={`bg-gradient-to-br from-blue-600 to-blue-800 text-white rounded-2xl p-6 cursor-pointer transition-all duration-200 shadow-lg ${selectedMetric === 'voltage' ? 'ring-2 ring-blue-400 scale-105' : 'hover:scale-105'
+                    }`}
                   onClick={() => setSelectedMetric(selectedMetric === 'voltage' ? 'all' : 'voltage')}
                 >
                   <div className="flex items-center justify-between">
@@ -147,9 +146,8 @@ export const LiveReadingsSection = ({
 
                 <motion.div
                   whileHover={{ scale: 1.02 }}
-                  className={`bg-gradient-to-br from-green-600 to-green-800 text-white rounded-2xl p-6 cursor-pointer transition-all duration-200 shadow-lg ${
-                    selectedMetric === 'current' ? 'ring-2 ring-green-400 scale-105' : 'hover:scale-105'
-                  }`}
+                  className={`bg-gradient-to-br from-green-600 to-green-800 text-white rounded-2xl p-6 cursor-pointer transition-all duration-200 shadow-lg ${selectedMetric === 'current' ? 'ring-2 ring-green-400 scale-105' : 'hover:scale-105'
+                    }`}
                   onClick={() => setSelectedMetric(selectedMetric === 'current' ? 'all' : 'current')}
                 >
                   <div className="flex items-center justify-between">
@@ -164,9 +162,8 @@ export const LiveReadingsSection = ({
 
                 <motion.div
                   whileHover={{ scale: 1.02 }}
-                  className={`bg-gradient-to-br from-purple-600 to-purple-800 text-white rounded-2xl p-6 cursor-pointer transition-all duration-200 shadow-lg ${
-                    selectedMetric === 'power' ? 'ring-2 ring-purple-400 scale-105' : 'hover:scale-105'
-                  }`}
+                  className={`bg-gradient-to-br from-purple-600 to-purple-800 text-white rounded-2xl p-6 cursor-pointer transition-all duration-200 shadow-lg ${selectedMetric === 'power' ? 'ring-2 ring-purple-400 scale-105' : 'hover:scale-105'
+                    }`}
                   onClick={() => setSelectedMetric(selectedMetric === 'power' ? 'all' : 'power')}
                 >
                   <div className="flex items-center justify-between">
@@ -181,9 +178,8 @@ export const LiveReadingsSection = ({
 
                 <motion.div
                   whileHover={{ scale: 1.02 }}
-                  className={`bg-gradient-to-br from-indigo-600 to-indigo-800 text-white rounded-2xl p-6 cursor-pointer transition-all duration-200 shadow-lg ${
-                    selectedMetric === 'avg_voltage' ? 'ring-2 ring-indigo-400 scale-105' : 'hover:scale-105'
-                  }`}
+                  className={`bg-gradient-to-br from-indigo-600 to-indigo-800 text-white rounded-2xl p-6 cursor-pointer transition-all duration-200 shadow-lg ${selectedMetric === 'avg_voltage' ? 'ring-2 ring-indigo-400 scale-105' : 'hover:scale-105'
+                    }`}
                   onClick={() => setSelectedMetric(selectedMetric === 'avg_voltage' ? 'all' : 'avg_voltage')}
                 >
                   <div className="flex items-center justify-between">
@@ -198,9 +194,8 @@ export const LiveReadingsSection = ({
 
                 <motion.div
                   whileHover={{ scale: 1.02 }}
-                  className={`bg-gradient-to-br from-teal-600 to-teal-800 text-white rounded-2xl p-6 cursor-pointer transition-all duration-200 shadow-lg ${
-                    selectedMetric === 'avg_current' ? 'ring-2 ring-teal-400 scale-105' : 'hover:scale-105'
-                  }`}
+                  className={`bg-gradient-to-br from-teal-600 to-teal-800 text-white rounded-2xl p-6 cursor-pointer transition-all duration-200 shadow-lg ${selectedMetric === 'avg_current' ? 'ring-2 ring-teal-400 scale-105' : 'hover:scale-105'
+                    }`}
                   onClick={() => setSelectedMetric(selectedMetric === 'avg_current' ? 'all' : 'avg_current')}
                 >
                   <div className="flex items-center justify-between">
@@ -391,7 +386,7 @@ export const LiveReadingsSection = ({
         <div className="text-center py-12">
           <AlertCircle className="mx-auto text-gray-400 mb-2" size={48} />
           <p className="text-gray-500 dark:text-gray-400">
-            No devices found. Visit Admin to add devices.
+            No devices found.  add devices to see readings.
           </p>
         </div>
       )}

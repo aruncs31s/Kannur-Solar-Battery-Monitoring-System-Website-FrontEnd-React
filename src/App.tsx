@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useAuthStore } from './store/authStore';
 import { useThemeStore } from './store/themeStore';
@@ -27,6 +27,8 @@ import { LocationDetails } from './pages/LocationDetails';
 import { Layout } from './components/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { MCDeviceDetail } from './pages/MicrocontrollerDetail';
+import { NotFound } from './pages/NotFound';
+import { ApiError } from './pages/ApiError';
 
 function App() {
   const { initAuth } = useAuthStore();
@@ -182,7 +184,7 @@ function App() {
         <Route
           path="/admin"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin']}>
               <Layout>
                 <Admin />
               </Layout>
@@ -192,7 +194,7 @@ function App() {
         <Route
           path="/admin/devices"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin']}>
               <Layout>
                 <AdminDeviceManagement />
               </Layout>
@@ -202,7 +204,7 @@ function App() {
         <Route
           path="/admin/users"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin']}>
               <Layout>
                 <AdminUserManagement />
               </Layout>
@@ -212,7 +214,7 @@ function App() {
         <Route
           path="/admin/device-types"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin']}>
               <Layout>
                 <AdminDeviceTypeManagement />
               </Layout>
@@ -222,7 +224,7 @@ function App() {
         <Route
           path="/admin/esp-devices"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin']}>
               <Layout>
                 <AdminESPDeviceManagement />
               </Layout>
@@ -259,7 +261,8 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/server-error" element={<ApiError />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );
