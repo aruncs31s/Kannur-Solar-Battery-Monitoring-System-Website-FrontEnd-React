@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Calendar, Download, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
 import { readingsAPI } from '../api/readings';
 import { Reading } from '../domain/entities/Reading';
+import ExportPanel from '../components/ExportPanel';
 
 // Calendar View Component
 interface CalendarViewProps {
@@ -210,27 +211,7 @@ export const DeviceReadingsHistory = () => {
     }
   };
 
-  const exportToCSV = () => {
-    const headers = ['Timestamp', 'Voltage (V)', 'Current (A)', 'Power (W)'];
-    const csvData = readings.map(r => [
-      new Date(r.timestamp).toLocaleString(),
-      r.voltage?.toFixed(2) || '0',
-      r.current?.toFixed(2) || '0',
-      r.power?.toFixed(2) || '0'
-    ]);
-    
-    const csvContent = [
-      headers.join(','),
-      ...csvData.map(row => row.join(','))
-    ].join('\n');
-    
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${deviceName}-readings-${startDate}-to-${endDate}.csv`;
-    a.click();
-  };
+
 
   const getStatistics = () => {
     if (readings.length === 0) return { avgVoltage: 0, avgCurrent: 0, avgPower: 0, maxPower: 0, minPower: 0 };
@@ -436,14 +417,11 @@ export const DeviceReadingsHistory = () => {
             Last 30 Days
           </button>
 
-          <button
-            onClick={exportToCSV}
+          <ExportPanel
+            data={readings}
+            defaultFilename={`${deviceName || 'device'}-readings-${startDate}-to-${endDate}`}
             disabled={readings.length === 0}
-            className="ml-auto px-4 py-2 bg-success hover:bg-success/80 disabled:bg-surface-tertiary disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
-          >
-            <Download size={16} />
-            Export CSV
-          </button>
+          />
         </div>
       </div>
 

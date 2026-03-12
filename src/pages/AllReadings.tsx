@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { RefreshCw, Download } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
+import ExportPanel from '../components/ExportPanel';
 
 interface DeviceReading {
   id: string;
@@ -76,32 +77,7 @@ export const AllReadings = () => {
     }
   };
 
-  const exportToCSV = () => {
-    if (readings.length === 0) return;
 
-    const headers = ['Device', 'Timestamp', 'Voltage (V)', 'Current (A)', 'Power (W)', 'Temperature (°C)'];
-    const rows = readings.map(r => [
-      r.deviceName,
-      new Date(r.timestamp).toLocaleString(),
-      r.voltage.toFixed(2),
-      r.current.toFixed(2),
-      r.power.toFixed(2),
-      r.temperature?.toFixed(1) || 'N/A',
-    ]);
-
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `all-readings-${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
-    window.URL.revokeObjectURL(url);
-  };
 
   if (loading) {
     return (
@@ -128,14 +104,11 @@ export const AllReadings = () => {
             <RefreshCw size={18} />
             Refresh
           </button>
-          <button
-            onClick={exportToCSV}
+          <ExportPanel
+            data={readings}
+            defaultFilename="all-readings"
             disabled={readings.length === 0}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-          >
-            <Download size={18} />
-            Export CSV
-          </button>
+          />
         </div>
       </div>
 
