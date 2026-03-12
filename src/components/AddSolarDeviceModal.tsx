@@ -25,6 +25,8 @@ export const AddSolarDeviceModal = ({ isOpen, onClose, onDeviceAdded, onError, o
   const [formData, setFormData] = useState({
     name: '',
     device_type_id: 1,
+    address: '',
+    city: '',
     location_id: 0,
     connected_microcontroller_id: 0,
   });
@@ -130,8 +132,10 @@ export const AddSolarDeviceModal = ({ isOpen, onClose, onDeviceAdded, onError, o
       setFormData({
         name: '',
         device_type_id: 1,
+        address: '',
+        city: '',
         location_id: 0,
-        connected_microcontroller_id: 1,
+        connected_microcontroller_id: 0,
       });
       setLocationSearch('');
       setLocations([]);
@@ -190,6 +194,20 @@ export const AddSolarDeviceModal = ({ isOpen, onClose, onDeviceAdded, onError, o
                 ))}
               </select>
             </div>
+            <FormField
+              label="Address"
+              name="address"
+              value={formData.address}
+              onChange={handleInputChange}
+              placeholder="e.g. Building A, Floor 2"
+            />
+            <FormField
+              label="City"
+              name="city"
+              value={formData.city}
+              onChange={handleInputChange}
+              placeholder="e.g. Kannur"
+            />
             <div className="relative">
               <label className="block text-sm font-medium text-text-secondary mb-2">
                 Location <span className="text-gray-400 text-xs">(Optional)</span>

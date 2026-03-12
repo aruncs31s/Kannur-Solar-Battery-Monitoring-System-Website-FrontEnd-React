@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Activity, TrendingUp, Calendar, X, Plus, AlertCircle, Settings } from 'lucide-react';
+import { Activity, TrendingUp, X, Plus, AlertCircle, Settings } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
 import { readingsAPI } from '../api/readings';
 import { devicesAPI } from '../api/devices';
@@ -35,7 +35,7 @@ export const DeviceDetail = () => {
   const [controlMessage, setControlMessage] = useState('');
   const [showTokenModal, setShowTokenModal] = useState(false);
   const [generatedToken, setGeneratedToken] = useState('');
-  const [readingsLimit, setReadingsLimit] = useState(20);
+  const [readingsLimit] = useState(20);
 
   // Update device modal state
   const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -84,9 +84,9 @@ export const DeviceDetail = () => {
   };
 
   const defaultDates = getDefaultDates();
-  const [startDate, setStartDate] = useState(defaultDates.start);
-  const [endDate, setEndDate] = useState(defaultDates.end);
-  const [useDateFilter, setUseDateFilter] = useState(false);
+  const [startDate] = useState(defaultDates.start);
+  const [endDate] = useState(defaultDates.end);
+  const [useDateFilter] = useState(false);
   const [allReadings, setAllReadings] = useState<Reading[]>([]);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [selectedMetric, setSelectedMetric] = useState<'all' | 'voltage' | 'current' | 'power'>('all');

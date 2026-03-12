@@ -128,7 +128,7 @@ export const Versions = () => {
     e.preventDefault();
     if (!editingFeature) return;
     try {
-      await versionsAPI.updateFeature(editingFeature.id, {
+      await versionsAPI.updateFeature(editingFeature.id.toString(), {
         name: featureForm.name,
       });
       setEditingFeature(null);
@@ -157,7 +157,7 @@ export const Versions = () => {
   const startEditFeature = (feature: Feature) => {
     setEditingFeature(feature);
     setFeatureForm({
-      name: feature.name,
+      name: feature.name || '',
     });
   };
 
@@ -196,7 +196,7 @@ export const Versions = () => {
             <Package size={20} />
             Devices & Versions
           </h2>
-          
+
           <div className="space-y-2 max-h-[600px] overflow-y-auto">
             {devices.map((device) => {
               const version = versions.find(v => v.id.toString() === device.version_id.toString());
@@ -205,11 +205,10 @@ export const Versions = () => {
                 <div
                   key={device.id}
                   onClick={() => setSelectedDevice(device)}
-                  className={`p-3 rounded-lg cursor-pointer transition-all ${
-                    isSelected
+                  className={`p-3 rounded-lg cursor-pointer transition-all ${isSelected
                       ? 'bg-primary text-white shadow-md'
                       : 'bg-surface-secondary hover:bg-surface-tertiary'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
@@ -221,9 +220,8 @@ export const Versions = () => {
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className={`px-2 py-1 rounded text-xs font-semibold ${
-                        isSelected ? 'bg-white/20 text-white' : 'bg-primary/10 text-primary'
-                      }`}>
+                      <div className={`px-2 py-1 rounded text-xs font-semibold ${isSelected ? 'bg-white/20 text-white' : 'bg-primary/10 text-primary'
+                        }`}>
                         {version?.name || 'N/A'}
                       </div>
                       {isSelected && <ChevronRight size={16} />}
@@ -258,11 +256,10 @@ export const Versions = () => {
                   <button
                     key={version.id}
                     onClick={() => handleVersionChange(version)}
-                    className={`p-4 rounded-lg border-2 transition-all ${
-                      isSelected
+                    className={`p-4 rounded-lg border-2 transition-all ${isSelected
                         ? 'border-primary bg-primary/10 shadow-md'
                         : 'border-border-primary hover:border-primary/50'
-                    }`}
+                      }`}
                   >
                     <div className="text-left">
                       <p className={`font-bold text-lg ${isSelected ? 'text-primary' : 'text-text-primary'}`}>
@@ -381,21 +378,19 @@ export const Versions = () => {
                 {features.map((feature) => (
                   <div
                     key={feature.id}
-                    className={`p-4 bg-surface-secondary rounded-lg border transition-all ${
-                      feature.Enabled
+                    className={`p-4 bg-surface-secondary rounded-lg border transition-all ${feature.Enabled
                         ? 'border-border-primary hover:border-primary/50'
                         : 'border-border-primary/50 opacity-70'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <p className="font-semibold text-text-primary">{feature.name}</p>
-                          <span className={`text-xs px-2 py-1 rounded ${
-                            feature.Enabled
+                          <span className={`text-xs px-2 py-1 rounded ${feature.Enabled
                               ? 'bg-green-100 text-green-800'
                               : 'bg-gray-100 text-gray-600'
-                          }`}>
+                            }`}>
                             {feature.Enabled ? 'Enabled' : 'Disabled'}
                           </span>
                         </div>

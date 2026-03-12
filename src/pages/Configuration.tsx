@@ -83,7 +83,7 @@ export const Configuration = () => {
     e.preventDefault();
     if (!editingVersion) return;
     try {
-      await versionsAPI.update(editingVersion.id, {
+      await versionsAPI.update(editingVersion.id.toString(), {
         name: versionForm.name,
         description: versionForm.description,
       });
@@ -132,7 +132,7 @@ export const Configuration = () => {
     e.preventDefault();
     if (!editingFeature) return;
     try {
-      await versionsAPI.updateFeature(editingFeature.id, {
+      await versionsAPI.updateFeature(editingFeature.id.toString(), {
         name: featureForm.name,
         description: featureForm.description,
       });
@@ -158,7 +158,7 @@ export const Configuration = () => {
   const startEditVersion = (version: Version) => {
     setEditingVersion(version);
     setVersionForm({
-      name: version.name,
+      name: version.name || '',
       description: version.description || '',
     });
   };
@@ -166,7 +166,7 @@ export const Configuration = () => {
   const startEditFeature = (feature: Feature) => {
     setEditingFeature(feature);
     setFeatureForm({
-      name: feature.name,
+      name: feature.name || '',
       description: feature.description || '',
     });
   };
@@ -197,22 +197,20 @@ export const Configuration = () => {
       <div className="flex space-x-1 bg-surface-secondary p-1 rounded-lg">
         <button
           onClick={() => setActiveTab('versions')}
-          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-            activeTab === 'versions'
+          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${activeTab === 'versions'
               ? 'bg-primary text-white'
               : 'text-text-secondary hover:text-text-primary'
-          }`}
+            }`}
         >
           <Package size={16} className="inline mr-2" />
           Versions
         </button>
         <button
           onClick={() => setActiveTab('features')}
-          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-            activeTab === 'features'
+          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${activeTab === 'features'
               ? 'bg-primary text-white'
               : 'text-text-secondary hover:text-text-primary'
-          }`}
+            }`}
         >
           <List size={16} className="inline mr-2" />
           Features
@@ -354,7 +352,7 @@ export const Configuration = () => {
                           <Edit size={16} />
                         </button>
                         <button
-                          onClick={() => handleDeleteVersion(version.id)}
+                          onClick={() => handleDeleteVersion(version.id.toString())}
                           className="text-red-600 hover:text-red-800 p-1"
                         >
                           <Trash2 size={16} />
@@ -520,7 +518,7 @@ export const Configuration = () => {
                             <Edit size={16} />
                           </button>
                           <button
-                            onClick={() => handleDeleteFeature(feature.id)}
+                            onClick={() => handleDeleteFeature(feature.id.toString())}
                             className="text-red-600 hover:text-red-800 p-1"
                           >
                             <Trash2 size={16} />
