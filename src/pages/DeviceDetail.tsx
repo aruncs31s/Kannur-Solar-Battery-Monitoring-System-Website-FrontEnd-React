@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Activity, TrendingUp, X, Plus, AlertCircle, Settings } from 'lucide-react';
+import { Activity, TrendingUp, X, AlertCircle, Settings } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
 import { readingsAPI } from '../api/readings';
 import { devicesAPI } from '../api/devices';
 import { StatusBadge } from '../components/Cards';
-import { FormField } from '../components/FormComponents';
+
 import { DeviceTokenModal } from '../components/DeviceTokenModal';
 import { UpdateDeviceModal } from '../components/UpdateDeviceModal';
 import { DeviceControlPanel } from '../components/DeviceControlPanel';
 import { DeviceInfoCard } from '../components/DeviceInfoCard';
+import { AddConnectedDeviceModal } from '../components/AddConnectedDeviceModal';
 import { ConnectedDeviceDTO, DeviceTypeDTO } from '../domain/entities/Device';
 import { Reading } from '../domain/entities/Reading';
 
@@ -53,14 +54,6 @@ export const DeviceDetail = () => {
   const [deviceType, setDeviceType] = useState<DeviceTypeDTO | null>(null);
   const [connectedDevices, setConnectedDevices] = useState<ConnectedDeviceDTO[]>([]);
   const [showAddConnectedModal, setShowAddConnectedModal] = useState(false);
-  const [newConnectedDeviceId, setNewConnectedDeviceId] = useState('');
-  const [addConnectedMode, setAddConnectedMode] = useState<'existing' | 'new'>('new');
-  const [newConnectedDeviceForm, setNewConnectedDeviceForm] = useState({
-    name: '',
-    type: 1,
-    ip_address: '',
-    mac_address: ''
-  });
 
   // Connected device readings modal state
   const [selectedConnectedDevice, setSelectedConnectedDevice] = useState<ConnectedDeviceDTO | null>(null);
@@ -152,41 +145,6 @@ export const DeviceDetail = () => {
       setConnectedDevices(data);
     } catch (err) {
       console.error('Failed to load connected devices:', err);
-    }
-  };
-
-  const addConnectedDevice = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!id) return;
-
-    try {
-      if (addConnectedMode === 'existing') {
-        if (!newConnectedDeviceId) {
-          setControlMessage('Please enter a device ID');
-          setTimeout(() => setControlMessage(''), 3000);
-          return;
-        }
-        await devicesAPI.addConnectedDevice(parseInt(id), parseInt(newConnectedDeviceId));
-        setControlMessage('Connected device added successfully!');
-      } else {
-        if (!newConnectedDeviceForm.name || !newConnectedDeviceForm.type) {
-          setControlMessage('Please fill in required fields');
-          setTimeout(() => setControlMessage(''), 3000);
-          return;
-        }
-        await devicesAPI.createAndConnectDevice(parseInt(id), newConnectedDeviceForm);
-        setControlMessage('New device created and connected successfully!');
-      }
-
-      setNewConnectedDeviceId('');
-      setNewConnectedDeviceForm({ name: '', type: 1, ip_address: '', mac_address: '' });
-      setShowAddConnectedModal(false);
-      loadConnectedDevices();
-      setTimeout(() => setControlMessage(''), 3000);
-    } catch (err: any) {
-      setControlMessage(err?.message || 'Failed to add connected device');
-      setTimeout(() => setControlMessage(''), 3000);
-      console.error(err);
     }
   };
 
@@ -575,131 +533,21 @@ export const DeviceDetail = () => {
       />
 
       {/* Add Connected Device Modal */}
-      {showAddConnectedModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-surface-primary rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-border-primary flex justify-between items-center">
-              <h3 className="text-2xl font-bold text-text-primary">Add Connected Device</h3>
-              <button
-                onClick={() => setShowAddConnectedModal(false)}
-                className="text-text-secondary hover:text-text-primary transition-colors"
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            {/* Mode Toggle */}
-            <div className="p-6 pb-0">
-              <div className="flex gap-2 bg-surface-secondary rounded-lg p-1">
-                <button
-                  type="button"
-                  onClick={() => setAddConnectedMode('new')}
-                  className={`flex-1 px-4 py-2 rounded-md font-medium text-sm transition-colors ${addConnectedMode === 'new'
-                    ? 'bg-primary-500 text-white'
-                    : 'text-text-secondary hover:text-text-primary'
-                    }`}
-                >
-                  Create New Device
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAddConnectedMode('existing')}
-                  className={`flex-1 px-4 py-2 rounded-md font-medium text-sm transition-colors ${addConnectedMode === 'existing'
-                    ? 'bg-primary-500 text-white'
-                    : 'text-text-secondary hover:text-text-primary'
-                    }`}
-                >
-                  Add Existing Device
-                </button>
-              </div>
-            </div>
-
-            <form onSubmit={addConnectedDevice} className="p-6 space-y-4">
-              {addConnectedMode === 'existing' ? (
-                <div>
-                  <label className="block text-sm font-semibold text-text-secondary mb-2">
-                    Device ID *
-                  </label>
-                  <input
-                    type="number"
-                    value={newConnectedDeviceId}
-                    onChange={(e) => setNewConnectedDeviceId(e.target.value)}
-                    required
-                    placeholder="Enter device ID to connect"
-                    className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  />
-                  <p className="text-xs text-text-secondary mt-1">
-                    Enter the ID of an existing device you want to connect
-                  </p>
-                </div>
-              ) : (
-                <>
-                  <FormField
-                    label="Device Name"
-                    name="name"
-                    value={newConnectedDeviceForm.name}
-                    onChange={(e) => setNewConnectedDeviceForm({ ...newConnectedDeviceForm, name: e.target.value })}
-                    placeholder="ESP32 Board"
-                    required
-                  />
-
-                  <div>
-                    <label className="block text-sm font-semibold text-text-secondary mb-2">
-                      Device Type *
-                    </label>
-                    <select
-                      value={newConnectedDeviceForm.type}
-                      onChange={(e) => setNewConnectedDeviceForm({ ...newConnectedDeviceForm, type: parseInt(e.target.value) })}
-                      className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      required
-                    >
-                      <option value="">Select device type</option>
-                      {deviceTypes.map((type) => (
-                        <option key={type.id} value={type.id}>
-                          {type.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <FormField
-                    label="IP Address"
-                    name="ip_address"
-                    value={newConnectedDeviceForm.ip_address}
-                    onChange={(e) => setNewConnectedDeviceForm({ ...newConnectedDeviceForm, ip_address: e.target.value })}
-                    placeholder="192.168.1.100"
-                  />
-
-                  <FormField
-                    label="MAC Address"
-                    name="mac_address"
-                    value={newConnectedDeviceForm.mac_address}
-                    onChange={(e) => setNewConnectedDeviceForm({ ...newConnectedDeviceForm, mac_address: e.target.value })}
-                    placeholder="AA:BB:CC:DD:EE:FF"
-                  />
-                </>
-              )}
-
-              <div className="flex justify-end gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowAddConnectedModal(false)}
-                  className="px-6 py-2 bg-surface-secondary hover:bg-surface-tertiary text-text-primary rounded-lg font-medium transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
-                >
-                  <Plus size={16} />
-                  {addConnectedMode === 'existing' ? 'Connect Device' : 'Create & Connect'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <AddConnectedDeviceModal
+        isOpen={showAddConnectedModal}
+        onClose={() => setShowAddConnectedModal(false)}
+        deviceId={id!}
+        deviceTypes={deviceTypes}
+        onSuccess={(msg) => {
+          setControlMessage(msg);
+          setTimeout(() => setControlMessage(''), 3000);
+          loadConnectedDevices();
+        }}
+        onError={(msg) => {
+          setControlMessage(msg);
+          setTimeout(() => setControlMessage(''), 3000);
+        }}
+      />
 
       {/* Connected Device Readings Modal */}
       {showConnectedReadingsModal && selectedConnectedDevice && (
