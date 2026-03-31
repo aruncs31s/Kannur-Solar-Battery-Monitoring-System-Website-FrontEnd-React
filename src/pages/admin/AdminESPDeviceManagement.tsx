@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { devicesAPI } from '../api/devices';
-import { MicrocontrollerDTO } from '../domain/entities/Device';
-import { DataTable } from '../components/DataTable';
+import { devicesAPI } from '../../api/devices';
+import { MicrocontrollerDTO } from '../../domain/entities/Device';
+import { DataTable } from '../../components/DataTable';
 import {
   ArrowLeft,
   Activity,

@@ -1,6 +1,4 @@
-import { useEffect, useState } from 'react';
-import { useAuthStore } from '../store/authStore';
-import { FormError } from '../components/FormComponents';
+import { FormError } from '../../components/FormComponents';
 import { 
   User, 
   Activity, 
@@ -12,53 +10,22 @@ import {
   CheckCircle,
   XCircle
 } from 'lucide-react';
-import { devicesAPI } from '../api/devices';
-import { auditAPI } from '../api/audit';
-import { DeviceResponseDTO } from '../domain/entities/Device';
-import { AuditLog } from '../domain/entities/AuditLog';
 import { Link } from 'react-router-dom';
+import { useProfileData } from './hooks/useProfileData';
 
 export const Profile = () => {
-  const { user } = useAuthStore();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [devices, setDevices] = useState<DeviceResponseDTO[]>([]);
-  const [recentActivity, setRecentActivity] = useState<AuditLog[]>([]);
-  const [activeTab, setActiveTab] = useState<'overview' | 'devices' | 'activity'>('overview');
-  const [devicesLoading, setDevicesLoading] = useState(false);
-  const [activityLoading, setActivityLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchUserDetails = async () => {
-      if (!user) return;
-
-      setLoading(true);
-      try {
-        // Fetch user's devices
-        setDevicesLoading(true);
-        const allDevices = await devicesAPI.getAllDevices();
-        setDevices(allDevices);
-        setDevicesLoading(false);
-
-        // Fetch user's recent activity
-        setActivityLoading(true);
-        const allAuditLogs = await auditAPI.getAll();
-        // Filter activities for current user
-        const userActivities = allAuditLogs
-          .filter(log => log.userId === user.id)
-          .sort((a, b) => b.timestamp - a.timestamp)
-          .slice(0, 10); // Get last 10 activities
-        setRecentActivity(userActivities);
-        setActivityLoading(false);
-      } catch (err: any) {
-        setError(err.response?.data?.error || 'Failed to load profile data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserDetails();
-  }, [user]);
+  const {
+    user,
+    loading,
+    error,
+    devices,
+    recentActivity,
+    activeTab,
+    setActiveTab,
+    devicesLoading,
+    activityLoading,
+    stats
+  } = useProfileData();
 
   const getDeviceStatusIcon = (state: number) => {
     switch (state) {
@@ -92,13 +59,6 @@ export const Profile = () => {
     if (action.includes('delete')) return 'text-error-600';
     if (action.includes('update')) return 'text-warning-600';
     return 'text-text-secondary';
-  };
-
-  const stats = {
-    totalDevices: devices.length,
-    activeDevices: devices.filter(d => d.device_state === 1).length,
-    inactiveDevices: devices.filter(d => d.device_state === 0).length,
-    totalActivities: recentActivity.length,
   };
 
   return (
@@ -285,9 +245,9 @@ export const Profile = () => {
               </div>
 
               {devicesLoading ? (
-                <div className="flex justify-center items-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
-                </div>
+               <div className="flex justify-center items-center py-12">
+                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+               </div>
               ) : devices.length === 0 ? (
                 <div className="text-center py-12">
                   <HardDrive className="mx-auto text-text-secondary mb-4" size={48} />

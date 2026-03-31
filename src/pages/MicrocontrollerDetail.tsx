@@ -480,7 +480,7 @@ export const MCDeviceDetail = () => {
         onGenerateToken={generateFirmwareToken}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1  gap-6">
 
         {/* Device Info */}
         <DeviceInfoCard
@@ -543,13 +543,13 @@ export const MCDeviceDetail = () => {
         />
 
         {/* Custom Firmware Builder */}
-        <Codegen
+        {/* <Codegen
           onOpenFirmwareModal={openFirmwareModal}
           onOpenOnlineBuilder={() => setIsOnlineBuilderOpen(true)}
           onOpenOTAUpload={() => setIsOTAUploadOpen(true)}
           onOpenFirmwareUpload={() => setIsFirmwareUploadModalOpen(true)}
           generatedToken={generatedToken}
-        />
+        /> */}
       </div>
 
       {/* Main Aggregate Chart */}

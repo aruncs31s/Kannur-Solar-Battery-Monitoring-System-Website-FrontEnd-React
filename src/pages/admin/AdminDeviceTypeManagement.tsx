@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { devicesAPI } from '../api/devices';
+import { devicesAPI } from '../../api/devices';
 import {
   Cpu,
   Plus,

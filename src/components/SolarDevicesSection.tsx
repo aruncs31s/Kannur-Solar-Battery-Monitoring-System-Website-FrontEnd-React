@@ -1,22 +1,47 @@
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sun, TrendingUp } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sun, TrendingUp } from 'lucide-react';
 import { SolarDeviceCard } from './SolarDeviceCard';
 import { SolarDeviceView } from '../domain/entities/Device';
+import { ListWithTotalCount } from '../application/types/api';
 
 interface SolarDevicesSectionProps {
-  devices: SolarDeviceView[];
-  maxDevices?: number;
+  devices: ListWithTotalCount<SolarDeviceView>;
+  pageSize?: number;
   title?: string;
   showViewAllLink?: boolean;
 }
 
 export const SolarDevicesSection = ({
   devices,
-  maxDevices = 6,
+  pageSize = 6,
   title = "Solar Devices",
   showViewAllLink = true
 }: SolarDevicesSectionProps) => {
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalCount = devices.total_count;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [devices.list, totalCount, pageSize]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  const paginatedDevices = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return devices.list.slice(start, start + pageSize);
+  }, [currentPage, devices.list, pageSize]);
+
+  const showingFrom = totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const showingTo = Math.min(currentPage * pageSize, totalCount);
+
   return (
     <motion.div
       initial={{ y: 10, opacity: 0 }}
@@ -42,7 +67,7 @@ export const SolarDevicesSection = ({
         )}
       </div>
 
-      {devices.length === 0 ? (
+      {totalCount === 0 ? (
         <div className="text-center py-12">
           <Sun className="mx-auto text-yellow-500 mb-4" size={64} />
           <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
@@ -60,11 +85,51 @@ export const SolarDevicesSection = ({
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {devices.slice(0, maxDevices).map((device, idx) => (
-            <SolarDeviceCard key={device.id} device={device} index={idx} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {paginatedDevices.map((device, idx) => (
+              <SolarDeviceCard
+                key={device.id}
+                device={device}
+                index={(currentPage - 1) * pageSize + idx}
+              />
+            ))}
+          </div>
+
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Showing {showingFrom}-{showingTo} of {totalCount}
+            </p>
+
+            <div className="inline-flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 disabled:cursor-not-allowed disabled:opacity-50 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                <ChevronLeft size={16} />
+                Previous
+              </button>
+
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300 px-2">
+                Page {currentPage} of {totalPages}
+              </span>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                }
+                disabled={currentPage === totalPages}
+                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 disabled:cursor-not-allowed disabled:opacity-50 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                Next
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </motion.div>
   );

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { usersAPI } from '../api/users';
-import { User } from '../domain/entities/User';
+import { usersAPI } from '../../api/users';
+import { User } from '../../domain/entities/User';
 import {
   Users,
   UserPlus,

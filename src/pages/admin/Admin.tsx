@@ -1,11 +1,7 @@
-import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useDevicesStore } from '../store/devicesStore';
-import { devicesAPI } from '../api/devices';
-import { usersAPI } from '../api/users';
-import { StatsCard } from '../components/Cards';
-import { SystemHealth } from '../components/SystemHealth';
-import { ManagementModules } from '../components/ManagementModules';
+import { StatsCard } from '../../components/Cards';
+import { SystemHealth } from '../../components/SystemHealth';
+import { ManagementModules } from '../../components/ManagementModules';
 import {
   Package,
   CheckCircle,
@@ -15,51 +11,11 @@ import {
   Settings,
   Activity,
 } from 'lucide-react';
+import { useAdminData } from './hooks/useAdminData';
 
 export const Admin = () => {
   const navigate = useNavigate();
-  const { setDevices, setLoading, setError } = useDevicesStore();
-  const [stats, setStats] = useState({
-    totalDevices: 0,
-    activeDevices: 0,
-    inactiveDevices: 0,
-    errorDevices: 0,
-    totalUsers: 0,
-  });
-
-  useEffect(() => {
-    fetchAdminData();
-  }, []);
-
-  const fetchAdminData = async () => {
-    setLoading(true);
-    try {
-      const [devicesResponse, usersResponse] = await Promise.all([
-        devicesAPI.getAllDevices(),
-        usersAPI.getAll()
-      ]);
-
-      setDevices(devicesResponse);
-
-      // Calculate statistics
-      const active = devicesResponse.filter((d: any) => d.device_state === 1).length;
-      const inactive = devicesResponse.filter((d: any) => d.device_state === 2).length;
-      const error = devicesResponse.filter((d: any) => d.device_state === 3).length;
-
-      setStats({
-        totalDevices: devicesResponse.length,
-        activeDevices: active,
-        inactiveDevices: inactive,
-        errorDevices: error,
-        totalUsers: usersResponse.length,
-      });
-      setError('');
-    } catch (err) {
-      setError('Failed to fetch admin data');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { stats, fetchAdminData } = useAdminData();
 
   return (
     <div className="space-y-8">
