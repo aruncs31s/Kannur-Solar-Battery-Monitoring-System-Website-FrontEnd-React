@@ -1,34 +1,30 @@
-import { useEffect, useState } from 'react';
-import { Plus} from 'lucide-react';
-import { devicesAPI } from '../api/devices';
-import { SolarDeviceView } from '../domain/entities/Device';
-import { useSearchStore } from '../store/searchStore';
-import { AddSolarDeviceModal } from '../components/AddSolarDeviceModal';
-import { SolarDevicesSection } from '../components/SolarDevicesSection';
-import { StatsCard } from '../components/Cards';
-import { FormError, FormSuccess } from '../components/FormComponents';
-import { QuickActions } from '../components/QuickActions';
-import { AdvancedDeviceAddModal } from '../components/AdvancedDeviceAddModal';
-import { PageHeader } from '../components/PageHeader';
-import {
-  CheckCircle,
-  Battery,
-  Zap,
-  Package,
-} from 'lucide-react';
+import { useEffect, useState } from "react";
+import { Plus } from "lucide-react";
+import { devicesAPI } from "../api/devices";
+import { SolarDeviceView } from "../domain/entities/Device";
+import { useSearchStore } from "../store/searchStore";
+import { AddSolarDeviceModal } from "../components/AddSolarDeviceModal";
+import { SolarDevicesSection } from "../components/SolarDevicesSection";
+import { StatsCard } from "../components/Cards";
+import { FormError, FormSuccess } from "../components/FormComponents";
+import { QuickActions } from "../components/QuickActions";
+import { AdvancedDeviceAddModal } from "../components/AdvancedDeviceAddModal";
+import { PageHeader } from "../components/PageHeader";
+import { CheckCircle, Battery, Zap, Package } from "lucide-react";
 
 export const MyDevices = () => {
   // const [devices, setDevices] = useState<DeviceResponseDTO[]>([]);
   const [solarDevices, setSolarDevices] = useState<SolarDeviceView[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showSolarModal, setShowSolarModal] = useState(false);
-  const [deviceTypes, setDeviceTypes] = useState<Array<{ id: number; name: string }>>([]);
+  const [deviceTypes, setDeviceTypes] = useState<
+    Array<{ id: number; name: string }>
+  >([]);
   const { query: searchQuery } = useSearchStore();
   const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [success, setSuccess] = useState('');
-
+  const [success, setSuccess] = useState("");
 
   useEffect(() => {
     fetchDevices();
@@ -42,18 +38,17 @@ export const MyDevices = () => {
   const fetchDevices = async () => {
     setLoading(true);
     try {
-      const [ solarDevicesResponse] = await Promise.all([
-        // devicesAPI.getMyDevices(),
-        devicesAPI.getMySolarDevices()
+      const [solarDevicesResponse] = await Promise.all([
+        devicesAPI.getMySolarDevices(),
       ]);
-      // setDevices(devicesResponse);
-      // Sort solar devices by ID in descending order (newest first)
-      const sortedSolarDevices = solarDevicesResponse.sort((a, b) => b.id - a.id);
+      const sortedSolarDevices = solarDevicesResponse.sort(
+        (a, b) => b.id - a.id,
+      );
       setSolarDevices(sortedSolarDevices);
-      setError('');
+      setError("");
     } catch (err: any) {
-      console.log('Error fetching devices:', err);
-      setError('Failed to load your devices');
+      console.log("Error fetching devices:", err);
+      setError("Failed to load your devices");
     } finally {
       setLoading(false);
     }
@@ -64,12 +59,12 @@ export const MyDevices = () => {
       const data = await devicesAPI.getDeviceTypes();
       setDeviceTypes(data);
     } catch (err) {
-      console.error('Failed to fetch device types:', err);
+      console.error("Failed to fetch device types:", err);
     }
   };
 
   const handleSearch = async (query: string) => {
-    if (query.trim() === '') {
+    if (query.trim() === "") {
       setSearchResults([]);
       return;
     }
@@ -77,18 +72,27 @@ export const MyDevices = () => {
       const results = await devicesAPI.searchDevices(query);
       setSearchResults(results);
     } catch (err) {
-      console.error('Search failed:', err);
+      console.error("Search failed:", err);
       setSearchResults([]);
     }
   };
 
-  const activeDevices = solarDevices.filter((solarDevice) => solarDevice.status === "active").length;
-  const avgVoltage = solarDevices.length > 0
-    ? solarDevices.reduce((sum, device) => sum + device.battery_voltage, 0) / solarDevices.length
-    : 0;
-  const totalPower = solarDevices.length > 0
-    ? solarDevices.reduce((sum, device) => sum + (device.charging_current * device.battery_voltage), 0)
-    : 0;
+  const activeDevices = solarDevices.filter(
+    (solarDevice) => solarDevice.status === "active",
+  ).length;
+  const avgVoltage =
+    solarDevices.length > 0
+      ? solarDevices.reduce((sum, device) => sum + device.battery_voltage, 0) /
+        solarDevices.length
+      : 0;
+  const totalPower =
+    solarDevices.length > 0
+      ? solarDevices.reduce(
+          (sum, device) =>
+            sum + device.charging_current * device.battery_voltage,
+          0,
+        )
+      : 0;
 
   if (loading) {
     return (
@@ -116,36 +120,65 @@ export const MyDevices = () => {
           Add Solar Device
         </button>
       </PageHeader>
-
       {error && <FormError message={error} />}
       {success && <FormSuccess message={success} />}
-       
       {/* Statistics Cards */}
       <div className="space-y-6 pb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatsCard title="Solar Devices" value={solarDevices.length} icon={<Package size={28} />} color="blue" subtitle="Solar chargers connected" />
-          <StatsCard title="Active Devices" value={activeDevices} icon={<CheckCircle size={28} />} color="green" subtitle="Currently online" trend={activeDevices > 0 ? 5 : 0} />
-          <StatsCard title="Avg Battery Voltage" value={`${avgVoltage.toFixed(1)}V`} icon={<Zap size={28} />} color="purple" subtitle="Average across devices" />
-          <StatsCard title="Total Power" value={`${totalPower.toFixed(1)}W`} icon={<Battery size={28} />} color="indigo" subtitle="Current output" />
+          <StatsCard
+            title="Solar Devices"
+            value={solarDevices.length}
+            icon={<Package size={28} />}
+            color="blue"
+            subtitle="Solar chargers connected"
+          />
+          <StatsCard
+            title="Active Devices"
+            value={activeDevices}
+            icon={<CheckCircle size={28} />}
+            color="green"
+            subtitle="Currently online"
+            trend={activeDevices > 0 ? 5 : 0}
+          />
+          <StatsCard
+            title="Avg Battery Voltage"
+            value={`${avgVoltage.toFixed(1)}V`}
+            icon={<Zap size={28} />}
+            color="purple"
+            subtitle="Average across devices"
+          />
+          <StatsCard
+            title="Total Power"
+            value={`${totalPower.toFixed(1)}W`}
+            icon={<Battery size={28} />}
+            color="indigo"
+            subtitle="Current output"
+          />
         </div>
       </div>
-
       {/* Solar Devices Grid */}
       {(() => {
         const displayDevices = searchQuery ? searchResults : solarDevices;
-        return <SolarDevicesSection
-          devices={displayDevices}
-          title={searchQuery ? `Search Results for "${searchQuery}"` : "My Solar Devices"}
-          showViewAllLink={false}
-          maxDevices={displayDevices.length}
-        />;
+        return (
+          <SolarDevicesSection
+            devices={displayDevices}
+            title={
+              searchQuery
+                ? `Search Results for "${searchQuery}"`
+                : "My Solar Devices"
+            }
+            showViewAllLink={false}
+            maxDevices={displayDevices.length}
+          />
+        );
       })()}
-
       {/* Quick Actions */}
       <QuickActions />
 
+      {/*// TODO: find what is the use.*/}
+
       {/* Create Device Modal */}
-      <AdvancedDeviceAddModal
+      {/*<AdvancedDeviceAddModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         deviceTypes={deviceTypes}
@@ -154,8 +187,7 @@ export const MyDevices = () => {
         }}
         onError={setError}
         onSuccess={setSuccess}
-      />
-
+      />*/}
       {/* Add Solar Device Modal */}
       <AddSolarDeviceModal
         isOpen={showSolarModal}

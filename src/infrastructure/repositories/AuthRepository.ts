@@ -1,22 +1,23 @@
-import { IAuthRepository } from '../../domain/repositories/IAuthRepository';
+import { IAuthRepository, AuthToken } from '../../domain/repositories/IAuthRepository';
 import { User, UserCredentials } from '../../domain/entities/User';
 import { httpClient } from '../http/HttpClient';
 import { UserResponse } from '../../application/types/user';
 
 export class AuthRepository implements IAuthRepository {
-  async login(credentials: UserCredentials): Promise<string> {
+  async login(credentials: UserCredentials): Promise<AuthToken> {
     // skvms expects username and password
-    const response = await httpClient.post<{ token: string; user: any }>('/login', {
+    const response = await httpClient.post<{ token: string; refresh_token: string; user: any }>('/login', {
       username: credentials.username,
       password: credentials.password
     });
     console.log('AuthRepository login response:', response);
-    return response.token;
+    return { token: response.token, refresh_token: response.refresh_token };
   }
   // TODO: Implement
   async logout(): Promise<void> {
     // No logout endpoint in skvms, just clear local storage
     localStorage.removeItem('token');
+    localStorage.removeItem('refresh_token');
   }
 
   async validateToken(token: string): Promise<boolean> {
@@ -29,9 +30,9 @@ export class AuthRepository implements IAuthRepository {
     password: string,
     name?: string,
     email?: string
-  ): Promise<{ token: string; user: User }> {
+  ): Promise<{ token: string; refresh_token: string; user: User }> {
     // Using the /register endpoint
-    const response = await httpClient.post<{ token: string; user: UserResponse }>('/register', {
+    const response = await httpClient.post<{ token: string; refresh_token: string; user: UserResponse }>('/register', {
       name,
       username,
       email,
@@ -39,6 +40,7 @@ export class AuthRepository implements IAuthRepository {
     });
     return {
       token: response.token,
+      refresh_token: response.refresh_token,
       user: new User(
         response.user.id.toString(),
         response.user.username,

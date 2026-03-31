@@ -1,34 +1,34 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { useEffect } from 'react';
-import { useAuthStore } from './store/authStore';
-import { useThemeStore } from './store/themeStore';
-import { Login } from './pages/Login';
-import { Register } from './pages/Register';
-import { Dashboard } from './pages/Dashboard';
-import { Devices } from './pages/Devices';
-import { MyDevices } from './pages/MyDevices';
-import { MyMicrocontrollers } from './pages/MyMicrocontrollers';
-import { DeviceDetail } from './pages/DeviceDetail';
-import { DeviceReadingsHistory } from './pages/DeviceReadingsHistory';
-import { DeviceStateHistory } from './pages/DeviceStateHistory';
-import { AllReadings } from './pages/AllReadings';
-import { MapView } from './pages/MapView';
-import { Profile } from './pages/Profile';
-import { Admin } from './pages/Admin';
-import { AdminDeviceManagement } from './pages/AdminDeviceManagement';
-import { AdminUserManagement } from './pages/AdminUserManagement';
-import { AdminDeviceTypeManagement } from './pages/AdminDeviceTypeManagement';
-import { AdminESPDeviceManagement } from './pages/AdminESPDeviceManagement';
-import { AuditLogs } from './pages/AuditLogs';
-import { Configuration } from './pages/Configuration';
-import { Versions } from './pages/Versions';
-import { Locations } from './pages/Locations';
-import { LocationDetails } from './pages/LocationDetails';
-import { Layout } from './components/Layout';
-import { ProtectedRoute } from './components/ProtectedRoute';
-import { MCDeviceDetail } from './pages/MicrocontrollerDetail';
-import { NotFound } from './pages/NotFound';
-import { ApiError } from './pages/ApiError';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { useAuthStore } from "./store/authStore";
+import { useThemeStore } from "./store/themeStore";
+import { Login } from "./pages/Login";
+import { Register } from "./pages/Register";
+import { Dashboard } from "./pages/Dashboard";
+import { Devices } from "./pages/Devices";
+import { MyDevices } from "./pages/MyDevices";
+import { MyMicrocontrollers } from "./pages/MyMicrocontrollers";
+import { DeviceDetail } from "./pages/DeviceDetail";
+import { DeviceReadingsHistory } from "./pages/DeviceReadingsHistory";
+import { DeviceStateHistory } from "./pages/DeviceStateHistory";
+import { AllReadings } from "./pages/AllReadings";
+import { MapView } from "./pages/MapView";
+import { Locations } from "./pages/Locations";
+import { Profile } from "./pages/Profile";
+import { Admin } from "./pages/Admin";
+import { AdminDeviceManagement } from "./pages/AdminDeviceManagement";
+import { AdminUserManagement } from "./pages/AdminUserManagement";
+import { AdminDeviceTypeManagement } from "./pages/AdminDeviceTypeManagement";
+import { AdminESPDeviceManagement } from "./pages/AdminESPDeviceManagement";
+import { AuditLogs } from "./pages/AuditLogs";
+import { Configuration } from "./pages/Configuration";
+import { Versions } from "./pages/Versions";
+import { LocationDetails } from "./pages/LocationDetails";
+import { Layout } from "./components/Layout";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { MCDeviceDetail } from "./pages/MicrocontrollerDetail";
+import { NotFound } from "./pages/NotFound";
+import { ApiError } from "./pages/ApiError";
 
 function App() {
   const { initAuth } = useAuthStore();
@@ -40,14 +40,16 @@ function App() {
 
   useEffect(() => {
     if (isDark) {
-      document.documentElement.classList.add('dark');
+      document.documentElement.classList.add("dark");
     } else {
-      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.remove("dark");
     }
   }, [isDark]);
 
   return (
-    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <BrowserRouter
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -184,7 +186,7 @@ function App() {
         <Route
           path="/admin"
           element={
-            <ProtectedRoute allowedRoles={['admin']}>
+            <ProtectedRoute allowedRoles={["admin"]}>
               <Layout>
                 <Admin />
               </Layout>
@@ -194,7 +196,7 @@ function App() {
         <Route
           path="/admin/devices"
           element={
-            <ProtectedRoute allowedRoles={['admin']}>
+            <ProtectedRoute allowedRoles={["admin"]}>
               <Layout>
                 <AdminDeviceManagement />
               </Layout>
@@ -204,7 +206,7 @@ function App() {
         <Route
           path="/admin/users"
           element={
-            <ProtectedRoute allowedRoles={['admin']}>
+            <ProtectedRoute allowedRoles={["admin"]}>
               <Layout>
                 <AdminUserManagement />
               </Layout>
@@ -214,7 +216,7 @@ function App() {
         <Route
           path="/admin/device-types"
           element={
-            <ProtectedRoute allowedRoles={['admin']}>
+            <ProtectedRoute allowedRoles={["admin"]}>
               <Layout>
                 <AdminDeviceTypeManagement />
               </Layout>
@@ -224,7 +226,7 @@ function App() {
         <Route
           path="/admin/esp-devices"
           element={
-            <ProtectedRoute allowedRoles={['admin']}>
+            <ProtectedRoute allowedRoles={["admin"]}>
               <Layout>
                 <AdminESPDeviceManagement />
               </Layout>

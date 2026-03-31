@@ -43,11 +43,10 @@ export const Login = () => {
 
     setLoading(true);
     try {
-      const token = await authAPI.login({ username, password });
-      console.log('Token received:', token);
-      if (token) {
-        localStorage.setItem('token', token);
-        setToken(token);
+      const response = await authAPI.login({ username, password });
+      console.log('Token received:', response);
+      if (response && response.token) {
+        setToken(response.token, response.refresh_token);
         setSuccess('Login successful!');
         window.location.href = '/';
       } else {

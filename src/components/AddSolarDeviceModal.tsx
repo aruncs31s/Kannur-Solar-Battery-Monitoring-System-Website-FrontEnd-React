@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import { X, Plus, Search } from 'lucide-react';
-import { devicesAPI } from '../api/devices';
-import { locationsAPI } from '../api/locations';
-import { FormField } from './FormComponents';
-import { DeviceSearchResultDTO } from '../domain/entities/Device';
-import { LocationResponseDTO } from '../domain/entities/Location';
+import { useState, useEffect } from "react";
+import { X, Plus, Search } from "lucide-react";
+import { devicesAPI } from "../api/devices";
+import { locationsAPI } from "../api/locations";
+import { FormField } from "./FormComponents";
+import { DeviceSearchResultDTO } from "../domain/entities/Device";
+import { LocationResponseDTO } from "../domain/entities/Location";
 
 interface AddSolarDeviceModalProps {
   isOpen: boolean;
@@ -14,19 +14,30 @@ interface AddSolarDeviceModalProps {
   onSuccess: (message: string) => void;
 }
 
-export const AddSolarDeviceModal = ({ isOpen, onClose, onDeviceAdded, onError, onSuccess }: AddSolarDeviceModalProps) => {
-  const [deviceTypes, setDeviceTypes] = useState<Array<{ id: number; name: string }>>([]);
-  const [microcontrollers, setMicrocontrollers] = useState<DeviceSearchResultDTO[]>([]);
-  const [microcontrollerSearch, setMicrocontrollerSearch] = useState('');
-  const [showMicrocontrollerDropdown, setShowMicrocontrollerDropdown] = useState(false);
+export const AddSolarDeviceModal = ({
+  isOpen,
+  onClose,
+  onDeviceAdded,
+  onError,
+  onSuccess,
+}: AddSolarDeviceModalProps) => {
+  const [deviceTypes, setDeviceTypes] = useState<
+    Array<{ id: number; name: string }>
+  >([]);
+  const [microcontrollers, setMicrocontrollers] = useState<
+    DeviceSearchResultDTO[]
+  >([]);
+  const [microcontrollerSearch, setMicrocontrollerSearch] = useState("");
+  const [showMicrocontrollerDropdown, setShowMicrocontrollerDropdown] =
+    useState(false);
   const [locations, setLocations] = useState<LocationResponseDTO[]>([]);
-  const [locationSearch, setLocationSearch] = useState('');
+  const [locationSearch, setLocationSearch] = useState("");
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
+    name: "",
     device_type_id: 1,
-    address: '',
-    city: '',
+    address: "",
+    city: "",
     location_id: 0,
     connected_microcontroller_id: 0,
   });
@@ -38,18 +49,23 @@ export const AddSolarDeviceModal = ({ isOpen, onClose, onDeviceAdded, onError, o
           const types = await devicesAPI.getDeviceTypes();
           setDeviceTypes(types);
         } catch (err) {
-          console.error('Failed to fetch device types:', err);
+          console.error("Failed to fetch device types:", err);
         }
       };
       fetchDeviceTypes();
     }
   }, [isOpen]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === 'connected_microcontroller_id' || name === 'device_type_id' ? parseInt(value, 10) : value,
+      [name]:
+        name === "connected_microcontroller_id" || name === "device_type_id"
+          ? parseInt(value, 10)
+          : value,
     }));
   };
 
@@ -61,7 +77,7 @@ export const AddSolarDeviceModal = ({ isOpen, onClose, onDeviceAdded, onError, o
         setMicrocontrollers(results);
         setShowMicrocontrollerDropdown(true);
       } catch (err) {
-        console.error('Failed to search microcontrollers:', err);
+        console.error("Failed to search microcontrollers:", err);
         setMicrocontrollers([]);
       }
     } else {
@@ -78,7 +94,7 @@ export const AddSolarDeviceModal = ({ isOpen, onClose, onDeviceAdded, onError, o
         setLocations(results);
         setShowLocationDropdown(true);
       } catch (err) {
-        console.error('Failed to search locations:', err);
+        console.error("Failed to search locations:", err);
         setLocations([]);
       }
     } else {
@@ -96,7 +112,9 @@ export const AddSolarDeviceModal = ({ isOpen, onClose, onDeviceAdded, onError, o
     setShowMicrocontrollerDropdown(false);
     // Keep focus on the input to maintain styling
     setTimeout(() => {
-      const input = document.querySelector('input[placeholder="Search microcontrollers..."]') as HTMLInputElement;
+      const input = document.querySelector(
+        'input[placeholder="Search microcontrollers..."]',
+      ) as HTMLInputElement;
       if (input) input.focus();
     }, 0);
   };
@@ -110,40 +128,42 @@ export const AddSolarDeviceModal = ({ isOpen, onClose, onDeviceAdded, onError, o
     setShowLocationDropdown(false);
     // Keep focus on the input to maintain styling
     setTimeout(() => {
-      const input = document.querySelector('input[placeholder="Search locations..."]') as HTMLInputElement;
+      const input = document.querySelector(
+        'input[placeholder="Search locations..."]',
+      ) as HTMLInputElement;
       if (input) input.focus();
     }, 0);
   };
 
   const handleAddDevice = async (e: React.FormEvent) => {
     e.preventDefault();
-    onError('');
-    onSuccess('');
+    onError("");
+    onSuccess("");
 
     if (!formData.name) {
-      onError('Please fill in all required fields');
+      onError("Please fill in all required fields");
       return;
     }
 
     try {
       const newDevice = await devicesAPI.createSolarDevice(formData);
       onDeviceAdded(newDevice);
-      onSuccess('Solar device added successfully');
+      onSuccess("Solar device added successfully");
       setFormData({
-        name: '',
+        name: "",
         device_type_id: 1,
-        address: '',
-        city: '',
+        address: "",
+        city: "",
         location_id: 0,
         connected_microcontroller_id: 0,
       });
-      setLocationSearch('');
+      setLocationSearch("");
       setLocations([]);
-      setMicrocontrollerSearch('');
+      setMicrocontrollerSearch("");
       setMicrocontrollers([]);
       onClose();
     } catch (err: any) {
-      onError(err.response?.data?.error || 'Failed to add solar device');
+      onError(err.response?.data?.error || "Failed to add solar device");
     }
   };
 
@@ -210,7 +230,8 @@ export const AddSolarDeviceModal = ({ isOpen, onClose, onDeviceAdded, onError, o
             />
             <div className="relative">
               <label className="block text-sm font-medium text-text-secondary mb-2">
-                Location <span className="text-gray-400 text-xs">(Optional)</span>
+                Location{" "}
+                <span className="text-gray-400 text-xs">(Optional)</span>
               </label>
               <div className="relative">
                 <input
@@ -218,12 +239,17 @@ export const AddSolarDeviceModal = ({ isOpen, onClose, onDeviceAdded, onError, o
                   value={locationSearch}
                   onChange={(e) => handleLocationSearch(e.target.value)}
                   onFocus={() => setShowLocationDropdown(locations.length > 0)}
-                  onBlur={() => setTimeout(() => setShowLocationDropdown(false), 200)}
+                  onBlur={() =>
+                    setTimeout(() => setShowLocationDropdown(false), 200)
+                  }
                   placeholder="Search locations..."
                   autoComplete="off"
                   className="w-full px-4 py-2 pl-10 border border-border-primary rounded-lg focus:ring-2 focus:ring-primary-500 bg-surface-secondary text-text-primary focus:bg-surface-secondary focus:text-text-primary"
                 />
-                <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary" />
+                <Search
+                  size={20}
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary"
+                />
               </div>
               {showLocationDropdown && locations.length > 0 && (
                 <div className="absolute z-10 w-full mt-1 bg-surface-primary border border-border-primary rounded-lg shadow-lg max-h-40 overflow-y-auto">
@@ -248,13 +274,20 @@ export const AddSolarDeviceModal = ({ isOpen, onClose, onDeviceAdded, onError, o
                   type="text"
                   value={microcontrollerSearch}
                   onChange={(e) => handleMicrocontrollerSearch(e.target.value)}
-                  onFocus={() => setShowMicrocontrollerDropdown(microcontrollers.length > 0)}
-                  onBlur={() => setTimeout(() => setShowMicrocontrollerDropdown(false), 200)}
+                  onFocus={() =>
+                    setShowMicrocontrollerDropdown(microcontrollers.length > 0)
+                  }
+                  onBlur={() =>
+                    setTimeout(() => setShowMicrocontrollerDropdown(false), 200)
+                  }
                   placeholder="Search microcontrollers..."
                   autoComplete="off"
                   className="w-full px-4 py-2 pl-10 border border-border-primary rounded-lg focus:ring-2 focus:ring-primary-500 bg-surface-secondary text-text-primary focus:bg-surface-secondary focus:text-text-primary"
                 />
-                <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary" />
+                <Search
+                  size={20}
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary"
+                />
               </div>
               {showMicrocontrollerDropdown && microcontrollers.length > 0 && (
                 <div className="absolute z-10 w-full mt-1 bg-surface-primary border border-border-primary rounded-lg shadow-lg max-h-40 overflow-y-auto">

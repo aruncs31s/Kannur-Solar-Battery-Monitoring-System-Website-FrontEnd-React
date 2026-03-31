@@ -59,12 +59,12 @@ export const Register = () => {
 
     setLoading(true);
     try {
-      const { token, user } = await authAPI.register(
+      const { token, refresh_token, user } = await authAPI.register(
         username,
         password,
         email,
         name);
-      setToken(token);
+      setToken(token, refresh_token);
       setUser(user);
       setSuccess("Registration successful! Redirecting to home...");
       setTimeout(() => navigate("/"), 1500);

@@ -2,10 +2,11 @@ import { User, UserCredentials } from '../entities/User';
 
 export type AuthToken = {
   token: string;
+  refresh_token: string;
 }
 
 export interface IAuthRepository {
-  login(credentials: UserCredentials): Promise<string>;
+  login(credentials: UserCredentials): Promise<AuthToken>;
   logout(): Promise<void>;
   validateToken(token: string): Promise<boolean>;
   register(
@@ -13,5 +14,5 @@ export interface IAuthRepository {
     username: string,
     password: string, 
     email?: string,
-    ): Promise<{ token: string; user: User }>;
+    ): Promise<{ token: string; refresh_token: string; user: User }>;
 }

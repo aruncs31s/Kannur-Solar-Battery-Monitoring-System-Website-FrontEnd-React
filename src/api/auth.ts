@@ -1,10 +1,11 @@
 import { container } from "../application/di/container";
 import { User, UserCredentials } from "../domain/entities/User";
+import { AuthToken } from "../domain/repositories/IAuthRepository";
 
 export const authAPI = {
-  login: async (credentials: UserCredentials): Promise<string> => {
-    const token = await container.getLoginUseCase().execute(credentials);
-    return token;
+  login: async (credentials: UserCredentials): Promise<AuthToken> => {
+    const response = await container.getLoginUseCase().execute(credentials);
+    return response;
   },
 
   register: async (
@@ -12,7 +13,7 @@ export const authAPI = {
     password: string,
     email?: string,
     name?: string,
-  ): Promise<{ token: string; user: User }> => {
+  ): Promise<{ token: string; refresh_token: string; user: User }> => {
     return await container.getAuthRepository().register( username, password, name,email);
   },
 

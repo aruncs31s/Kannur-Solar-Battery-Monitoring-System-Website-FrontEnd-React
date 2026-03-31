@@ -46,15 +46,35 @@ class HttpClient {
 
     this.client.interceptors.response.use(
       (response) => response,
-      (error: AxiosError) => {
+      async (error: AxiosError) => {
         if (error.response?.status === 401 && window.location.pathname !== '/login') {
-          localStorage.removeItem('token');
-          window.location.href = '/login';
+          const refreshToken = localStorage.getItem('refresh_token');
+          if (refreshToken) {
+            try {
+              const res = await axios.post(`${API_BASE_URL}/refresh`, { refresh_token: refreshToken });
+              const { token, refresh_token } = res.data;
+              localStorage.setItem('token', token);
+              localStorage.setItem('refresh_token', refresh_token);
+              
+              if (error.config) {
+                error.config.headers.Authorization = `Bearer ${token}`;
+                return axios.request(error.config);
+              }
+            } catch (refreshErr) {
+              localStorage.removeItem('token');
+              localStorage.removeItem('refresh_token');
+              window.location.href = '/login';
+            }
+          } else {
+            localStorage.removeItem('token');
+            localStorage.removeItem('refresh_token');
+            window.location.href = '/login';
+          }
         }
 
         if (error.code === 'ERR_NETWORK') {
-          console.error('❌ Backend server is not running or not accessible at:', API_BASE_URL);
-          console.error('Please ensure your Go backend is running on http://localhost:8080');
+          console.error('Backend server is not running or not accessible at:', API_BASE_URL);
+          console.error('Please ensure your Go backend is running');
           if (window.location.pathname !== '/server-error') {
             window.location.href = '/server-error';
           }
