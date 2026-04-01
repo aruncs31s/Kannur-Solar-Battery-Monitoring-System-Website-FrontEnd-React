@@ -1,5 +1,5 @@
 import { IDeviceRepository } from '../../domain/repositories/IDeviceRepository';
-import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO, MicrocontrollerDTO, CreateSensorDeviceDTO, SolarDeviceView, DeviceStateHistoryResponse, DeviceStateHistoryFilters, CreateDeviceTypeDTO, DeviceState, CreateDeviceStateDTO, UpdateDeviceStateDTO, DeviceStatus, ConnectedDeviceDTO, CreateConnectedDeviceDTO } from '../../domain/entities/Device';
+import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO, MicrocontrollerDTO, CreateSensorDeviceDTO, SolarDeviceView, DeviceStateHistoryResponse, DeviceStateHistoryFilters, CreateDeviceTypeDTO, DeviceState, CreateDeviceStateDTO, UpdateDeviceStateDTO, DeviceStatus, ConnectedDeviceDTO, CreateConnectedDeviceDTO, MainStatsDTO } from '../../domain/entities/Device';
 import { DeviceTokenResponse, MicrocontrollerStats } from '../../api/devices';
 import { Reading } from '../../domain/entities/Reading';
 import { httpClient } from '../http/HttpClient';
@@ -11,28 +11,34 @@ export class DeviceRepository implements IDeviceRepository {
       id: dto.id,
       name: dto.name || '',
       type: dto.type || '',
-      ip_address: dto.ipAddress || '',
-      mac_address: dto.macAddress || '',
-      firmware_version: dto.firmwareVersion || '',
+      ip_address: dto.ip_address || dto.ipAddress || '',
+      mac_address: dto.mac_address || dto.macAddress || '',
+      firmware_version: dto.firmware_version || dto.firmwareVersion || '',
       version_id: dto.version_id || 0,
       address: dto.address || '',
       city: dto.city || '',
-      device_state: dto.deviceState || 0,
+      device_state: dto.device_state || dto.deviceState || 0,
     }));
   }
+  async getMainStats(): Promise<MainStatsDTO> {
+    const response = await httpClient.get<{ stats: MainStatsDTO }>('/devices/my/stats');
+    console.log("fetching my stats")
+    return response.stats;
+  }
+
   async getAllSolarDevices(): Promise<DeviceResponseDTO[]> {
     const response = await httpClient.get<{ devices: any[] }>('/devices/solar');
     return response.devices.map(dto => ({
       id: dto.id,
       name: dto.name || '',
       type: dto.type || '',
-      ip_address: dto.ipAddress || '',
-      mac_address: dto.macAddress || '',
-      firmware_version: dto.firmwareVersion || '',
+      ip_address: dto.ip_address || dto.ipAddress || '',
+      mac_address: dto.mac_address || dto.macAddress || '',
+      firmware_version: dto.firmware_version || dto.firmwareVersion || '',
       version_id: dto.version_id || 0,
       address: dto.address || '',
       city: dto.city || '',
-      device_state: dto.deviceState || 0,
+      device_state: dto.device_state || dto.deviceState || 0,
     }));
   }
   async getRecentDevices(): Promise<DeviceResponseDTO[]> {
@@ -41,13 +47,13 @@ export class DeviceRepository implements IDeviceRepository {
       id: dto.id,
       name: dto.name || '',
       type: dto.type || '',
-      ip_address: dto.ipAddress || '',
-      mac_address: dto.macAddress || '',
-      firmware_version: dto.firmwareVersion || '',
+      ip_address: dto.ip_address || dto.ipAddress || '',
+      mac_address: dto.mac_address || dto.macAddress || '',
+      firmware_version: dto.firmware_version || dto.firmwareVersion || '',
       version_id: dto.version_id || 0,
       address: dto.address || '',
       city: dto.city || '',
-      device_state: dto.deviceState || 0,
+      device_state: dto.device_state || dto.deviceState || 0,
     }));
   }
   async getOfflineDevices(): Promise<DeviceResponseDTO[]> {
@@ -56,13 +62,13 @@ export class DeviceRepository implements IDeviceRepository {
       id: dto.id,
       name: dto.name || '',
       type: dto.type || '',
-      ip_address: dto.ipAddress || '',
-      mac_address: dto.macAddress || '',
-      firmware_version: dto.firmwareVersion || '',
+      ip_address: dto.ip_address || dto.ipAddress || '',
+      mac_address: dto.mac_address || dto.macAddress || '',
+      firmware_version: dto.firmware_version || dto.firmwareVersion || '',
       version_id: dto.version_id || 0,
       address: dto.address || '',
       city: dto.city || '',
-      device_state: dto.deviceState || 0,
+      device_state: dto.device_state || dto.deviceState || 0,
     }));
   }
   async getMyDevices(): Promise<DeviceResponseDTO[]> {
@@ -71,13 +77,13 @@ export class DeviceRepository implements IDeviceRepository {
       id: dto.id,
       name: dto.name || '',
       type: dto.type || '',
-      ip_address: dto.ipAddress || '',
-      mac_address: dto.macAddress || '',
-      firmware_version: dto.firmwareVersion || '',
+      ip_address: dto.ip_address || dto.ipAddress || '',
+      mac_address: dto.mac_address || dto.macAddress || '',
+      firmware_version: dto.firmware_version || dto.firmwareVersion || '',
       version_id: dto.version_id || 0,
       address: dto.address || '',
       city: dto.city || '',
-      device_state: dto.deviceState || 0,
+      device_state: dto.device_state || dto.deviceState || 0,
     }));
   }
 
@@ -95,13 +101,13 @@ export class DeviceRepository implements IDeviceRepository {
       id: dto.id,
       name: dto.name || '',
       type: dto.type || '',
-      ip_address: dto.ipAddress || '',
-      mac_address: dto.macAddress || '',
-      firmware_version: dto.firmwareVersion || '',
-      version_id: device.firmware_version_id || 0, // Since backend doesn't return it, use the input
+      ip_address: dto.ip_address || dto.ipAddress || '',
+      mac_address: dto.mac_address || dto.macAddress || '',
+      firmware_version: dto.firmware_version || dto.firmwareVersion || '',
+      version_id: device.firmware_version_id || 0,
       address: dto.address || '',
       city: dto.city || '',
-      device_state: dto.deviceState || 0,
+      device_state: dto.device_state || dto.deviceState || 0,
     };
   }
 
@@ -227,7 +233,7 @@ export class DeviceRepository implements IDeviceRepository {
       current: reading.current,
       avg_voltage: reading.avg_voltage,
       avg_current: reading.avg_current,
-      power: 0, // Placeholder, will be added later
+      power: (reading.voltage || 0) * (reading.current || 0),
       timestamp: new Date(reading.created_at).getTime(),
     }));
   }

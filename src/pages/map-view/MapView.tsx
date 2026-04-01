@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { useDevicesStore } from '../store/devicesStore';
-import { devicesAPI } from '../api/devices';
+import { useDevicesStore } from '../../store/devicesStore';
+import { devicesAPI } from '../../api/devices';
 import { AlertCircle, MapPin, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 
 function MapController({ center }: { center: [number, number] }) {

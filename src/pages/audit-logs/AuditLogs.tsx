@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
-import { auditAPI } from '../api/audit';
-import { AuditLog } from '../domain/entities/AuditLog';
-import { LoadingState, PageHeader, DataTable, FormError, ActionButton } from '../components';
+import { auditAPI } from '../../api/audit';
+import { AuditLog } from '../../domain/entities/AuditLog';
+import { LoadingState, PageHeader, DataTable, FormError, ActionButton } from '../../components';
 
 export function AuditLogs() {
   const [logs, setLogs] = useState<AuditLog[]>([]);

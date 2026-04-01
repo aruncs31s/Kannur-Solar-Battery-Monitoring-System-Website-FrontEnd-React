@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { versionsAPI } from '../api/versions';
-import { devicesAPI } from '../api/devices';
-import { Version, Feature, CreateFeatureDTO } from '../domain/entities/Version';
-import { Device } from '../domain/entities/Device';
+import { versionsAPI } from '../../api/versions';
+import { devicesAPI } from '../../api/devices';
+import { Version, Feature, CreateFeatureDTO } from '../../domain/entities/Version';
+import { Device } from '../../domain/entities/Device';
 import {
   Package,
   Plus,

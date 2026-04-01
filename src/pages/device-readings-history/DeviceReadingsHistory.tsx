@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Calendar, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
-import { readingsAPI } from '../api/readings';
-import { Reading } from '../domain/entities/Reading';
-import ExportPanel from '../components/ExportPanel';
+import { readingsAPI } from '../../api/readings';
+import { Reading } from '../../domain/entities/Reading';
+import ExportPanel from '../../components/ExportPanel';
 
 // Calendar View Component
 interface CalendarViewProps {

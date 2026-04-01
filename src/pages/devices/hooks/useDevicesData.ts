@@ -39,7 +39,7 @@ export const useDevicesData = () => {
   const fetchDevices = async () => {
     setLoading(true);
     try {
-      const response = await devicesAPI.getAllDevices();
+      const response = await devicesAPI.getMyDevices();
       setDevices(response);
       setError('');
     } catch (err: any) {

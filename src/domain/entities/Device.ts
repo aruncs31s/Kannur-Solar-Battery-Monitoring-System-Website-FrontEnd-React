@@ -11,7 +11,7 @@ export class Device {
     public address: string,
     public city: string,
     public device_state: number
-  ) {}
+  ) { }
 }
 
 
@@ -177,3 +177,12 @@ export interface IDeviceTypesRepository {
   getAll(): Promise<DeviceTypeDTO[]>;
   getHardwareTypes(): Promise<DeviceTypeDTO[]>;
 }
+
+export interface MainStatsDTO {
+  total_devices: number;
+  active_devices: number;
+  avg_voltage: number;
+  avg_current: number;
+  avg_power: number;
+}
+

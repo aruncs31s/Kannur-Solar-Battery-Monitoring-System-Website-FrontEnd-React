@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { History, ArrowLeft, Filter, Calendar, User, Activity } from 'lucide-react';
-import { devicesAPI } from '../api/devices';
-import { DeviceStateHistoryEntry } from '../domain/entities/Device';
+import { devicesAPI } from '../../api/devices';
+import { DeviceStateHistoryEntry } from '../../domain/entities/Device';
 
 export const DeviceStateHistory = () => {
   const { id } = useParams<{ id: string }>();

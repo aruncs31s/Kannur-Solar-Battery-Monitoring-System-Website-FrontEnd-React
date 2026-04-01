@@ -11,6 +11,7 @@ import { LogoutUseCase } from '../usecases/auth/LogoutUseCase';
 import { GetAllDevicesUseCase } from '../usecases/devices/GetAllDevicesUseCase';
 import { GetMyDevicesUseCase } from '../usecases/devices/GetMyDevicesUseCase';
 import { GetRecentDevicesUseCase } from '../usecases/devices/GetRecentDevicesUseCase';
+import { GetMainStatsUseCase } from '../usecases/devices/GetMainStatsUseCase';
 import { GetProgressiveReadingsUseCase } from '../usecases/devices/GetProgressiveReadingsUseCase';
 import { GetOfflineDevicesUseCase } from '../usecases/devices/GetOfflineDevicesUseCase';
 import { GetDeviceTypesUseCase } from '../usecases/devices/GetDeviceTypesUseCase';
@@ -88,6 +89,11 @@ class DIContainer {
   getGetProgressiveReadingsUseCase() {
     return new GetProgressiveReadingsUseCase(this.deviceRepository);
   }
+
+  getGetMainStatsUseCase() {
+    return new GetMainStatsUseCase(this.deviceRepository);
+  }
+
 
   getGetOfflineDevicesUseCase() {
     return new GetOfflineDevicesUseCase(this.deviceRepository);

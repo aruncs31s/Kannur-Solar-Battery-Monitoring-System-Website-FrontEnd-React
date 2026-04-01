@@ -1,10 +1,11 @@
-import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO, MicrocontrollerDTO, CreateSensorDeviceDTO, SolarDeviceView, DeviceStateHistoryResponse, DeviceStateHistoryFilters, CreateDeviceTypeDTO, DeviceState, CreateDeviceStateDTO, UpdateDeviceStateDTO, ConnectedDeviceDTO, CreateConnectedDeviceDTO } from '../entities/Device';
+import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO, MicrocontrollerDTO, CreateSensorDeviceDTO, SolarDeviceView, DeviceStateHistoryResponse, DeviceStateHistoryFilters, CreateDeviceTypeDTO, DeviceState, CreateDeviceStateDTO, UpdateDeviceStateDTO, ConnectedDeviceDTO, CreateConnectedDeviceDTO, MainStatsDTO } from '../entities/Device';
 import { DeviceTokenResponse, MicrocontrollerStats } from '../../api/devices';
 import { Reading } from '../entities/Reading';
 
 export interface IDeviceRepository {
   getAll(): Promise<DeviceResponseDTO[]>;
   getAllSolarDevices(): Promise<DeviceResponseDTO[]>;
+  getMainStats(): Promise<MainStatsDTO>;
   getMyDevices(): Promise<DeviceResponseDTO[]>;
   create(device: CreateDeviceDTO): Promise<DeviceResponseDTO>;
   createSolarDevice(device: CreateSolarDeviceDTO): Promise<DeviceResponseDTO>;

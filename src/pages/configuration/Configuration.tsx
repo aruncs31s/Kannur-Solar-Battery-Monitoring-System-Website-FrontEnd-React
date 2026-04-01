@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { versionsAPI } from '../api/versions';
-import { Version, Feature, CreateVersionDTO, CreateFeatureDTO } from '../domain/entities/Version';
+import { versionsAPI } from '../../api/versions';
+import { Version, Feature, CreateVersionDTO, CreateFeatureDTO } from '../../domain/entities/Version';
 import {
   Plus,
   Edit,

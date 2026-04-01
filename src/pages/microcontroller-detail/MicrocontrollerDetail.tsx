@@ -2,16 +2,16 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Activity, X } from 'lucide-react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
-import { readingsAPI } from '../api/readings';
-import { devicesAPI } from '../api/devices';
-import { UpdateDeviceModal } from '../components/UpdateDeviceModal';
-import { DeviceControlPanel } from '../components/DeviceControlPanel';
-import { DeviceInfoCard } from '../components/DeviceInfoCard';
-import { FirmwareUploadModal, OnlineFirmwareBuilder, OTAFirmwareUpload, Codegen, DeviceHeader, FirmwareBuilderModal } from '../components';
-import { DailyBreakdownCharts } from '../components/DailyBreakdownCharts';
-import { DeviceTokenModal } from '../components/DeviceTokenModal';
-import { DeviceTypeDTO } from '../domain/entities/Device';
-import { Reading } from '../domain/entities/Reading';
+import { readingsAPI } from '../../api/readings';
+import { devicesAPI } from '../../api/devices';
+import { UpdateDeviceModal } from '../../components/UpdateDeviceModal';
+import { DeviceControlPanel } from '../../components/DeviceControlPanel';
+import { DeviceInfoCard } from '../../components/DeviceInfoCard';
+import { FirmwareUploadModal, OnlineFirmwareBuilder, OTAFirmwareUpload, Codegen, DeviceHeader, FirmwareBuilderModal } from '../../components';
+import { DailyBreakdownCharts } from '../../components/DailyBreakdownCharts';
+import { DeviceTokenModal } from '../../components/DeviceTokenModal';
+import { DeviceTypeDTO } from '../../domain/entities/Device';
+import { Reading } from '../../domain/entities/Reading';
 
 interface DeviceInfo {
   id: number;

@@ -3,16 +3,16 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Package, Activity, Battery, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
-import { PageHeader } from '../components/PageHeader';
-import { Section } from '../components/Section';
-import { LocationDeviceCard } from '../components/LocationDeviceCard';
-import { StatsCard } from '../components/Cards';
-import { FormError } from '../components/FormComponents';
-import { DailyBreakdownCharts } from '../components/DailyBreakdownCharts';
-import { locationsAPI } from '../api/locations';
-import { readingsAPI } from '../api/readings';
-import { LocationResponseDTO, LocationDeviceDTO } from '../domain/entities/Location';
-import { Reading } from '../domain/entities/Reading';
+import { PageHeader } from '../../components/PageHeader';
+import { Section } from '../../components/Section';
+import { LocationDeviceCard } from '../../components/LocationDeviceCard';
+import { StatsCard } from '../../components/Cards';
+import { FormError } from '../../components/FormComponents';
+import { DailyBreakdownCharts } from '../../components/DailyBreakdownCharts';
+import { locationsAPI } from '../../api/locations';
+import { readingsAPI } from '../../api/readings';
+import { LocationResponseDTO, LocationDeviceDTO } from '../../domain/entities/Location';
+import { Reading } from '../../domain/entities/Reading';
 
 export const LocationDetails = () => {
   const { id } = useParams<{ id: string }>();

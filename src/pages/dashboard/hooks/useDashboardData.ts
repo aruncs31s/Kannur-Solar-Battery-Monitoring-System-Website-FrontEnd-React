@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { devicesAPI } from '../../../api/devices';
 import { readingsAPI } from '../../../api/readings';
 import { container } from '../../../application/di/container';
-import { DeviceResponseDTO } from '../../../domain/entities/Device';
+import { DeviceResponseDTO, MainStatsDTO } from '../../../domain/entities/Device';
 import { Reading } from '../../../domain/entities/Reading';
 import { useDevicesStore } from '../../../store/devicesStore';
 import { limitArraySize } from '../../../utils/performanceConfig';
@@ -33,14 +33,18 @@ export interface DashboardDataSource {
   getRecentDevices: () => Promise<DeviceResponseDTO[]>;
   getOfflineDevices: () => Promise<DeviceResponseDTO[]>;
   getProgressiveReadings: (deviceId: number) => Promise<Reading[]>;
+  getMainStats: () => Promise<MainStatsDTO>;
 }
 
+
 const defaultDataSource: DashboardDataSource = {
-  getAllDevices: () => devicesAPI.getAllDevices(),
+  getAllDevices: () => devicesAPI.getMyDevices(),
   getRecentDevices: () => container.getGetRecentDevicesUseCase().execute(),
   getOfflineDevices: () => container.getGetOfflineDevicesUseCase().execute(),
   getProgressiveReadings: (deviceId: number) => readingsAPI.getProgressiveByDevice(deviceId),
+  getMainStats: () => devicesAPI.getMainStats(),
 };
+
 
 export const useDashboardData = (dataSource: DashboardDataSource = defaultDataSource) => {
   const { devices, setDevices, setLoading, setError } = useDevicesStore();
@@ -49,8 +53,11 @@ export const useDashboardData = (dataSource: DashboardDataSource = defaultDataSo
   const [recentDevices, setRecentDevices] = useState<DeviceResponseDTO[]>([]);
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
   const [offlineDevices, setOfflineDevices] = useState<DeviceResponseDTO[]>([]);
+  const [apiStats, setApiStats] = useState<MainStatsDTO | null>(null);
   const [loadingRecent, setLoadingRecent] = useState(true);
   const [loadingReadings, setLoadingReadings] = useState(false);
+  const [loadingStats, setLoadingStats] = useState(true);
+
 
   useEffect(() => {
     let isMounted = true;
@@ -179,7 +186,50 @@ export const useDashboardData = (dataSource: DashboardDataSource = defaultDataSo
     };
   }, [dataSource, selectedDeviceId, setError]);
 
+  useEffect(() => {
+    let isMounted = true;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    const fetchStats = async () => {
+      setLoadingStats(true);
+      try {
+        const data = await dataSource.getMainStats();
+        if (isMounted) {
+          setApiStats(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch main stats:', error);
+      } finally {
+        if (isMounted) {
+          setLoadingStats(false);
+        }
+      }
+    };
+
+    void fetchStats();
+    intervalId = setInterval(() => {
+      void fetchStats();
+    }, READINGS_POLL_INTERVAL_MS);
+
+    return () => {
+      isMounted = false;
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [dataSource]);
+
+
   const stats = useMemo<DashboardStats>(() => {
+    if (apiStats) {
+      return {
+        totalDevices: apiStats.total_devices,
+        activeDevices: apiStats.active_devices,
+        avgVoltage: apiStats.avg_voltage,
+        totalPower: apiStats.avg_power, // Mapping AvgPower from backend to totalPower display as requested
+      };
+    }
+
     const totalDevices = devices.length;
     const activeDevices = devices.filter((device) => device.device_state === 1).length;
 
@@ -201,7 +251,8 @@ export const useDashboardData = (dataSource: DashboardDataSource = defaultDataSo
       avgVoltage,
       totalPower: readings[0]?.power ?? 0,
     };
-  }, [devices, readings]);
+  }, [apiStats, devices, readings]);
+
 
   const alerts = useMemo<DashboardAlert[]>(() => {
     const dashboardAlerts: DashboardAlert[] = [];
@@ -278,9 +329,11 @@ export const useDashboardData = (dataSource: DashboardDataSource = defaultDataSo
     recentDevices,
     loadingRecent,
     loadingReadings,
+    loadingStats,
     stats,
     alerts,
     dismissAlert,
     acknowledgeAlert,
   };
 };
+

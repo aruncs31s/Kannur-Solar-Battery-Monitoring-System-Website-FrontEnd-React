@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
-import { devicesAPI, MicrocontrollerStats } from '../api/devices';
-import { MicrocontrollerDTO } from '../domain/entities/Device';
-import { useSearchStore } from '../store/searchStore';
-import { MicrocontrollersSection } from '../components/MicrocontrollersSection';
-import { StatsCard } from '../components/Cards';
-import { FormError, FormSuccess } from '../components/FormComponents';
-import { QuickActions } from '../components/QuickActions';
-import { AdvancedDeviceAddModal } from '../components/AdvancedDeviceAddModal';
-import { PageHeader } from '../components/PageHeader';
+import { devicesAPI, MicrocontrollerStats } from '../../api/devices';
+import { MicrocontrollerDTO } from '../../domain/entities/Device';
+import { useSearchStore } from '../../store/searchStore';
+import { MicrocontrollersSection } from '../../components/MicrocontrollersSection';
+import { StatsCard } from '../../components/Cards';
+import { FormError, FormSuccess } from '../../components/FormComponents';
+import { QuickActions } from '../../components/QuickActions';
+import { AdvancedDeviceAddModal } from '../../components/AdvancedDeviceAddModal';
+import { PageHeader } from '../../components/PageHeader';
 import {
   CheckCircle,
   Cpu,

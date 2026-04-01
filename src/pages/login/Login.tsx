@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Zap, Lock, User as UserIcon, ArrowRight, Shield, Activity } from 'lucide-react';
-import { useAuthStore } from '../store/authStore';
-import { authAPI } from '../api/auth';
-import { FormError, FormSuccess } from '../components/FormComponents';
+import { useAuthStore } from '../../store/authStore';
+import { authAPI } from '../../api/auth';
+import { FormError, FormSuccess } from '../../components/FormComponents';
 
 export const Login = () => {
   const { setToken } = useAuthStore();

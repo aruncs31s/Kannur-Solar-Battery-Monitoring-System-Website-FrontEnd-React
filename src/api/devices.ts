@@ -1,5 +1,5 @@
 import { container } from '../application/di/container';
-import { CreateDeviceDTO, CreateSolarDeviceDTO, CreateSensorDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, SolarDeviceView, MicrocontrollerDTO, DeviceStateHistoryResponse, DeviceStateHistoryFilters, CreateDeviceTypeDTO, UpdateDeviceDTO, DeviceState, CreateDeviceStateDTO, UpdateDeviceStateDTO, ConnectedDeviceDTO, CreateConnectedDeviceDTO } from '../domain/entities/Device';
+import { CreateDeviceDTO, CreateSolarDeviceDTO, CreateSensorDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, SolarDeviceView, MicrocontrollerDTO, DeviceStateHistoryResponse, DeviceStateHistoryFilters, CreateDeviceTypeDTO, UpdateDeviceDTO, DeviceState, CreateDeviceStateDTO, UpdateDeviceStateDTO, ConnectedDeviceDTO, CreateConnectedDeviceDTO, MainStatsDTO } from '../domain/entities/Device';
 import { DeviceTypeDTO } from '../domain/entities/Device';
 
 export interface DeviceTokenResponse {
@@ -162,4 +162,9 @@ export const devicesAPI = {
   createAndConnectDevice: async (deviceId: number, data: CreateConnectedDeviceDTO): Promise<{ message: string }> => {
     return await container.getCreateAndConnectDeviceUseCase().execute(deviceId, data);
   },
+
+  getMainStats: async (): Promise<MainStatsDTO> => {
+    return await container.getGetMainStatsUseCase().execute();
+  },
 };
+

@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useAuthStore } from "../store/authStore";
-import { authAPI } from "../api/auth";
+import { useAuthStore } from "../../store/authStore";
+import { authAPI } from "../../api/auth";
 import {
   FormField,
   FormError,
   FormSuccess,
-} from "../components/FormComponents";
+} from "../../components/FormComponents";
 import { UserPlus, Users, TrendingUp, Globe } from "lucide-react";
 
 export const Register = () => {

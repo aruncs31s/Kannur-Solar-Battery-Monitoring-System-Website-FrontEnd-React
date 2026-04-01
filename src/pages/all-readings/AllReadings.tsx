@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { RefreshCw } from 'lucide-react';
-import ExportPanel from '../components/ExportPanel';
+import ExportPanel from '../../components/ExportPanel';
 
 interface DeviceReading {
   id: string;
