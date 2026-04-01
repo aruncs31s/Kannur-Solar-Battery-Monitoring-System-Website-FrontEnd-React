@@ -3,7 +3,12 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { useDevicesStore } from '../../store/devicesStore';
 import { devicesAPI } from '../../api/devices';
-import { AlertCircle, MapPin, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { AlertCircle, MapPin, Search, ChevronLeft, ChevronRight, Zap } from 'lucide-react';
+import { useThemeStore } from '../../store/themeStore';
+import { DeviceStateBadge } from '../../components/ui/Badge';
+import { Button } from '../../components/ui/Button';
+
+
 
 function MapController({ center }: { center: [number, number] }) {
   const map = useMap();
@@ -26,7 +31,9 @@ const defaultIcon = L.icon({
 L.Marker.prototype.options.icon = defaultIcon;
 
 export const MapView = () => {
+  const { isDark } = useThemeStore();
   const { devices, setDevices, setLoading } = useDevicesStore();
+
   const [center, setCenter] = useState<[number, number]>([10.3452, 75.8345]); // Kannur, India
   const [searchQuery, setSearchQuery] = useState('');
   const [searching, setSearching] = useState(false);
@@ -119,58 +126,69 @@ export const MapView = () => {
   };
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-4xl font-bold text-gray-800">Device Map</h1>
-        <p className="text-gray-600 mt-2">
-          Locations of all your ESP32 devices
-        </p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Device Map</h1>
+          <p className="page-subtitle">
+            Locations and status of all your connected devices
+          </p>
+        </div>
       </div>
 
-      {/* Search Bar */}
-      <div className="bg-white rounded-lg shadow-md p-4">
-        <form onSubmit={handleSearch} className="flex gap-2">
-          <div className="flex-1 relative">
+      {/* Global Location Search */}
+      <div className="card" style={{ padding: '1rem' }}>
+        <form onSubmit={handleSearch} style={{ display: 'flex', gap: '0.5rem' }}>
+          <div style={{ flex: 1, position: 'relative' }}>
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search location (e.g., Kannur, Kerala)"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="input"
             />
           </div>
-          <button
+          <Button
             type="submit"
             disabled={searching || !searchQuery.trim()}
-            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-6 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
+            variant="primary"
           >
-            <Search size={20} />
-            {searching ? 'Searching...' : 'Search'}
-          </button>
+            {searching ? <div className="spinner-sm" /> : <Search size={18} />}
+            {searching ? 'Searching...' : 'Search Location'}
+          </Button>
         </form>
         {searchError && (
-          <p className="text-red-600 text-sm mt-2">{searchError}</p>
+          <p style={{ color: 'var(--error)', fontSize: '0.8125rem', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <AlertCircle size={14} /> {searchError}
+          </p>
         )}
       </div>
 
+
       {devicesWithCoords.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-md p-12 text-center">
-          <AlertCircle className="mx-auto text-gray-400 mb-4" size={48} />
-          <p className="text-gray-600 text-lg">
+        <div className="card" style={{ padding: '3rem', textAlign: 'center' }}>
+          <AlertCircle className="mx-auto" size={48} style={{ color: 'var(--text-muted)', marginBottom: '1rem' }} />
+          <p style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--text-primary)' }}>
             No devices with coordinates found
           </p>
-          <p className="text-gray-500 mt-2">
+          <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
             Add latitude and longitude to devices to see them on the map
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="card" style={{ overflow: 'hidden', height: '500px' }}>
+
           <MapContainer
             center={center}
             zoom={13}
-            className="h-96 w-full"
+            className="h-full w-full"
+            style={{ 
+              filter: isDark ? 'invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%)' : 'none',
+              background: 'var(--bg-secondary)'
+            }}
           >
             <MapController center={center} />
+
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -181,19 +199,30 @@ export const MapView = () => {
                 position={[11.2588 + (index * 0.001), 75.7804 + (index * 0.001)]} // Offset each device slightly
                 icon={defaultIcon}
               >
-                <Popup>
-                  <div className="font-semibold text-gray-800">
-                    {device.name}
-                  </div>
-                  <div className="text-sm text-gray-600 mt-1">
-                    {device.address}
-                  </div>
-                  <div className={`text-xs mt-2 px-2 py-1 rounded ${
-                    device.device_state === 1
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {device.device_state === 1 ? 'Active' : device.device_state === 2 ? 'Inactive' : 'Unknown'}
+                <Popup className="dark:leaflet-popup">
+                  <div style={{ minWidth: '220px', padding: '0.25rem' }}>
+                    <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                      <Zap size={14} style={{ color: 'var(--text-accent)' }} /> {device.name}
+                    </div>
+                    <div style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <MapPin size={12} /> {device.address || 'Address not listed'}
+                    </div>
+                    
+                    <div className="divider" style={{ margin: '0.75rem 0' }} />
+                    
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Status</span>
+                      <DeviceStateBadge state={device.device_state} />
+                    </div>
+
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      fullWidth 
+                      onClick={() => window.location.href = `/devices/${device.id}`}
+                    >
+                      View Details <ChevronRight size={14} />
+                    </Button>
                   </div>
                 </Popup>
               </Marker>
@@ -202,122 +231,123 @@ export const MapView = () => {
         </div>
       )}
 
-      {/* Device List */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-gray-800">
-            All Devices ({devices.length})
-          </h2>
+      {/* Device List Section */}
+      <div className="card">
+        <div className="card-header">
+          <div>
+            <h2 className="section-title">All Devices</h2>
+            <p className="section-desc">Manage and locate your {devices.length} registered devices</p>
+          </div>
         </div>
-
-        {/* Device Search */}
-        <div className="mb-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+        
+        <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          {/* Device List Search */}
+          <div style={{ position: 'relative' }}>
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted" size={18} />
             <input
               type="text"
               value={deviceSearch}
               onChange={(e) => setDeviceSearch(e.target.value)}
               placeholder="Search by device name or location..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="input pl-10"
             />
             {isSearching && (
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                <div className="spinner-sm" />
               </div>
             )}
           </div>
-        </div>
 
-        {/* Device List */}
-        {displayDevices.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-gray-500">No devices found matching your search.</p>
-          </div>
-        ) : (
-          <>
-            <div className="space-y-3">
+          {/* List Content */}
+          {displayDevices.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '2rem 0' }}>
+              <p style={{ color: 'var(--text-muted)' }}>No devices found matching your search.</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {paginatedDevices.map((device) => (
                 <div
                   key={device.id}
-                  className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                  className="card-interactive"
+                  onClick={() => {
+                    // Logic to center map on this device if coords existed
+                    setDeviceSearch(device.name);
+                  }}
+                  style={{ padding: '1rem', background: 'var(--surface-secondary)' }}
                 >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-800">{device.name}</h3>
-                      <p className="text-sm text-gray-600 mt-1">
-                        <span className="font-medium">MAC:</span> {device.mac_address}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        <span className="font-medium">Address:</span> {device.address || 'Not specified'}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        <span className="font-medium">Status:</span>{' '}
-                        <span className={`inline-block px-2 py-0.5 rounded text-xs ${
-                          device.device_state === 1
-                            ? 'bg-green-100 text-green-800'
-                            : device.device_state === 2
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {device.device_state === 1 ? 'Active' : device.device_state === 2 ? 'Inactive' : 'Unknown'}
-                        </span>
-                      </p>
-                      {/* Coordinates not available in current backend */}
-                      <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
-                        <MapPin size={14} />
-                        Coordinates not available
-                      </p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Zap size={14} style={{ color: 'var(--text-accent)' }} />
+                        <h3 style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.9375rem' }}>{device.name}</h3>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0.25rem 1rem', marginTop: '0.5rem' }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>MAC</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>{device.mac_address}</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Location</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{device.address || 'Not specified'}</span>
+                      </div>
+                      <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                        <MapPin size={12} /> Coordinates not available
+                      </div>
                     </div>
+                    <DeviceStateBadge state={device.device_state} />
                   </div>
                 </div>
               ))}
             </div>
+          )}
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
-                <p className="text-sm text-gray-600">
-                  Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, displayDevices.length)} of {displayDevices.length} devices
-                </p>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                    disabled={currentPage === 1}
-                    className="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                  >
-                    <ChevronLeft size={16} />
-                    Previous
-                  </button>
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`px-3 py-1 rounded-lg ${
-                          currentPage === page
-                            ? 'bg-blue-600 text-white'
-                            : 'border border-gray-300 hover:bg-gray-50'
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ))}
-                  </div>
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                    disabled={currentPage === totalPages}
-                    className="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                  >
-                    Next
-                    <ChevronRight size={16} />
-                  </button>
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '1rem', borderTop: '1px solid var(--border-secondary)', marginTop: '0.5rem' }}>
+              <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
+                Showing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, displayDevices.length)} of {displayDevices.length}
+              </p>
+              <div style={{ display: 'flex', gap: '0.35rem' }}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft size={16} /> Prev
+                </Button>
+                <div style={{ display: 'flex', gap: '0.25rem' }}>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      style={{
+                        padding: '0.3rem 0.65rem',
+                        borderRadius: 'var(--radius-md)',
+                        fontSize: '0.8125rem',
+                        fontWeight: 600,
+                        border: '1px solid',
+                        background: currentPage === page ? 'var(--primary-500)' : 'transparent',
+                        color: currentPage === page ? '#fff' : 'var(--text-secondary)',
+                        borderColor: currentPage === page ? 'var(--primary-500)' : 'var(--border-primary)',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {page}
+                    </button>
+                  ))}
                 </div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next <ChevronRight size={16} />
+                </Button>
               </div>
-            )}
-          </>
-        )}
+            </div>
+          )}
+        </div>
       </div>
+
     </div>
   );
 };

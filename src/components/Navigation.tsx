@@ -258,8 +258,9 @@ export const Navigation = () => {
           </div>
 
           {/* Mobile toggle */}
-          <div className="md:hidden" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div className="md:hidden flex items-center gap-2">
             <button onClick={toggleTheme} style={{ padding: '0.4rem', borderRadius: 'var(--radius-md)', background: 'var(--surface-secondary)', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+
               {isDark ? <Sun size={18} /> : <Moon size={18} />}
             </button>
             <button onClick={() => setIsOpen(!isOpen)} style={{ padding: '0.4rem', borderRadius: 'var(--radius-md)', background: 'var(--surface-secondary)', border: '1px solid var(--border-primary)', cursor: 'pointer', color: 'var(--text-primary)' }}>

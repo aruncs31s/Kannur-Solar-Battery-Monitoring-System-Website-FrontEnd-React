@@ -7,11 +7,13 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   loading?: boolean;
+  fullWidth?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   as?: 'button' | 'a';
   href?: string;
 }
+
 
 const variantClass: Record<ButtonVariant, string> = {
   primary: 'btn-primary',
@@ -32,6 +34,7 @@ export const Button: React.FC<ButtonProps> = ({
   variant = 'secondary',
   size = 'md',
   loading = false,
+  fullWidth = false,
   leftIcon,
   rightIcon,
   children,
@@ -39,12 +42,14 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
+
   return (
     <button
-      className={`btn ${variantClass[variant]} ${sizeClass[size]} ${className}`}
+      className={`btn ${variantClass[variant]} ${sizeClass[size]} ${fullWidth ? 'w-full' : ''} ${className}`}
       disabled={disabled || loading}
       {...props}
     >
+
       {loading ? (
         <span className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} />
       ) : leftIcon ? (

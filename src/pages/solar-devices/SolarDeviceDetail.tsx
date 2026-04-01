@@ -5,15 +5,18 @@ import {
   Sun, Cpu, Radio, ChevronDown, ChevronRight,
   ArrowLeft, Activity, Zap, RefreshCw,
   MapPin, Settings, AlertCircle, TrendingUp,
-  Battery
+  Battery, Plus
 } from 'lucide-react';
+
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
 import { httpClient } from '../../infrastructure/http/HttpClient';
-import { DeviceResponseDTO, ConnectedDeviceDTO } from '../../domain/entities/Device';
+import { devicesAPI } from '../../api/devices';
+import { DeviceResponseDTO, ConnectedDeviceDTO, DeviceTypeDTO } from '../../domain/entities/Device';
 import { Reading } from '../../domain/entities/Reading';
+
 import { DeviceStateBadge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { ReadingMetricsCard } from '../../components/ui/ReadingMetricsCard';
@@ -21,8 +24,10 @@ import { HierarchyBreadcrumb } from '../../components/ui/HierarchyBreadcrumb';
 import { DeviceTypeIcon, isSensor } from '../../components/ui/DeviceTypeIcon';
 
 import { DeviceTokenModal } from '../../components/DeviceTokenModal';
+import { AddConnectedDeviceModal } from '../../components/AddConnectedDeviceModal';
 
 interface MCWithSensors extends ConnectedDeviceDTO {
+
   sensors: ConnectedDeviceDTO[];
   latestReading?: Reading | null;
   expanded: boolean;
@@ -40,8 +45,19 @@ export const SolarDeviceDetail = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [showTokenModal, setShowTokenModal] = useState(false);
   const [generatedToken, setGeneratedToken] = useState('');
+  
+  const [showAddMCModal, setShowAddMCModal] = useState(false);
+  const [deviceTypes, setDeviceTypes] = useState<DeviceTypeDTO[]>([]);
+
+  const loadDeviceTypes = useCallback(async () => {
+    try {
+      const types = await devicesAPI.getDeviceTypes();
+      setDeviceTypes(types);
+    } catch { }
+  }, []);
 
   const loadDevice = useCallback(async () => {
+
     setLoading(true);
     setError('');
     try {
@@ -138,7 +154,9 @@ export const SolarDeviceDetail = () => {
     loadDevice();
     loadHierarchy();
     loadReadings();
+    loadDeviceTypes();
   }, [id, refreshKey]);
+
 
   const toggleMC = (mcId: number) => {
     setMicrocontrollers(prev =>
@@ -315,10 +333,12 @@ export const SolarDeviceDetail = () => {
             </h2>
             <p className="section-desc">{microcontrollers.length} microcontroller{microcontrollers.length !== 1 ? 's' : ''} connected · expand to see sensors</p>
           </div>
-          <Button variant="secondary" size="sm" leftIcon={<Settings size={14} />} onClick={() => navigate(`/devices/${id}`)}>
-            Manage Connections
+          <Button variant="primary" size="sm" leftIcon={<Plus size={14} />} onClick={() => setShowAddMCModal(true)}>
+            Assign Microcontroller
           </Button>
         </div>
+
+
 
         {microcontrollers.length === 0 ? (
           <div className="card" style={{ padding: '3rem', textAlign: 'center' }}>
@@ -327,10 +347,12 @@ export const SolarDeviceDetail = () => {
             </div>
             <h3 style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>No Microcontrollers Connected</h3>
             <p style={{ color: 'var(--text-tertiary)', marginBottom: '1.25rem' }}>Connect an ESP32 or similar microcontroller to this solar device.</p>
-            <Button variant="secondary" leftIcon={<Settings size={14} />} onClick={() => navigate(`/devices/${id}`)}>
-              Go to Device Manager
+            <Button variant="primary" leftIcon={<Plus size={14} />} onClick={() => setShowAddMCModal(true)}>
+              Assign Microcontroller
             </Button>
           </div>
+
+
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {microcontrollers.map((mc, mcIdx) => (
@@ -348,9 +370,21 @@ export const SolarDeviceDetail = () => {
       </motion.div>
 
       <DeviceTokenModal isOpen={showTokenModal} token={generatedToken} onClose={() => { setShowTokenModal(false); setGeneratedToken(''); }} />
+      <AddConnectedDeviceModal
+        isOpen={showAddMCModal}
+        onClose={() => setShowAddMCModal(false)}
+        deviceId={id!}
+        deviceTypes={deviceTypes}
+        onSuccess={() => {
+          setShowAddMCModal(false);
+          setRefreshKey(k => k + 1);
+        }}
+        onError={(msg) => alert(msg)}
+      />
     </div>
   );
 };
+
 
 // ── Microcontroller Card ──────────────────────────────────────────────────
 interface MCCardProps {

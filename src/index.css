@@ -655,7 +655,50 @@
   .hierarchy-node:last-child::before {
     height: 1rem;
   }
+
+  /* ===== LEAFLET DARK MODE OVERRIDES ===== */
+  .dark .leaflet-popup-content-wrapper,
+  .dark .leaflet-popup-tip {
+    background-color: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-primary);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .dark .leaflet-popup-content {
+    margin: 12px 16px;
+    line-height: 1.4;
+  }
+
+  .dark .leaflet-container {
+    background: var(--bg-secondary) !important;
+  }
+
+  .dark .leaflet-bar a {
+    background-color: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+    border-bottom: 1px solid var(--border-secondary) !important;
+  }
+
+  .dark .leaflet-bar a:hover {
+    background-color: var(--surface-hover) !important;
+  }
+
+  .dark .leaflet-bar a.leaflet-disabled {
+    background-color: var(--surface-tertiary) !important;
+    color: var(--text-muted) !important;
+  }
+
+  .dark .leaflet-control-attribution {
+    background: rgba(46, 52, 64, 0.7) !important;
+    color: var(--text-muted) !important;
+  }
+
+  .dark .leaflet-control-attribution a {
+    color: var(--text-accent) !important;
+  }
 }
+
 
 @layer utilities {
   /* Scrollbar */

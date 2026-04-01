@@ -21,7 +21,7 @@ export const Section = ({
   noPadding = false
 }: SectionProps) => {
   return (
-    <div className={`bg-surface-primary rounded-2xl shadow-xl border border-border-primary ${className}`}>
+    <div className={`bg-primary-200 rounded-2xl shadow-xl border border-border-primary ${className}`}>
       {(title || headerAction) && (
         <div className={`flex items-center justify-between ${noPadding ? 'p-6' : 'p-6 border-b border-border-primary'}`}>
           {title && (
