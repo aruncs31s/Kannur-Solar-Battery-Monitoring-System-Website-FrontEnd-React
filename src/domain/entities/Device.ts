@@ -1,3 +1,20 @@
+// Hardware type enum mirrors backend model/device_types.go
+export enum HardwareType {
+  Unknown = 0,
+  MicroController = 1,
+  SingleBoardComputer = 2,
+  Sensor = 3,
+  Solar = 4,           // MPPT Solar Charger — TOP LEVEL
+  VoltageMeter = 5,
+  CurrentSensor = 6,
+  PowerMeter = 7,
+  Actuator = 8,
+}
+
+export const isSolarHardwareType = (ht: number) => ht === HardwareType.Solar;
+export const isMCHardwareType = (ht: number) => ht === HardwareType.MicroController || ht === HardwareType.SingleBoardComputer;
+export const isSensorHardwareType = (ht: number) => [HardwareType.Sensor, HardwareType.VoltageMeter, HardwareType.CurrentSensor, HardwareType.PowerMeter].includes(ht);
+export const isActuatorHardwareType = (ht: number) => ht === HardwareType.Actuator;
 
 export class Device {
   constructor(
@@ -10,7 +27,8 @@ export class Device {
     public version_id: number,
     public address: string,
     public city: string,
-    public device_state: number
+    public device_state: number,
+    public hardware_type?: number
   ) { }
 }
 
@@ -27,6 +45,7 @@ export interface DeviceResponseDTO {
   address: string;
   city: string;
   device_state: number;
+  hardware_type?: number;
 }
 
 export type DeviceStatus = "active" | "inactive" | "error" | "maintenance" | "decommissioned" | "unknown";
@@ -160,6 +179,8 @@ export interface ConnectedDeviceDTO {
   city: string;
   device_state: number;
   hardware_type?: number;
+  // For nested hierarchy — sensors connected to this MC
+  connected_sensors?: ConnectedDeviceDTO[];
 }
 
 export interface AddConnectedDeviceDTO {
@@ -186,3 +207,18 @@ export interface MainStatsDTO {
   avg_power: number;
 }
 
+// Full Solar Device detail with connected microcontrollers and their sensors
+export interface SolarDeviceDetailDTO extends DeviceResponseDTO {
+  device_type_name?: string;
+  connected_microcontrollers: ConnectedDeviceDTO[];
+}
+
+// Summary reading info for a device
+export interface DeviceLatestReadingDTO {
+  device_id: number;
+  voltage?: number;
+  current?: number;
+  power?: number;
+  temperature?: number;
+  timestamp?: number;
+}

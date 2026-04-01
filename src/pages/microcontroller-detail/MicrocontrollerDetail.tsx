@@ -1,17 +1,22 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Activity, X } from 'lucide-react';
+import { Activity, X, Cpu, Radio, Sun, ArrowLeft, ChevronRight } from 'lucide-react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
 import { readingsAPI } from '../../api/readings';
 import { devicesAPI } from '../../api/devices';
+import { httpClient } from '../../infrastructure/http/HttpClient';
 import { UpdateDeviceModal } from '../../components/UpdateDeviceModal';
 import { DeviceControlPanel } from '../../components/DeviceControlPanel';
 import { DeviceInfoCard } from '../../components/DeviceInfoCard';
-import { FirmwareUploadModal, OnlineFirmwareBuilder, OTAFirmwareUpload, Codegen, DeviceHeader, FirmwareBuilderModal } from '../../components';
+import { FirmwareUploadModal, OnlineFirmwareBuilder, OTAFirmwareUpload, DeviceHeader, FirmwareBuilderModal } from '../../components';
 import { DailyBreakdownCharts } from '../../components/DailyBreakdownCharts';
 import { DeviceTokenModal } from '../../components/DeviceTokenModal';
-import { DeviceTypeDTO } from '../../domain/entities/Device';
+import { DeviceTypeDTO, ConnectedDeviceDTO } from '../../domain/entities/Device';
 import { Reading } from '../../domain/entities/Reading';
+import { HierarchyBreadcrumb } from '../../components/ui/HierarchyBreadcrumb';
+import { DeviceTypeIcon } from '../../components/ui/DeviceTypeIcon';
+import { DeviceStateBadge } from '../../components/ui/Badge';
+import { ReadingMetricsCard } from '../../components/ui/ReadingMetricsCard';
 
 interface DeviceInfo {
   id: number;
@@ -36,6 +41,9 @@ export const MCDeviceDetail = () => {
   const [showTokenModal, setShowTokenModal] = useState(false);
   const [generatedToken, setGeneratedToken] = useState('');
   const [readingsLimit] = useState(20);
+  // Hierarchy context
+  const [connectedSensors, setConnectedSensors] = useState<ConnectedDeviceDTO[]>([]);
+  const [sensorReadings, setSensorReadings] = useState<Record<number, Reading | null>>({});
 
   // Firmware builder state
   const [showFirmwareModal, setShowFirmwareModal] = useState(false);
@@ -90,8 +98,8 @@ export const MCDeviceDetail = () => {
       loadDeviceData();
       loadReadings();
       loadDeviceTypes();
-      
-      // Auto-refresh every 30 seconds
+      loadConnectedSensors();
+
       intervalId = setInterval(() => {
         if (isMounted) {
           loadDeviceData();
@@ -99,14 +107,42 @@ export const MCDeviceDetail = () => {
         }
       }, 30000);
     }
-      
+
     return () => {
       isMounted = false;
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
+      if (intervalId) clearInterval(intervalId);
     };
   }, [id, readingsLimit, startDate, endDate, useDateFilter]);
+
+  const loadConnectedSensors = async () => {
+    if (!id) return;
+    try {
+      const resp = await httpClient.get<{ connected_devices: ConnectedDeviceDTO[] }>(`/devices/${id}/connected`);
+      const sensors = resp.connected_devices || [];
+      setConnectedSensors(sensors);
+      // Load latest reading for each sensor
+      const readings: Record<number, Reading | null> = {};
+      await Promise.all(sensors.map(async (s) => {
+        try {
+          const rr = await httpClient.get<{ readings: any[] }>(`/devices/${s.id}/readings/progressive`);
+          const allRdings = rr.readings || [];
+          const last = allRdings[allRdings.length - 1];
+          readings[s.id] = last ? {
+            id: `${s.id}-latest`,
+            deviceId: s.id.toString(),
+            voltage: last.voltage,
+            current: last.current,
+            avg_voltage: last.avg_voltage,
+            avg_current: last.avg_current,
+            power: (last.voltage || 0) * (last.current || 0),
+            timestamp: new Date(last.created_at).getTime(),
+          } : null;
+        } catch { readings[s.id] = null; }
+      }));
+      setSensorReadings(readings);
+    } catch { /* no sensors */ }
+  };
+
 
   const loadDeviceTypes = async () => {
     try {
@@ -221,9 +257,7 @@ export const MCDeviceDetail = () => {
     setUpdateMessage('');
   };
 
-  const openFirmwareModal = () => {
-    setShowFirmwareModal(true);
-  };
+  const openFirmwareModal = () => setShowFirmwareModal(true);
 
   const closeFirmwareModal = () => {
     setShowFirmwareModal(false);
@@ -435,8 +469,22 @@ export const MCDeviceDetail = () => {
   const deviceOnline = isDeviceOnline();
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      {/* Breadcrumb */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <button onClick={() => navigate(-1)} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.35rem 0.75rem', background: 'var(--surface-secondary)', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.8125rem', fontWeight: 500 }}>
+          <ArrowLeft size={14} /> Back
+        </button>
+        <HierarchyBreadcrumb
+          items={[
+            { label: 'Solar Devices', href: '/solar-devices', icon: <Sun size={12} /> },
+            { label: device.name, icon: <Cpu size={12} /> },
+          ]}
+        />
+        <span className="badge badge-micro"><Cpu size={10} /> Microcontroller</span>
+      </div>
+
+      {/* Original Header */}
       <DeviceHeader
         device={device}
         deviceOnline={deviceOnline}
@@ -480,7 +528,56 @@ export const MCDeviceDetail = () => {
         onGenerateToken={generateFirmwareToken}
       />
 
-      <div className="grid grid-cols-1  gap-6">
+
+      {/* Sensors Section */}
+      {connectedSensors.length > 0 && (
+        <div className="card">
+          <div className="card-header">
+            <div>
+              <h2 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Radio size={16} style={{ color: 'var(--sensor-color)' }} /> Connected Sensors
+              </h2>
+              <p className="section-desc">{connectedSensors.length} sensor{connectedSensors.length !== 1 ? 's' : ''} connected to this microcontroller</p>
+            </div>
+          </div>
+          <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {connectedSensors.map(sensor => (
+              <div key={sensor.id} style={{ border: '1px solid var(--border-secondary)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
+                <button
+                  onClick={() => navigate(`/devices/${sensor.id}`)}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '0.875rem', padding: '0.875rem 1rem', background: 'var(--surface-secondary)', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+                >
+                  <DeviceTypeIcon hardwareType={sensor.hardware_type ?? 3} size={15} />
+                  <div style={{ flex: 1 }}>
+                    <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.875rem' }}>{sensor.name}</span>
+                    {sensor.type && <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '0.5rem' }}>· {sensor.type}</span>}
+                  </div>
+                  <DeviceStateBadge state={sensor.device_state} />
+                  <ChevronRight size={14} style={{ color: 'var(--text-muted)' }} />
+                </button>
+                {sensorReadings[sensor.id] && (
+                  <div style={{ padding: '0.75rem 1rem', borderTop: '1px solid var(--border-secondary)' }}>
+                    <ReadingMetricsCard
+                      voltage={sensorReadings[sensor.id]?.voltage}
+                      current={sensorReadings[sensor.id]?.current}
+                      power={sensorReadings[sensor.id]?.power}
+                      updatedAt={sensorReadings[sensor.id]?.timestamp}
+                      compact
+                    />
+                  </div>
+                )}
+                {!sensorReadings[sensor.id] && (
+                  <div style={{ padding: '0.5rem 1rem', borderTop: '1px solid var(--border-secondary)' }}>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>No readings available yet</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 gap-6">
 
         {/* Device Info */}
         <DeviceInfoCard
@@ -542,14 +639,16 @@ export const MCDeviceDetail = () => {
           onGenerateToken={generateToken}
         />
 
-        {/* Custom Firmware Builder */}
-        {/* <Codegen
-          onOpenFirmwareModal={openFirmwareModal}
-          onOpenOnlineBuilder={() => setIsOnlineBuilderOpen(true)}
-          onOpenOTAUpload={() => setIsOTAUploadOpen(true)}
-          onOpenFirmwareUpload={() => setIsFirmwareUploadModalOpen(true)}
-          generatedToken={generatedToken}
-        /> */}
+        {/* Firmware Builder Button */}
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={openFirmwareModal}
+          title="Open firmware builder"
+          style={{ display: 'none' }}
+          aria-hidden
+        >
+          Firmware Builder
+        </button>
       </div>
 
       {/* Main Aggregate Chart */}

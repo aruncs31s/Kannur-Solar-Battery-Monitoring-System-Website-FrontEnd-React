@@ -29,6 +29,8 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { MCDeviceDetail } from "./pages/microcontroller-detail/MicrocontrollerDetail";
 import { NotFound } from "./pages/not-found/NotFound";
 import { ApiError } from "./pages/api-error/ApiError";
+import { SolarDevices } from "./pages/solar-devices/SolarDevices";
+import { SolarDeviceDetail } from "./pages/solar-devices/SolarDeviceDetail";
 
 function App() {
   const { initAuth } = useAuthStore();
@@ -173,6 +175,27 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/solar-devices"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <SolarDevices />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/solar-devices/:id"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <SolarDeviceDetail />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/profile"
           element={

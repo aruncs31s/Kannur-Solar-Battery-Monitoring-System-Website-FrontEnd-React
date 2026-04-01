@@ -1,28 +1,31 @@
-// Common UI Components - Centralized exports
-// TODO: Find out more?
+// Re-export all shared UI components from a single entry point
+export { Button } from './ui/Button';
+export { Badge, DeviceStateBadge } from './ui/Badge';
+export { DeviceTypeIcon, getHardwareTypeInfo, isSolarDevice, isMicrocontroller, isSensor, isActuator, HARDWARE_TYPES } from './ui/DeviceTypeIcon';
+export { ReadingMetricsCard } from './ui/ReadingMetricsCard';
+export { HierarchyBreadcrumb } from './ui/HierarchyBreadcrumb';
+export type { BreadcrumbItem } from './ui/HierarchyBreadcrumb';
+
+// Legacy exports (keep existing)
+export { StatusBadge, StatsCard } from './Cards';
+export { EmptyState } from './EmptyState';
 export { LoadingState } from './LoadingState';
-export { BackButton } from './BackButton';
 export { PageHeader } from './PageHeader';
 export { PageHeaderWithBack } from './PageHeaderWithBack';
-export { EmptyState } from './EmptyState';
-export { DataTable } from './DataTable';
-export { Modal } from './Modal';
-export { ActionButton } from './ActionButton';
-export { Tabs } from './Tabs';
-export { StatsGrid } from './StatsGrid';
 export { Section } from './Section';
-export { LiveReadingsSection } from './LiveReadingsSection';
-export { StatsCard, StatusBadge } from './Cards';
-export { FormError, FormSuccess, FormInput, FormField } from './FormComponents';
-export { DateRangeFilter } from './DateRangeFilter';
-export { MicrocontrollerCard } from './MicrocontrollerCard';
-export { MicrocontrollersSection } from './MicrocontrollersSection';
+export { Modal } from './Modal';
+export { Tabs } from './Tabs';
+export { SearchBar } from './SearchBar';
+export { BackButton } from './BackButton';
+
+// Additional component exports used by existing pages
+export { DeviceHeader } from './DeviceHeader';
 export { FirmwareUploadModal } from './FirmwareUploadModal';
+export { FirmwareBuilderModal } from './FirmwareBuilderModal';
 export { OnlineFirmwareBuilder } from './OnlineFirmwareBuilder';
 export { OTAFirmwareUpload } from './OTAFirmwareUpload';
-export { DailyBreakdownCharts } from './DailyBreakdownCharts';
-export { LocationDeviceCard } from './LocationDeviceCard';
 export { Codegen } from './Codegen';
-export { DeviceHeader } from './DeviceHeader';
-export { FirmwareBuilderModal } from './FirmwareBuilderModal';
-export { DeviceTokenModal } from './DeviceTokenModal';
+export { DataTable } from './DataTable';
+export { ActionButton } from './ActionButton';
+export { FormError, FormField } from './FormComponents';
+
