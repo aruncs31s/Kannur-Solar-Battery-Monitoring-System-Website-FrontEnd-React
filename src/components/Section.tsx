@@ -28,10 +28,11 @@ export const Section = ({
             <div>
               <h2 className="text-2xl font-bold text-text-primary flex items-center gap-3">
                 {Icon && (
-                  <div className="p-2 bg-primary-200 dark:bg-primary-900 rounded-xl">
+                  <div className="p-2 bg-primary-100 dark:bg-primary-50 rounded-xl">
                     <Icon className="text-text-primary" size={24} />
                   </div>
                 )}
+
                 {title}
               </h2>
               {description && (

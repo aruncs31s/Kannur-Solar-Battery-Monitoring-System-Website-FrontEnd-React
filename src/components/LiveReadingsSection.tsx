@@ -72,20 +72,21 @@ export const LiveReadingsSection = ({
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
-            <p className="text-gray-600 dark:text-gray-400">Loading live readings...</p>
+            <p className="text-text-secondary">Loading live readings...</p>
           </div>
         </div>
       ) : devices.length > 0 ? (
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+            <label className="block text-sm font-semibold text-text-secondary mb-3">
               Select Device
             </label>
             <select
               value={selectedDeviceId || ''}
               onChange={(e) => onDeviceChange(Number(e.target.value))}
-              className="w-full md:w-96 px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-medium transition-all"
+              className="w-full md:w-96 px-4 py-3 border-2 border-border-primary rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-surface-primary text-text-primary font-medium transition-all"
             >
+
               {devices.map((device) => (
                 <option key={device.id} value={device.id}>
                   {device.name} - {device.address}
@@ -370,25 +371,27 @@ export const LiveReadingsSection = ({
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-2 border-yellow-200 dark:border-yellow-700 rounded-2xl p-8 text-center"
+              className="bg-gradient-to-br from-warning-bg to-orange-400/5 border-2 border-warning-border rounded-2xl p-8 text-center"
             >
-              <Activity className="mx-auto text-yellow-600 dark:text-yellow-400 mb-4" size={48} />
-              <h3 className="text-lg font-bold text-yellow-800 dark:text-yellow-200 mb-2">
+              <Activity className="mx-auto text-warning mb-4" size={48} />
+              <h3 className="text-lg font-bold text-text-primary mb-2">
                 No Readings Available
               </h3>
-              <p className="text-yellow-700 dark:text-yellow-300">
+              <p className="text-text-secondary">
                 No voltage readings found for this device yet.
               </p>
             </motion.div>
+
           )}
         </div>
       ) : (
         <div className="text-center py-12">
-          <AlertCircle className="mx-auto text-gray-400 mb-2" size={48} />
-          <p className="text-gray-500 dark:text-gray-400">
+          <AlertCircle className="mx-auto text-text-muted mb-2" size={48} />
+          <p className="text-text-secondary">
             No devices found.  add devices to see readings.
           </p>
         </div>
+
       )}
     </Section>
   );
