@@ -14,10 +14,12 @@ export const Dashboard = () => {
   const navigate = useNavigate();
   const {
     devices,
+    solarDevices,
     readings,
     selectedDeviceId,
     setSelectedDeviceId,
     recentDevices,
+    loadingSolarDevices,
     loadingRecent,
     loadingReadings,
     stats,
@@ -47,7 +49,7 @@ export const Dashboard = () => {
 
       <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }}>
         <LiveReadingsSection
-          devices={devices}
+          devices={solarDevices}
           readings={readings}
           selectedDeviceId={selectedDeviceId}
           onDeviceChange={setSelectedDeviceId}

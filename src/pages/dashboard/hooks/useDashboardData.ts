@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { devicesAPI } from '../../../api/devices';
 import { readingsAPI } from '../../../api/readings';
 import { container } from '../../../application/di/container';
-import { DeviceResponseDTO, MainStatsDTO } from '../../../domain/entities/Device';
+import { DeviceResponseDTO, MainStatsDTO, SolarDeviceView } from '../../../domain/entities/Device';
 import { Reading } from '../../../domain/entities/Reading';
 import { useDevicesStore } from '../../../store/devicesStore';
 import { limitArraySize } from '../../../utils/performanceConfig';
@@ -30,6 +30,7 @@ export interface DashboardAlert {
 
 export interface DashboardDataSource {
   getAllDevices: () => Promise<DeviceResponseDTO[]>;
+  getSolarDevices: () => Promise<SolarDeviceView[]>;
   getRecentDevices: () => Promise<DeviceResponseDTO[]>;
   getOfflineDevices: () => Promise<DeviceResponseDTO[]>;
   getProgressiveReadings: (deviceId: number) => Promise<Reading[]>;
@@ -39,6 +40,7 @@ export interface DashboardDataSource {
 
 const defaultDataSource: DashboardDataSource = {
   getAllDevices: () => devicesAPI.getMyDevices(),
+  getSolarDevices: () => container.getGetMySolarDevicesUseCase().execute(),
   getRecentDevices: () => container.getGetRecentDevicesUseCase().execute(),
   getOfflineDevices: () => container.getGetOfflineDevicesUseCase().execute(),
   getProgressiveReadings: (deviceId: number) => readingsAPI.getProgressiveByDevice(deviceId),
@@ -48,12 +50,14 @@ const defaultDataSource: DashboardDataSource = {
 
 export const useDashboardData = (dataSource: DashboardDataSource = defaultDataSource) => {
   const { devices, setDevices, setLoading, setError } = useDevicesStore();
+  const [solarDevices, setSolarDevices] = useState<SolarDeviceView[]>([]);
   const [readings, setReadings] = useState<Reading[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
   const [recentDevices, setRecentDevices] = useState<DeviceResponseDTO[]>([]);
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
   const [offlineDevices, setOfflineDevices] = useState<DeviceResponseDTO[]>([]);
   const [apiStats, setApiStats] = useState<MainStatsDTO | null>(null);
+  const [loadingSolarDevices, setLoadingSolarDevices] = useState(true);
   const [loadingRecent, setLoadingRecent] = useState(true);
   const [loadingReadings, setLoadingReadings] = useState(false);
   const [loadingStats, setLoadingStats] = useState(true);
@@ -63,6 +67,7 @@ export const useDashboardData = (dataSource: DashboardDataSource = defaultDataSo
     let isMounted = true;
 
     const fetchDevices = async () => {
+      console.log('Fetching devices for dashboard...');
       setLoading(true);
       try {
         const response = await dataSource.getAllDevices();
@@ -137,6 +142,32 @@ export const useDashboardData = (dataSource: DashboardDataSource = defaultDataSo
     };
 
     void fetchOfflineDevices();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [dataSource]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchSolarDevices = async () => {
+      setLoadingSolarDevices(true);
+      try {
+        const solar = await dataSource.getSolarDevices();
+        if (isMounted) {
+          setSolarDevices(solar);
+        }
+      } catch (error) {
+        console.error('Failed to fetch solar devices:', error);
+      } finally {
+        if (isMounted) {
+          setLoadingSolarDevices(false);
+        }
+      }
+    };
+
+    void fetchSolarDevices();
 
     return () => {
       isMounted = false;
@@ -323,6 +354,7 @@ export const useDashboardData = (dataSource: DashboardDataSource = defaultDataSo
 
   return {
     devices,
+    solarDevices,
     readings,
     selectedDeviceId,
     setSelectedDeviceId,
@@ -330,6 +362,7 @@ export const useDashboardData = (dataSource: DashboardDataSource = defaultDataSo
     loadingRecent,
     loadingReadings,
     loadingStats,
+    loadingSolarDevices,
     stats,
     alerts,
     dismissAlert,

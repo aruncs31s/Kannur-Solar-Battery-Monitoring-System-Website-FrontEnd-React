@@ -58,7 +58,7 @@ export class DeviceRepository implements IDeviceRepository {
   }
   async getOfflineDevices(): Promise<DeviceResponseDTO[]> {
     const response = await httpClient.get<{ devices: any[] }>('/devices/solar/offline');
-    return response.devices.map(dto => ({
+    return (response.devices || []).map(dto => ({
       id: dto.id,
       name: dto.name || '',
       type: dto.type || '',

@@ -27,7 +27,7 @@ export class Device {
     public version_id: number,
     public address: string,
     public city: string,
-    public device_state: number,
+    public status: string,
     public hardware_type?: number
   ) { }
 }
@@ -44,7 +44,7 @@ export interface DeviceResponseDTO {
   version_id: number;
   address: string;
   city: string;
-  device_state: number;
+  status: string;
   hardware_type?: number;
 }
 

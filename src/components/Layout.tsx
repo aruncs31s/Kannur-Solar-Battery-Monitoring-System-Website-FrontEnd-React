@@ -43,8 +43,8 @@ export const Layout = ({ children }: LayoutProps) => {
               </div>
             </div>
           </div>
-          <div className="border-t border-gray-800 pt-6 text-center">
-            <p className="text-sm text-gray-400">&copy; 2026 Solar Battery Monitoring System. All rights reserved.</p>
+          <div className="border-t border-border-primary pt-6 text-center">
+            <p className="text-sm text-text-tertiary">&copy; 2026 Solar Battery Monitoring System. All rights reserved.</p>
           </div>
         </div>
       </footer>

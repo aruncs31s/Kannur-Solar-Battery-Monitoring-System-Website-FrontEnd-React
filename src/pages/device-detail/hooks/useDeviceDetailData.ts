@@ -313,26 +313,46 @@ export const useDeviceDetailData = (id: string | undefined) => {
   };
 
   const controlDevice = async (action: number) => {
-    try {
-      const response = await devicesAPI.controlDevice(parseInt(id!), action);
+    if (!id) {
+      console.error('Device ID is missing');
+      setControlMessage('Error: Device ID not found');
+      return;
+    }
 
-      if (response.success) {
+    try {
+      const deviceId = parseInt(id, 10);
+      if (isNaN(deviceId)) {
+        throw new Error(`Invalid device ID: ${id}`);
+      }
+
+      console.log(`Sending control action: ${action} for device: ${deviceId}`);
+      const response = await devicesAPI.controlDevice(deviceId, action);
+      console.log('Control response:', response);
+
+      if (response && response.success === true) {
         const actionNames: { [key: number]: string } = {
           4: 'turned on',
           5: 'turned off',
           6: 'configured',
         };
-        setControlMessage(`Device ${actionNames[action]} successfully!`);
+        const message = `Device ${actionNames[action] || 'action completed'} successfully!`;
+        console.log('Setting control message:', message);
+        setControlMessage(message);
+        
         setTimeout(() => {
+          console.log('Reloading device data...');
           loadDeviceData();
           setControlMessage('');
         }, 2000);
       } else {
-        setControlMessage(response.message || 'Control action failed');
+        const errorMsg = response?.message || 'Control action failed';
+        console.warn('Control action failed:', errorMsg, 'Response:', response);
+        setControlMessage(errorMsg);
       }
     } catch (err) {
-      setControlMessage('Failed to control device');
-      console.error(err);
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      console.error('Error in controlDevice:', err);
+      setControlMessage(`Error: ${errorMsg}`);
     }
   };
 

@@ -4,7 +4,8 @@ import { memo } from 'react';
 
 // Status Cards Shown above
 interface StatusBadgeProps {
-  status: 'active' | 'inactive' | 'error' | 'maintenance' | 'decommissioned' | 'unknown' | 'online';
+  // status: 'active' | 'inactive' | 'error' | 'maintenance' | 'decommissioned' | 'unknown' | 'online';
+  status: string;
 }
 
 export const StatusBadge = memo(({ status }: StatusBadgeProps) => {

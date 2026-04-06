@@ -4,9 +4,10 @@ import { Cpu, TrendingUp, MapPin, X, Copy, Check, AlertCircle } from 'lucide-rea
 import { StatusBadge } from './Cards';
 import { devicesAPI } from '../api/devices';
 import { useState } from 'react';
+import { DeviceResponseDTO} from '../domain/entities/Device';
 
 interface AllDevicesSectionProps {
-  devices: any[];
+  devices: DeviceResponseDTO[];
   showGenerateToken?: boolean;
   maxDevices?: number;
   title?: string;
@@ -73,7 +74,8 @@ export const AllDevicesSection = ({ devices, showGenerateToken = false, maxDevic
                       <p className="text-xs text-gray-600 dark:text-gray-400 font-mono">{device.mac_address}</p>
                     </Link>
                   </div>
-                  <StatusBadge status={device.device_state === 1 ? 'active' : device.device_state === 2 ? 'inactive' : 'unknown'} />
+                  
+                  <StatusBadge status={device.status} />
                 </div>
                 <div className="space-y-2.5 text-sm text-gray-600 dark:text-gray-400">
                   <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 rounded-lg px-3 py-2">

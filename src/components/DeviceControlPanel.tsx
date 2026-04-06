@@ -8,6 +8,26 @@ interface DeviceControlPanelProps {
   onGenerateToken: () => void;
 }
 
+const DEVICE_STATES = {
+  1: 'Active',
+  2: 'InActive',
+  3: 'Maintenance',
+  4: 'Decommissioned',
+  5: 'Initialized',
+} as const;
+
+const DEVICE_ACTIONS = {
+  CREATE: 1,
+  UPDATE: 2,
+  DELETE: 3,
+  TURN_ON: 4,
+  TURN_OFF: 5,
+  CONFIGURE: 6,
+} as const;
+
+
+
+
 export const DeviceControlPanel = ({
   deviceState,
   canControl,
@@ -22,7 +42,7 @@ export const DeviceControlPanel = ({
       <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Control Panel</h2>
       <div className="grid grid-cols-2 gap-4">
         <button
-          onClick={() => onControl(4)}
+          onClick={() => onControl(DEVICE_ACTIONS.TURN_ON)}
           disabled={deviceState === 1}
           className="flex flex-col items-center justify-center p-4 bg-success hover:bg-success/80 disabled:bg-nord-3 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
         >
@@ -30,7 +50,7 @@ export const DeviceControlPanel = ({
           <span className="mt-2 text-sm font-medium">Turn On</span>
         </button>
         <button
-          onClick={() => onControl(5)}
+          onClick={() => onControl(DEVICE_ACTIONS.TURN_OFF)}
           disabled={deviceState === 2}
           className="flex flex-col items-center justify-center p-4 bg-error hover:bg-error/80 disabled:bg-nord-3 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
         >
@@ -38,7 +58,7 @@ export const DeviceControlPanel = ({
           <span className="mt-2 text-sm font-medium">Turn Off</span>
         </button>
         <button
-          onClick={() => onControl(6)}
+          onClick={() => onControl(DEVICE_ACTIONS.CONFIGURE)}
           disabled={deviceState === 3 || deviceState === 4}
           className="flex flex-col items-center justify-center p-4 bg-nord-8 hover:bg-nord-9 disabled:bg-nord-3 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
         >

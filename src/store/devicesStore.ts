@@ -1,11 +1,11 @@
 import { create } from 'zustand';
-import { Device } from '../domain/entities/Device';
+import { DeviceResponseDTO } from '../domain/entities/Device';
 
 interface DevicesStore {
-  devices: Device[];
+  devices: DeviceResponseDTO[];
   isLoading: boolean;
   error: string | null;
-  setDevices: (devices: Device[]) => void;
+  setDevices: (devices: DeviceResponseDTO[]) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
 }

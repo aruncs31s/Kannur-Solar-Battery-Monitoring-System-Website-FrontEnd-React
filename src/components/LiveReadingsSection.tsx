@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Activity, AlertCircle, Zap, TrendingUp, Battery } from 'lucide-react';
-import { DeviceResponseDTO } from '../domain/entities/Device';
+import { DeviceResponseDTO, SolarDeviceView } from '../domain/entities/Device';
 import { Section } from './Section';
 
 interface LiveReadingsSectionProps {
-  devices: DeviceResponseDTO[];
+  devices: SolarDeviceView[];
   readings: any[];
   selectedDeviceId: number | null;
   onDeviceChange: (deviceId: number) => void;
@@ -99,31 +99,37 @@ export const LiveReadingsSection = ({
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <motion.div
-                  whileHover={{ scale: 1.01 }}
-                  className="relative overflow-hidden bg-primary-200 text-text-primary rounded-2xl p-6 shadow-lg"
+                  whileHover={{ scale: 1.02 }}
+                  className="relative overflow-hidden bg-primary-500 text-white rounded-2xl p-6 shadow-lg border border-primary-400"
                 >
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-primary-100/10 rounded-full blur-2xl" />
-                  <Zap size={32} className="mb-2 opacity-80" />
-                  <p className="text-primary-600 text-sm font-medium">Voltage</p>
-                  <p className="text-4xl font-bold mt-1">{readings[0].voltage.toFixed(2)}V</p>
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
+                  <div className="relative z-10">
+                    <Zap size={32} className="mb-3 text-primary-100" />
+                    <p className="text-primary-100 text-sm font-medium">Voltage</p>
+                    <p className="text-4xl font-bold mt-2">{readings[0].voltage.toFixed(2)}V</p>
+                  </div>
                 </motion.div>
                 <motion.div
-                  whileHover={{ scale: 1.01 }}
-                  className="relative overflow-hidden bg-success text-text-primary rounded-2xl p-6 shadow-lg"
+                  whileHover={{ scale: 1.02 }}
+                  className="relative overflow-hidden bg-success text-white rounded-2xl p-6 shadow-lg border border-success/60"
                 >
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-success/10 rounded-full blur-2xl" />
-                  <Activity size={32} className="mb-2 opacity-80" />
-                  <p className="text-success/80 text-sm font-medium">Current</p>
-                  <p className="text-4xl font-bold mt-1">{readings[0].current.toFixed(2)}A</p>
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
+                  <div className="relative z-10">
+                    <Activity size={32} className="mb-3 text-white/90" />
+                    <p className="text-white/90 text-sm font-medium">Current</p>
+                    <p className="text-4xl font-bold mt-2">{readings[0].current.toFixed(2)}A</p>
+                  </div>
                 </motion.div>
                 <motion.div
-                  whileHover={{ scale: 1.01 }}
-                  className="relative overflow-hidden bg-primary-300 text-text-primary rounded-2xl p-6 shadow-lg"
+                  whileHover={{ scale: 1.02 }}
+                  className="relative overflow-hidden bg-secondary-500 text-white rounded-2xl p-6 shadow-lg border border-secondary-400"
                 >
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-primary-200/10 rounded-full blur-2xl" />
-                  <Battery size={32} className="mb-2 opacity-80" />
-                  <p className="text-primary-500 text-sm font-medium">Power</p>
-                  <p className="text-4xl font-bold mt-1">{readings[0].power.toFixed(2)}W</p>
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
+                  <div className="relative z-10">
+                    <Battery size={32} className="mb-3 text-white/90" />
+                    <p className="text-white/90 text-sm font-medium">Power</p>
+                    <p className="text-4xl font-bold mt-2">{readings[0].power.toFixed(2)}W</p>
+                  </div>
                 </motion.div>
               </div>
 
@@ -131,102 +137,102 @@ export const LiveReadingsSection = ({
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <motion.div
                   whileHover={{ scale: 1.02 }}
-                  className={`bg-gradient-to-br from-blue-600 to-blue-800 text-white rounded-2xl p-6 cursor-pointer transition-all duration-200 shadow-lg ${selectedMetric === 'voltage' ? 'ring-2 ring-blue-400 scale-105' : 'hover:scale-105'
+                  className={`bg-primary-600 text-white rounded-2xl p-6 cursor-pointer transition-all duration-200 shadow-lg border border-primary-500 ${selectedMetric === 'voltage' ? 'ring-2 ring-primary-400 scale-105' : 'hover:scale-105'
                     }`}
                   onClick={() => setSelectedMetric(selectedMetric === 'voltage' ? 'all' : 'voltage')}
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-blue-100 text-sm font-medium">Average Voltage</p>
+                      <p className="text-primary-100 text-sm font-medium">Average Voltage</p>
                       <p className="text-3xl font-bold mt-1">{averages.voltage.toFixed(2)}V</p>
-                      <p className="text-blue-200 text-xs mt-1">Click to focus</p>
+                      <p className="text-primary-200 text-xs mt-1">Click to focus</p>
                     </div>
-                    <Zap size={32} className="text-blue-200" />
+                    <Zap size={32} className="text-primary-100" />
                   </div>
                 </motion.div>
 
                 <motion.div
                   whileHover={{ scale: 1.02 }}
-                  className={`bg-gradient-to-br from-green-600 to-green-800 text-white rounded-2xl p-6 cursor-pointer transition-all duration-200 shadow-lg ${selectedMetric === 'current' ? 'ring-2 ring-green-400 scale-105' : 'hover:scale-105'
+                  className={`bg-success text-white rounded-2xl p-6 cursor-pointer transition-all duration-200 shadow-lg border border-success/60 ${selectedMetric === 'current' ? 'ring-2 ring-success/80 scale-105' : 'hover:scale-105'
                     }`}
                   onClick={() => setSelectedMetric(selectedMetric === 'current' ? 'all' : 'current')}
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-green-100 text-sm font-medium">Average Current</p>
+                      <p className="text-white/90 text-sm font-medium">Average Current</p>
                       <p className="text-3xl font-bold mt-1">{averages.current.toFixed(2)}A</p>
-                      <p className="text-green-200 text-xs mt-1">Click to focus</p>
+                      <p className="text-white/70 text-xs mt-1">Click to focus</p>
                     </div>
-                    <Activity size={32} className="text-green-200" />
+                    <Activity size={32} className="text-white/90" />
                   </div>
                 </motion.div>
 
                 <motion.div
                   whileHover={{ scale: 1.02 }}
-                  className={`bg-gradient-to-br from-purple-600 to-purple-800 text-white rounded-2xl p-6 cursor-pointer transition-all duration-200 shadow-lg ${selectedMetric === 'power' ? 'ring-2 ring-purple-400 scale-105' : 'hover:scale-105'
+                  className={`bg-secondary-500 text-white rounded-2xl p-6 cursor-pointer transition-all duration-200 shadow-lg border border-secondary-400 ${selectedMetric === 'power' ? 'ring-2 ring-secondary-300 scale-105' : 'hover:scale-105'
                     }`}
                   onClick={() => setSelectedMetric(selectedMetric === 'power' ? 'all' : 'power')}
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-purple-100 text-sm font-medium">Average Power</p>
+                      <p className="text-white/90 text-sm font-medium">Average Power</p>
                       <p className="text-3xl font-bold mt-1">{averages.power.toFixed(2)}W</p>
-                      <p className="text-purple-200 text-xs mt-1">Click to focus</p>
+                      <p className="text-white/70 text-xs mt-1">Click to focus</p>
                     </div>
-                    <Battery size={32} className="text-purple-200" />
+                    <Battery size={32} className="text-white/90" />
                   </div>
                 </motion.div>
 
                 <motion.div
                   whileHover={{ scale: 1.02 }}
-                  className={`bg-gradient-to-br from-indigo-600 to-indigo-800 text-white rounded-2xl p-6 cursor-pointer transition-all duration-200 shadow-lg ${selectedMetric === 'avg_voltage' ? 'ring-2 ring-indigo-400 scale-105' : 'hover:scale-105'
+                  className={`bg-primary-500 text-white rounded-2xl p-6 cursor-pointer transition-all duration-200 shadow-lg border border-primary-400 ${selectedMetric === 'avg_voltage' ? 'ring-2 ring-primary-300 scale-105' : 'hover:scale-105'
                     }`}
                   onClick={() => setSelectedMetric(selectedMetric === 'avg_voltage' ? 'all' : 'avg_voltage')}
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-indigo-100 text-sm font-medium">Avg Voltage</p>
+                      <p className="text-white/90 text-sm font-medium">Avg Voltage</p>
                       <p className="text-3xl font-bold mt-1">{averages.avg_voltage.toFixed(2)}V</p>
-                      <p className="text-indigo-200 text-xs mt-1">Click to focus</p>
+                      <p className="text-white/70 text-xs mt-1">Click to focus</p>
                     </div>
-                    <Zap size={32} className="text-indigo-200" />
+                    <Zap size={32} className="text-white/90" />
                   </div>
                 </motion.div>
 
                 <motion.div
                   whileHover={{ scale: 1.02 }}
-                  className={`bg-gradient-to-br from-teal-600 to-teal-800 text-white rounded-2xl p-6 cursor-pointer transition-all duration-200 shadow-lg ${selectedMetric === 'avg_current' ? 'ring-2 ring-teal-400 scale-105' : 'hover:scale-105'
+                  className={`bg-secondary-600 text-white rounded-2xl p-6 cursor-pointer transition-all duration-200 shadow-lg border border-secondary-500 ${selectedMetric === 'avg_current' ? 'ring-2 ring-secondary-400 scale-105' : 'hover:scale-105'
                     }`}
                   onClick={() => setSelectedMetric(selectedMetric === 'avg_current' ? 'all' : 'avg_current')}
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-teal-100 text-sm font-medium">Avg Current</p>
+                      <p className="text-white/90 text-sm font-medium">Avg Current</p>
                       <p className="text-3xl font-bold mt-1">{averages.avg_current.toFixed(2)}A</p>
-                      <p className="text-teal-200 text-xs mt-1">Click to focus</p>
+                      <p className="text-white/70 text-xs mt-1">Click to focus</p>
                     </div>
-                    <Activity size={32} className="text-teal-200" />
+                    <Activity size={32} className="text-white/90" />
                   </div>
                 </motion.div>
               </div>
 
               {chartData.length > 1 && (
                 <div className="space-y-4">
-                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
+                  <div className="bg-surface-secondary rounded-2xl p-6 border border-border-primary">
                     <h3 className="font-bold text-text-primary mb-4 flex items-center gap-2">
-                      <TrendingUp size={20} className="text-primary-400" />
+                      <TrendingUp size={20} className="text-primary-500" />
                       Voltage Trend {selectedMetric !== 'all' && (selectedMetric === 'voltage' || selectedMetric === 'avg_voltage') && ` - ${selectedMetric === 'voltage' ? 'Voltage' : 'Avg Voltage'} Focus`}
                     </h3>
                     <ResponsiveContainer width="100%" height={200}>
                       <AreaChart data={chartData}>
                         <defs>
                           <linearGradient id="colorVoltage" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="var(--primary-200)" stopOpacity={0.8} />
-                            <stop offset="95%" stopColor="var(--primary-200)" stopOpacity={0.1} />
+                            <stop offset="5%" stopColor="var(--primary-500)" stopOpacity={0.8} />
+                            <stop offset="95%" stopColor="var(--primary-500)" stopOpacity={0.1} />
                           </linearGradient>
                           <linearGradient id="colorAvgVoltage" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#6366F1" stopOpacity={0.8} />
-                            <stop offset="95%" stopColor="#6366F1" stopOpacity={0.1} />
+                            <stop offset="5%" stopColor="var(--secondary-500)" stopOpacity={0.8} />
+                            <stop offset="95%" stopColor="var(--secondary-500)" stopOpacity={0.1} />
                           </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" stroke="var(--border-primary)" />
@@ -234,16 +240,16 @@ export const LiveReadingsSection = ({
                         <YAxis stroke="var(--text-tertiary)" style={{ fontSize: '12px' }} />
                         <Tooltip contentStyle={{
                           backgroundColor: 'var(--surface-primary)',
-                          border: 'none',
+                          border: '1px solid var(--border-primary)',
                           borderRadius: '12px',
-                          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                          boxShadow: 'var(--shadow-lg)',
                           color: 'var(--text-primary)'
                         }} />
                         {(selectedMetric === 'all' || selectedMetric === 'voltage') && (
                           <Area
                             type="monotone"
                             dataKey="voltage"
-                            stroke="var(--primary-200)"
+                            stroke="var(--primary-500)"
                             strokeWidth={3}
                             fillOpacity={1}
                             fill="url(#colorVoltage)"
@@ -254,7 +260,7 @@ export const LiveReadingsSection = ({
                           <Area
                             type="monotone"
                             dataKey="avg_voltage"
-                            stroke="#6366F1"
+                            stroke="var(--secondary-500)"
                             strokeWidth={3}
                             fillOpacity={1}
                             fill="url(#colorAvgVoltage)"
@@ -265,7 +271,7 @@ export const LiveReadingsSection = ({
                           <Line
                             type="monotone"
                             dataKey="voltageAvg"
-                            stroke="#3B82F6"
+                            stroke="var(--primary-600)"
                             strokeWidth={3}
                             strokeDasharray="5 5"
                             dot={false}
@@ -277,7 +283,7 @@ export const LiveReadingsSection = ({
                           <Line
                             type="monotone"
                             dataKey="avg_voltageAvg"
-                            stroke="#6366F1"
+                            stroke="var(--secondary-600)"
                             strokeWidth={3}
                             strokeDasharray="5 5"
                             dot={false}
@@ -288,7 +294,7 @@ export const LiveReadingsSection = ({
                       </AreaChart>
                     </ResponsiveContainer>
                   </div>
-                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
+                  <div className="bg-surface-secondary rounded-2xl p-6 border border-border-primary">
                     <h3 className="font-bold text-text-primary mb-4 flex items-center gap-2">
                       <Activity size={20} className="text-success" />
                       Power & Current {selectedMetric !== 'all' && ` - ${selectedMetric === 'voltage' ? 'Voltage' : selectedMetric === 'current' ? 'Current' : selectedMetric === 'power' ? 'Power' : selectedMetric === 'avg_voltage' ? 'Avg Voltage' : 'Avg Current'} Focus`}
@@ -300,9 +306,9 @@ export const LiveReadingsSection = ({
                         <YAxis stroke="var(--text-tertiary)" style={{ fontSize: '12px' }} />
                         <Tooltip contentStyle={{
                           backgroundColor: 'var(--surface-primary)',
-                          border: 'none',
+                          border: '1px solid var(--border-primary)',
                           borderRadius: '12px',
-                          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                          boxShadow: 'var(--shadow-lg)',
                           color: 'var(--text-primary)'
                         }} />
                         <Legend />
@@ -321,7 +327,7 @@ export const LiveReadingsSection = ({
                           <Line
                             type="monotone"
                             dataKey="avg_current"
-                            stroke="#14B8A6"
+                            stroke="var(--secondary-500)"
                             strokeWidth={3}
                             dot={{ r: 4 }}
                             activeDot={{ r: 6 }}
@@ -332,7 +338,7 @@ export const LiveReadingsSection = ({
                           <Line
                             type="monotone"
                             dataKey="power"
-                            stroke="var(--primary-300)"
+                            stroke="var(--primary-500)"
                             strokeWidth={3}
                             dot={{ r: 4 }}
                             activeDot={{ r: 6 }}
@@ -343,7 +349,7 @@ export const LiveReadingsSection = ({
                           <Line
                             type="monotone"
                             dataKey={`${selectedMetric}Avg`}
-                            stroke="#3B82F6"
+                            stroke="var(--primary-600)"
                             strokeWidth={3}
                             strokeDasharray="5 5"
                             dot={false}
@@ -360,7 +366,7 @@ export const LiveReadingsSection = ({
               <div className="mt-6 text-center">
                 <Link
                   to={`/devices/${selectedDeviceId}`}
-                  className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl"
+                  className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl border border-primary-500"
                 >
                   View Full Device Dashboard
                   <TrendingUp size={18} />
@@ -371,7 +377,7 @@ export const LiveReadingsSection = ({
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="bg-gradient-to-br from-warning-bg to-orange-400/5 border-2 border-warning-border rounded-2xl p-8 text-center"
+              className="bg-warning-bg border-2 border-warning-border rounded-2xl p-8 text-center"
             >
               <Activity className="mx-auto text-warning mb-4" size={48} />
               <h3 className="text-lg font-bold text-text-primary mb-2">
