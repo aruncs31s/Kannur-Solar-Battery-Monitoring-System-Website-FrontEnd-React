@@ -1,7 +1,7 @@
 import { IDeviceRepository } from '../../domain/repositories/IDeviceRepository';
 import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO, MicrocontrollerDTO, CreateSensorDeviceDTO, SolarDeviceView, DeviceStateHistoryResponse, DeviceStateHistoryFilters, CreateDeviceTypeDTO, DeviceState, CreateDeviceStateDTO, UpdateDeviceStateDTO, DeviceStatus, ConnectedDeviceDTO, CreateConnectedDeviceDTO, MainStatsDTO } from '../../domain/entities/Device';
 import { DeviceTokenResponse, MicrocontrollerStats } from '../../api/devices';
-import { Reading, ProgressiveReadingsResponse } from '../../domain/entities/Reading';
+import { ProgressiveReadingsResponse, ProgressiveReadingsDTO, ReadingResponseDTO } from '../../domain/entities/Reading';
 import { httpClient } from '../http/HttpClient';
 
 export class DeviceRepository implements IDeviceRepository {
@@ -17,12 +17,12 @@ export class DeviceRepository implements IDeviceRepository {
       version_id: dto.version_id || 0,
       address: dto.address || '',
       city: dto.city || '',
+      status: dto.status || 'unknown',
       device_state: dto.device_state || dto.deviceState || 0,
     }));
   }
   async getMainStats(): Promise<MainStatsDTO> {
     const response = await httpClient.get<{ stats: MainStatsDTO }>('/devices/my/stats');
-    console.log("fetching my stats")
     return response.stats;
   }
 
@@ -38,6 +38,7 @@ export class DeviceRepository implements IDeviceRepository {
       version_id: dto.version_id || 0,
       address: dto.address || '',
       city: dto.city || '',
+      status: dto.status || 'unknown',
       device_state: dto.device_state || dto.deviceState || 0,
     }));
   }
@@ -53,6 +54,7 @@ export class DeviceRepository implements IDeviceRepository {
       version_id: dto.version_id || 0,
       address: dto.address || '',
       city: dto.city || '',
+      status: dto.status || 'unknown',
       device_state: dto.device_state || dto.deviceState || 0,
     }));
   }
@@ -68,6 +70,7 @@ export class DeviceRepository implements IDeviceRepository {
       version_id: dto.version_id || 0,
       address: dto.address || '',
       city: dto.city || '',
+      status: dto.status || 'unknown',
       device_state: dto.device_state || dto.deviceState || 0,
     }));
   }
@@ -83,6 +86,7 @@ export class DeviceRepository implements IDeviceRepository {
       version_id: dto.version_id || 0,
       address: dto.address || '',
       city: dto.city || '',
+      status: dto.status || 'unknown',
       device_state: dto.device_state || dto.deviceState || 0,
     }));
   }
@@ -107,6 +111,7 @@ export class DeviceRepository implements IDeviceRepository {
       version_id: device.firmware_version_id || 0,
       address: dto.address || '',
       city: dto.city || '',
+      status: dto.status || 'unknown',
       device_state: dto.device_state || dto.deviceState || 0,
     };
   }
@@ -126,10 +131,11 @@ export class DeviceRepository implements IDeviceRepository {
       ip_address: dto.device.ip_address || '',
       mac_address: dto.device.mac_address || '',
       firmware_version: dto.device.firmware_version || '',
-      version_id: 0, // Not provided in response
+      version_id: 0,
       address: dto.device.address || '',
       city: dto.device.city || '',
-      device_state: 0, // Not provided
+      status: dto.device.status || 'unknown',
+      device_state: dto.device.device_state || 0,
     };
   }
 
@@ -190,6 +196,7 @@ export class DeviceRepository implements IDeviceRepository {
       version_id: data.firmware_version_id || 0,
       address: dto.address || '',
       city: dto.city || '',
+      status: dto.status || 'unknown',
       device_state: dto.deviceState || dto.device_state || 0,
     };
   }
@@ -225,10 +232,10 @@ export class DeviceRepository implements IDeviceRepository {
   }
 
   async getProgressiveReadings(deviceId: number): Promise<ProgressiveReadingsResponse> {
-    const response = await httpClient.get<ProgressiveReadingsResponse>(`/devices/${deviceId}/readings/progressive`);
+    const response = await httpClient.get<ProgressiveReadingsDTO>(`/devices/${deviceId}/readings/progressive`);
     return {
-      readings: response.readings.map(reading => ({
-        id: `${deviceId}-${reading.created_at}`, // Generate ID
+      readings: response.readings.map((reading: ReadingResponseDTO) => ({
+        id: `${deviceId}-${reading.created_at}`,
         deviceId: deviceId.toString(),
         voltage: reading.voltage,
         current: reading.current,
@@ -258,6 +265,7 @@ export class DeviceRepository implements IDeviceRepository {
       version_id: response.version_id || 0,
       address: response.address || '',
       city: response.city || '',
+      status: response.status || 'unknown',
       device_state: response.device_state || 0,
     };
   }
@@ -274,11 +282,9 @@ export class DeviceRepository implements IDeviceRepository {
   async uploadFirmware(deviceId: number, firmwareFile: File): Promise<{ message: string }> {
     const formData = new FormData();
     formData.append('firmware', firmwareFile);
-    // Send device_id as query parameter instead of form field
     return await httpClient.post(`/codegen/upload?device_id=${deviceId}`, formData);
   }
 
-  // Firmware Builder Methods
   async buildFirmware(config: any): Promise<any> {
     return await httpClient.post('/codegen/build', config);
   }
@@ -322,8 +328,6 @@ export class DeviceRepository implements IDeviceRepository {
   }
 
   async getDevicesByLocation(_locationId: number): Promise<SolarDeviceView[]> {
-    // For now, we'll get all solar devices
-    // In a real implementation, this would call an API endpoint that filters by location
     const response = await httpClient.get<{ devices: any[] }>('/devices/solar');
     return response.devices.map(dto => ({
       id: dto.id,

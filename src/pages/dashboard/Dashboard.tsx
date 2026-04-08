@@ -6,7 +6,7 @@ import { LiveReadingsSection } from '../../components/LiveReadingsSection';
 import { Section } from '../../components/Section';
 import { AlertsBanner } from '../../components/AlertsBanner';
 import { Clock } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { DashboardStats } from './components/DashboardStats';
 import { useDashboardData } from './hooks/useDashboardData';
 
@@ -73,16 +73,20 @@ export const Dashboard = () => {
           ) : recentDevices.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {recentDevices.map((device) => (
-                <div key={device.id} className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                <Link
+                  key={device.id}
+                  to={`/devices/${device.id}`}
+                  className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md hover:border-primary-500 transition-all block group"
+                >
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white">{device.name}</h3>
+                      <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-primary-500 transition-colors">{device.name}</h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400">{device.type}</p>
                       <p className="text-xs text-gray-500 dark:text-gray-500">{device.address}, {device.city}</p>
                     </div>
                     <div className={`w-3 h-3 rounded-full ${device.device_state === 1 ? 'bg-green-500' : 'bg-gray-400'}`}></div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           ) : (

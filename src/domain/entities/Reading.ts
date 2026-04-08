@@ -19,6 +19,23 @@ export interface ReadingAverages {
   avg_current: number;
 }
 
+export interface ReadingResponseDTO {
+  id: number;
+  device_id: number;
+  voltage: number;
+  current: number;
+  power: number;
+  avg_voltage: number;
+  avg_current: number;
+  created_at: string;
+}
+
+export interface ProgressiveReadingsDTO {
+  readings: ReadingResponseDTO[];
+  averages: ReadingAverages;
+  last_reading_time: string;
+}
+
 export interface ProgressiveReadingsResponse {
   readings: Reading[];
   averages: ReadingAverages;

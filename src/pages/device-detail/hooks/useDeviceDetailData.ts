@@ -95,14 +95,14 @@ export const useDeviceDetailData = (id: string | undefined) => {
         clearInterval(intervalId);
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, readingsLimit, startDate, endDate, useDateFilter]);
 
   useEffect(() => {
     if (connectedDevices.length > 0) {
       loadAutomaticConnectedReadings();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connectedDevices]);
 
   const loadDeviceTypes = async () => {
@@ -338,7 +338,7 @@ export const useDeviceDetailData = (id: string | undefined) => {
         const message = `Device ${actionNames[action] || 'action completed'} successfully!`;
         console.log('Setting control message:', message);
         setControlMessage(message);
-        
+
         setTimeout(() => {
           console.log('Reloading device data...');
           loadDeviceData();
@@ -373,6 +373,16 @@ export const useDeviceDetailData = (id: string | undefined) => {
   const getLatestReading = () => readings.length > 0 ? readings[0] : null;
 
   const getAverages = () => {
+    if (selectedDay) {
+      const dayData = getDailyBreakdown().find(day => day.date === selectedDay);
+      if (dayData) {
+        return {
+          voltage: dayData.avgVoltage,
+          current: dayData.avgCurrent,
+          power: dayData.avgPower
+        };
+      }
+    }
     if (readings.length === 0) return { voltage: 0, current: 0, power: 0 };
     const sum = readings.reduce(
       (acc, r) => ({

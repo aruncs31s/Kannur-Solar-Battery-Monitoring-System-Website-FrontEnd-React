@@ -481,7 +481,7 @@ export const DeviceDetail = () => {
       </div>
 
       {/* Averages */}
-      {readings.length > 0 && (
+      {(readings.length > 0 || allReadings.length > 0) && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div
             className={`bg-gradient-to-br from-nord-9 to-nord-8 text-white rounded-lg shadow p-6 cursor-pointer transition-all duration-200 ${selectedMetric === 'voltage' ? 'ring-2 ring-blue-400 scale-105' : 'hover:scale-105'
@@ -535,7 +535,7 @@ export const DeviceDetail = () => {
       )}
 
       {/* Main Aggregate Chart */}
-      {readings.length > 0 && (
+      {(readings.length > 0 || allReadings.length > 0) && (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -613,15 +613,18 @@ export const DeviceDetail = () => {
       )}
 
       {/* Daily Breakdown Charts */}
-      {allReadings.length > 0 && !selectedDay && (
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Daily Breakdown </h2>
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Daily Breakdown</h2>
+        {allReadings.length > 0 && !selectedDay ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {getDailyBreakdown().map((day) => (
               <div
                 key={day.date}
                 className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
-                onClick={() => setSelectedDay(day.date)}
+                onClick={() => {
+                  setSelectedDay(day.date);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
               >
                 <div className="flex items-center justify-between mb-4">
                   <div>
@@ -658,8 +661,23 @@ export const DeviceDetail = () => {
               </div>
             ))}
           </div>
-        </div>
-      )}
+        ) : selectedDay ? (
+          <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-xl p-6 text-center">
+            <TrendingUp size={40} className="mx-auto text-blue-500 mb-3" />
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">Viewing Details for {selectedDay}</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">You are now viewing the expanded visualization in the chart above.</p>
+            <button
+              onClick={() => {
+                setSelectedDay(null);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors font-semibold"
+            >
+              Back to Overview
+            </button>
+          </div>
+        ) : null}
+      </div>
 
     </div>
   );
