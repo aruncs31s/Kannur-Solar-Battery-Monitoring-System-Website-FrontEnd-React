@@ -24,6 +24,8 @@ export const Dashboard = () => {
     loadingReadings,
     stats,
     alerts,
+    backendAverages,
+    lastReadingTime,
     dismissAlert,
     acknowledgeAlert,
   } = useDashboardData();
@@ -51,6 +53,8 @@ export const Dashboard = () => {
         <LiveReadingsSection
           devices={solarDevices}
           readings={readings}
+          averages={backendAverages}
+          lastReadingTime={lastReadingTime}
           selectedDeviceId={selectedDeviceId}
           onDeviceChange={setSelectedDeviceId}
           loading={loadingReadings}

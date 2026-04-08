@@ -1,10 +1,10 @@
 import { IDeviceRepository } from '../../../domain/repositories/IDeviceRepository';
-import { Reading } from '../../../domain/entities/Reading';
+import { ProgressiveReadingsResponse } from '../../../domain/entities/Reading';
 
 export class GetProgressiveReadingsUseCase {
-  constructor(private deviceRepository: IDeviceRepository) {}
+  constructor(private deviceRepository: IDeviceRepository) { }
 
-  async execute(deviceId: number): Promise<Reading[]> {
+  async execute(deviceId: number): Promise<ProgressiveReadingsResponse> {
     return await this.deviceRepository.getProgressiveReadings(deviceId);
   }
 }

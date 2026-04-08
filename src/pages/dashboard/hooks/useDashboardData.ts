@@ -4,7 +4,7 @@ import { devicesAPI } from '../../../api/devices';
 import { readingsAPI } from '../../../api/readings';
 import { container } from '../../../application/di/container';
 import { DeviceResponseDTO, MainStatsDTO, SolarDeviceView } from '../../../domain/entities/Device';
-import { Reading } from '../../../domain/entities/Reading';
+import { Reading, ProgressiveReadingsResponse } from '../../../domain/entities/Reading';
 import { useDevicesStore } from '../../../store/devicesStore';
 import { limitArraySize } from '../../../utils/performanceConfig';
 
@@ -33,7 +33,7 @@ export interface DashboardDataSource {
   getSolarDevices: () => Promise<SolarDeviceView[]>;
   getRecentDevices: () => Promise<DeviceResponseDTO[]>;
   getOfflineDevices: () => Promise<DeviceResponseDTO[]>;
-  getProgressiveReadings: (deviceId: number) => Promise<Reading[]>;
+  getProgressiveReadings: (deviceId: number) => Promise<ProgressiveReadingsResponse>;
   getMainStats: () => Promise<MainStatsDTO>;
 }
 
@@ -61,6 +61,8 @@ export const useDashboardData = (dataSource: DashboardDataSource = defaultDataSo
   const [loadingRecent, setLoadingRecent] = useState(true);
   const [loadingReadings, setLoadingReadings] = useState(false);
   const [loadingStats, setLoadingStats] = useState(true);
+  const [backendAverages, setBackendAverages] = useState<any>(null);
+  const [lastReadingTime, setLastReadingTime] = useState<string | null>(null);
 
 
   useEffect(() => {
@@ -185,9 +187,11 @@ export const useDashboardData = (dataSource: DashboardDataSource = defaultDataSo
 
       setLoadingReadings(true);
       try {
-        const data = await dataSource.getProgressiveReadings(selectedDeviceId);
+        const response = await dataSource.getProgressiveReadings(selectedDeviceId);
         if (isMounted) {
-          setReadings(limitArraySize(data, READINGS_LIMIT));
+          setReadings(limitArraySize(response.readings, READINGS_LIMIT));
+          setBackendAverages(response.averages);
+          setLastReadingTime(response.last_reading_time);
           setError(null);
         }
       } catch (error) {
@@ -365,8 +369,9 @@ export const useDashboardData = (dataSource: DashboardDataSource = defaultDataSo
     loadingSolarDevices,
     stats,
     alerts,
+    backendAverages,
+    lastReadingTime,
     dismissAlert,
     acknowledgeAlert,
   };
 };
-

@@ -28,6 +28,7 @@ export class Device {
     public address: string,
     public city: string,
     public status: string,
+    public device_state: number,
     public hardware_type?: number
   ) { }
 }
@@ -45,10 +46,20 @@ export interface DeviceResponseDTO {
   address: string;
   city: string;
   status: string;
+  device_state: number;
   hardware_type?: number;
 }
 
 export type DeviceStatus = "active" | "inactive" | "error" | "maintenance" | "decommissioned" | "unknown";
+
+const DEVICE_STATUS = {
+  ACTIVE: "active",
+  INACTIVE: "inactive",
+  ERROR: "error",
+  MAINTENANCE: "maintenance",
+  DISCOMMISSIONED: "decommissioned",
+  UNKNOWN: "unknown",
+}
 
 export type DeviceStates = {
   [key: number]: DeviceStatus;

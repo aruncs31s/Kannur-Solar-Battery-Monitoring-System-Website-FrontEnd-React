@@ -1,6 +1,6 @@
 import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO, MicrocontrollerDTO, CreateSensorDeviceDTO, SolarDeviceView, DeviceStateHistoryResponse, DeviceStateHistoryFilters, CreateDeviceTypeDTO, DeviceState, CreateDeviceStateDTO, UpdateDeviceStateDTO, ConnectedDeviceDTO, CreateConnectedDeviceDTO, MainStatsDTO } from '../entities/Device';
 import { DeviceTokenResponse, MicrocontrollerStats } from '../../api/devices';
-import { Reading } from '../entities/Reading';
+import { ProgressiveReadingsResponse } from '../entities/Reading';
 
 export interface IDeviceRepository {
   getAll(): Promise<DeviceResponseDTO[]>;
@@ -23,7 +23,7 @@ export interface IDeviceRepository {
   removeConnectedDevice(deviceId: number, connectedDeviceId: number): Promise<{ success: boolean; message: string }>;
   getRecentDevices(): Promise<DeviceResponseDTO[]>;
   getOfflineDevices(): Promise<DeviceResponseDTO[]>;
-  getProgressiveReadings(deviceId: number): Promise<Reading[]>;
+  getProgressiveReadings(deviceId: number): Promise<ProgressiveReadingsResponse>;
   createDeviceType(data: CreateDeviceTypeDTO): Promise<{ message: string }>;
   createSensorDevice(data: CreateSensorDeviceDTO): Promise<DeviceResponseDTO>;
   getMySolarDevices(): Promise<SolarDeviceView[]>;

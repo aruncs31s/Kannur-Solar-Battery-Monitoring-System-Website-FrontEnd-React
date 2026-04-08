@@ -11,6 +11,20 @@ export interface Reading {
   timestamp: number;
 }
 
+export interface ReadingAverages {
+  voltage: number;
+  current: number;
+  power: number;
+  avg_voltage: number;
+  avg_current: number;
+}
+
+export interface ProgressiveReadingsResponse {
+  readings: Reading[];
+  averages: ReadingAverages;
+  last_reading_time: string;
+}
+
 export interface ReadingFilters {
   deviceId: string;
   startDate?: string;

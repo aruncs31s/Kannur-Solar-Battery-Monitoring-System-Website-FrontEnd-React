@@ -1,7 +1,7 @@
 import { IDeviceRepository } from '../../domain/repositories/IDeviceRepository';
 import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO, MicrocontrollerDTO, CreateSensorDeviceDTO, SolarDeviceView, DeviceStateHistoryResponse, DeviceStateHistoryFilters, CreateDeviceTypeDTO, DeviceState, CreateDeviceStateDTO, UpdateDeviceStateDTO, DeviceStatus, ConnectedDeviceDTO, CreateConnectedDeviceDTO, MainStatsDTO } from '../../domain/entities/Device';
 import { DeviceTokenResponse, MicrocontrollerStats } from '../../api/devices';
-import { Reading } from '../../domain/entities/Reading';
+import { Reading, ProgressiveReadingsResponse } from '../../domain/entities/Reading';
 import { httpClient } from '../http/HttpClient';
 
 export class DeviceRepository implements IDeviceRepository {
@@ -224,18 +224,22 @@ export class DeviceRepository implements IDeviceRepository {
     return await httpClient.post(`/devices/${deviceId}/connected/new`, data);
   }
 
-  async getProgressiveReadings(deviceId: number): Promise<Reading[]> {
-    const response = await httpClient.get<{ readings: any[] }>(`/devices/${deviceId}/readings/progressive`);
-    return response.readings.map(reading => ({
-      id: `${deviceId}-${reading.created_at}`, // Generate ID
-      deviceId: deviceId.toString(),
-      voltage: reading.voltage,
-      current: reading.current,
-      avg_voltage: reading.avg_voltage,
-      avg_current: reading.avg_current,
-      power: (reading.voltage || 0) * (reading.current || 0),
-      timestamp: new Date(reading.created_at).getTime(),
-    }));
+  async getProgressiveReadings(deviceId: number): Promise<ProgressiveReadingsResponse> {
+    const response = await httpClient.get<ProgressiveReadingsResponse>(`/devices/${deviceId}/readings/progressive`);
+    return {
+      readings: response.readings.map(reading => ({
+        id: `${deviceId}-${reading.created_at}`, // Generate ID
+        deviceId: deviceId.toString(),
+        voltage: reading.voltage,
+        current: reading.current,
+        avg_voltage: reading.avg_voltage,
+        avg_current: reading.avg_current,
+        power: reading.power,
+        timestamp: new Date(reading.created_at).getTime(),
+      })),
+      averages: response.averages,
+      last_reading_time: response.last_reading_time
+    };
   }
 
   async createDeviceType(data: CreateDeviceTypeDTO): Promise<{ message: string }> {
