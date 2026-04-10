@@ -26,4 +26,8 @@ export const usersAPI = {
   delete: async (id: number): Promise<void> => {
     return await container.getUserRepository().delete(id);
   },
+
+  getProfile: async (): Promise<any> => {
+    return await container.getUserRepository().getProfile();
+  },
 };

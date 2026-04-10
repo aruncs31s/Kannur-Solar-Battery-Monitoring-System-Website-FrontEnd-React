@@ -54,7 +54,8 @@ export const StatusBadge = memo(({ status }: StatusBadgeProps) => {
     },
   };
 
-  const config = configs[status] || configs.unknown;
+  const normalizedStatus = (status?.toLowerCase() || 'unknown') as keyof typeof configs;
+  const config = configs[normalizedStatus] || configs.unknown;
   const Icon = config.icon;
 
   return (

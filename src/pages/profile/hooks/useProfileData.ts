@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../../../store/authStore';
-import { devicesAPI } from '../../../api/devices';
-import { auditAPI } from '../../../api/audit';
+import { usersAPI } from '../../../api/users';
 import { DeviceResponseDTO } from '../../../domain/entities/Device';
 import { AuditLog } from '../../../domain/entities/AuditLog';
 
@@ -20,27 +19,37 @@ export const useProfileData = () => {
       if (!user) return;
 
       setLoading(true);
+      setDevicesLoading(true);
+      setActivityLoading(true);
       try {
-        // Fetch user's devices
-        setDevicesLoading(true);
-        const allDevices = await devicesAPI.getAllDevices();
-        setDevices(allDevices);
-        setDevicesLoading(false);
-
-        // Fetch user's recent activity
-        setActivityLoading(true);
-        const allAuditLogs = await auditAPI.getAll();
-        // Filter activities for current user
-        const userActivities = allAuditLogs
-          .filter(log => log.userId === user.id)
-          .sort((a, b) => b.timestamp - a.timestamp)
-          .slice(0, 10); // Get last 10 activities
-        setRecentActivity(userActivities);
-        setActivityLoading(false);
+        const profileData = await usersAPI.getProfile();
+        
+        // The API returns the user, their devices, and their activity
+        if (profileData.devices) {
+          setDevices(profileData.devices);
+        }
+        
+        if (profileData.activity) {
+           // map activity from API DTO to frontend format if needed
+          const mappedLogs = profileData.activity.map((log: any) => ({
+             id: log.id,
+             userId: user.id || 0,
+             action: log.action,
+             entityType: 'Device',
+             entityId: log.device_id?.toString() || '',
+             details: log.details,
+             timestamp: new Date(log.created_at).getTime(), // Convert string timestamp to number
+             ipAddress: log.ip_address,
+          })) as AuditLog[];
+          setRecentActivity(mappedLogs);
+        }
+        
       } catch (err: any) {
         setError(err.response?.data?.error || 'Failed to load profile data');
       } finally {
         setLoading(false);
+        setDevicesLoading(false);
+        setActivityLoading(false);
       }
     };
 

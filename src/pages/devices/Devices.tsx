@@ -25,8 +25,9 @@ export const Devices = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg text-gray-600">Loading devices...</div>
+      <div className="flex flex-col items-center justify-center min-vh-50 py-20">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mb-4"></div>
+        <div className="text-lg font-medium text-text-secondary">Syncing with device registry...</div>
       </div>
     );
   }

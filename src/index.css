@@ -1018,6 +1018,11 @@
     color: #1e2332;
   }
 
+  .stat-card-mc {
+    background: linear-gradient(135deg, #88C0D0 0%, #5E81AC 100%);
+    color: white;
+  }
+
   /* Smooth transitions */
   .transition-smooth {
     transition: all 0.2s ease;

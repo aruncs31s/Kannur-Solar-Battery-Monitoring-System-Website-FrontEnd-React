@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { readingsAPI } from '../../../api/readings';
 import { devicesAPI } from '../../../api/devices';
-import { ConnectedDeviceDTO, DeviceTypeDTO } from '../../../domain/entities/Device';
+import { ConnectedDeviceDTO, DeviceTypeDTO, DEVICE_ACTIONS, DEVICE_STATE_MAPPING } from '../../../domain/entities/Device';
 import { Reading } from '../../../domain/entities/Reading';
 
 export const useDeviceDetailData = (id: string | undefined) => {
@@ -314,52 +314,36 @@ export const useDeviceDetailData = (id: string | undefined) => {
 
   const controlDevice = async (action: number) => {
     if (!id) {
-      console.error('Device ID is missing');
       setControlMessage('Error: Device ID not found');
       return;
     }
 
     try {
       const deviceId = parseInt(id, 10);
-      if (isNaN(deviceId)) {
-        throw new Error(`Invalid device ID: ${id}`);
-      }
-
-      console.log(`Sending control action: ${action} for device: ${deviceId}`);
       const response = await devicesAPI.controlDevice(deviceId, action);
-      console.log('Control response:', response);
 
-      if (response && response.success === true) {
-        const actionNames: { [key: number]: string } = {
-          4: 'turned on',
-          5: 'turned off',
-          6: 'configured',
-        };
-        const message = `Device ${actionNames[action] || 'action completed'} successfully!`;
-        console.log('Setting control message:', message);
-        setControlMessage(message);
+      if (response && response.success) {
+        // Find action name for the success message
+        const actionEntry = Object.entries(DEVICE_ACTIONS).find(([, val]) => val === action);
+        const actionLabel = actionEntry ? actionEntry[0].replace('_', ' ').toLowerCase() : 'action';
+        
+        setControlMessage(`Device ${actionLabel} successfully!`);
 
         setTimeout(() => {
-          console.log('Reloading device data...');
           loadDeviceData();
           setControlMessage('');
         }, 2000);
       } else {
-        const errorMsg = response?.message || 'Control action failed';
-        console.warn('Control action failed:', errorMsg, 'Response:', response);
-        setControlMessage(errorMsg);
+        setControlMessage(response?.message || 'Control action failed');
       }
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : String(err);
-      console.error('Error in controlDevice:', err);
-      setControlMessage(`Error: ${errorMsg}`);
+      setControlMessage('An unexpected error occurred');
     }
   };
 
-  const getStatusType = (stateId: number, isOnline: boolean): 'active' | 'inactive' | 'maintenance' | 'decommissioned' | 'unknown' | 'online' => {
+  const getStatusType = (stateId: number, isOnline: boolean): 'active' | 'inactive' | 'error' | 'maintenance' | 'decommissioned' | 'unknown' | 'online' => {
     if (isOnline) return 'online';
-    const states: { [key: number]: any } = { 1: 'active', 2: 'inactive', 3: 'maintenance', 4: 'decommissioned' };
-    return states[stateId] || 'unknown';
+    return DEVICE_STATE_MAPPING[stateId] || 'unknown';
   };
 
   const isDeviceOnline = (): boolean => {

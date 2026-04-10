@@ -12,6 +12,7 @@ interface DataTableProps {
   emptyMessage?: string;
   rowClassName?: string | ((row: any) => string);
   onRowClick?: (row: any) => void;
+  loading?: boolean;
 }
 
 export const DataTable = ({ 
@@ -19,7 +20,8 @@ export const DataTable = ({
   data, 
   emptyMessage = 'No data found',
   rowClassName = 'hover:bg-surface-secondary',
-  onRowClick
+  onRowClick,
+  loading = false
 }: DataTableProps) => {
   const getRowClassName = (row: any) => {
     if (typeof rowClassName === 'function') {
@@ -52,7 +54,17 @@ export const DataTable = ({
             </tr>
           </thead>
           <tbody className="bg-surface-primary divide-y divide-border-primary">
-            {data.length === 0 ? (
+            {loading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <tr key={i} className="animate-pulse">
+                  {columns.map((_, j) => (
+                    <td key={j} className="px-6 py-4">
+                      <div className="h-4 bg-surface-tertiary rounded w-3/4"></div>
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : data.length === 0 ? (
               <tr>
                 <td 
                   colSpan={columns.length} 

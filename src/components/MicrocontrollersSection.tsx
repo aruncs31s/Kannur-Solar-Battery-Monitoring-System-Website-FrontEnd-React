@@ -22,12 +22,11 @@ export const MicrocontrollersSection = ({
       initial={{ y: 10, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ delay: 0.1, duration: 0.4 }}
-      className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 border border-gray-100 dark:border-gray-700"
     >
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
-          <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl">
-            <Cpu className="text-white" size={24} />
+          <div style={{ padding: '0.6rem', background: 'var(--mc-bg)', borderRadius: 'var(--radius-lg)', color: 'var(--mc-color)' }}>
+            <Cpu size={24} />
           </div>
           {title}
         </h2>

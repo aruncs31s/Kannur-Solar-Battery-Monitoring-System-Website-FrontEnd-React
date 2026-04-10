@@ -67,7 +67,7 @@ export const DeviceStateBadge: React.FC<{ state: number; className?: string }> =
     2: { variant: 'inactive', label: 'Inactive' },
     3: { variant: 'maintenance', label: 'Maintenance' },
     4: { variant: 'decommissioned', label: 'Decommissioned' },
-    5: { variant: 'initialized', label: 'Initialized' },
+    5: { variant: 'active', label: 'Active' },
   };
 
   const info = stateMap[state] ?? { variant: 'default', label: 'Unknown' };

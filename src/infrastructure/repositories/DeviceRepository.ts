@@ -5,21 +5,37 @@ import { ProgressiveReadingsResponse, ProgressiveReadingsDTO, ReadingResponseDTO
 import { httpClient } from '../http/HttpClient';
 
 export class DeviceRepository implements IDeviceRepository {
-  async getAll(): Promise<DeviceResponseDTO[]> {
-    const response = await httpClient.get<{ devices: any[] }>('/devices');
-    return response.devices.map(dto => ({
+  private mapToDeviceResponseDTO(dto: any): DeviceResponseDTO {
+    const stateId = dto.current_state || dto.device_state || dto.deviceState || 0;
+    return {
       id: dto.id,
       name: dto.name || '',
       type: dto.type || '',
       ip_address: dto.ip_address || dto.ipAddress || '',
       mac_address: dto.mac_address || dto.macAddress || '',
       firmware_version: dto.firmware_version || dto.firmwareVersion || '',
-      version_id: dto.version_id || 0,
+      version_id: dto.version_id || dto.versionId || 0,
       address: dto.address || '',
       city: dto.city || '',
-      status: dto.status || 'unknown',
-      device_state: dto.device_state || dto.deviceState || 0,
-    }));
+      status: dto.status || this.mapStateToStatus(stateId),
+      device_state: stateId,
+    };
+  }
+
+  private mapStateToStatus(stateId: number): DeviceStatus {
+    const states: { [key: number]: DeviceStatus } = {
+      1: 'active',
+      2: 'inactive',
+      3: 'maintenance',
+      4: 'decommissioned',
+      5: 'active',
+    };
+    return states[stateId] || 'unknown';
+  }
+
+  async getAll(): Promise<DeviceResponseDTO[]> {
+    const response = await httpClient.get<{ devices: any[] }>('/devices');
+    return (response.devices || []).map(dto => this.mapToDeviceResponseDTO(dto));
   }
   async getMainStats(): Promise<MainStatsDTO> {
     const response = await httpClient.get<{ stats: MainStatsDTO }>('/devices/my/stats');
@@ -28,67 +44,19 @@ export class DeviceRepository implements IDeviceRepository {
 
   async getAllSolarDevices(): Promise<DeviceResponseDTO[]> {
     const response = await httpClient.get<{ devices: any[] }>('/devices/solar');
-    return response.devices.map(dto => ({
-      id: dto.id,
-      name: dto.name || '',
-      type: dto.type || '',
-      ip_address: dto.ip_address || dto.ipAddress || '',
-      mac_address: dto.mac_address || dto.macAddress || '',
-      firmware_version: dto.firmware_version || dto.firmwareVersion || '',
-      version_id: dto.version_id || 0,
-      address: dto.address || '',
-      city: dto.city || '',
-      status: dto.status || 'unknown',
-      device_state: dto.device_state || dto.deviceState || 0,
-    }));
+    return (response.devices || []).map(dto => this.mapToDeviceResponseDTO(dto));
   }
   async getRecentDevices(): Promise<DeviceResponseDTO[]> {
     const response = await httpClient.get<{ devices: any[] }>('/devices/recent');
-    return response.devices.map(dto => ({
-      id: dto.id,
-      name: dto.name || '',
-      type: dto.type || '',
-      ip_address: dto.ip_address || dto.ipAddress || '',
-      mac_address: dto.mac_address || dto.macAddress || '',
-      firmware_version: dto.firmware_version || dto.firmwareVersion || '',
-      version_id: dto.version_id || 0,
-      address: dto.address || '',
-      city: dto.city || '',
-      status: dto.status || 'unknown',
-      device_state: dto.device_state || dto.deviceState || 0,
-    }));
+    return (response.devices || []).map(dto => this.mapToDeviceResponseDTO(dto));
   }
   async getOfflineDevices(): Promise<DeviceResponseDTO[]> {
     const response = await httpClient.get<{ devices: any[] }>('/devices/solar/offline');
-    return (response.devices || []).map(dto => ({
-      id: dto.id,
-      name: dto.name || '',
-      type: dto.type || '',
-      ip_address: dto.ip_address || dto.ipAddress || '',
-      mac_address: dto.mac_address || dto.macAddress || '',
-      firmware_version: dto.firmware_version || dto.firmwareVersion || '',
-      version_id: dto.version_id || 0,
-      address: dto.address || '',
-      city: dto.city || '',
-      status: dto.status || 'unknown',
-      device_state: dto.device_state || dto.deviceState || 0,
-    }));
+    return (response.devices || []).map(dto => this.mapToDeviceResponseDTO(dto));
   }
   async getMyDevices(): Promise<DeviceResponseDTO[]> {
     const response = await httpClient.get<{ devices: any[] }>('/devices/my');
-    return response.devices.map(dto => ({
-      id: dto.id,
-      name: dto.name || '',
-      type: dto.type || '',
-      ip_address: dto.ip_address || dto.ipAddress || '',
-      mac_address: dto.mac_address || dto.macAddress || '',
-      firmware_version: dto.firmware_version || dto.firmwareVersion || '',
-      version_id: dto.version_id || 0,
-      address: dto.address || '',
-      city: dto.city || '',
-      status: dto.status || 'unknown',
-      device_state: dto.device_state || dto.deviceState || 0,
-    }));
+    return (response.devices || []).map(dto => this.mapToDeviceResponseDTO(dto));
   }
 
   async create(device: CreateDeviceDTO): Promise<DeviceResponseDTO> {
@@ -101,19 +69,7 @@ export class DeviceRepository implements IDeviceRepository {
       address: device.address,
       city: device.city,
     });
-    return {
-      id: dto.id,
-      name: dto.name || '',
-      type: dto.type || '',
-      ip_address: dto.ip_address || dto.ipAddress || '',
-      mac_address: dto.mac_address || dto.macAddress || '',
-      firmware_version: dto.firmware_version || dto.firmwareVersion || '',
-      version_id: device.firmware_version_id || 0,
-      address: dto.address || '',
-      city: dto.city || '',
-      status: dto.status || 'unknown',
-      device_state: dto.device_state || dto.deviceState || 0,
-    };
+    return this.mapToDeviceResponseDTO(dto);
   }
 
   async createSolarDevice(device: CreateSolarDeviceDTO): Promise<DeviceResponseDTO> {
@@ -124,19 +80,7 @@ export class DeviceRepository implements IDeviceRepository {
       city: device.city,
       connected_microcontroller_id: device.connected_microcontroller_id,
     });
-    return {
-      id: dto.device.id,
-      name: dto.device.name || '',
-      type: dto.device.type || '',
-      ip_address: dto.device.ip_address || '',
-      mac_address: dto.device.mac_address || '',
-      firmware_version: dto.device.firmware_version || '',
-      version_id: 0,
-      address: dto.device.address || '',
-      city: dto.device.city || '',
-      status: dto.device.status || 'unknown',
-      device_state: dto.device.device_state || 0,
-    };
+    return this.mapToDeviceResponseDTO(dto.device);
   }
 
   async search(query: string): Promise<DeviceResponseDTO[]> {
@@ -186,19 +130,7 @@ export class DeviceRepository implements IDeviceRepository {
       address: data.address,
       city: data.city,
     });
-    return {
-      id: dto.id,
-      name: dto.name || '',
-      type: dto.type || '',
-      ip_address: dto.ipAddress || dto.ip_address || '',
-      mac_address: dto.macAddress || dto.mac_address || '',
-      firmware_version: dto.firmwareVersion || dto.firmware_version || '',
-      version_id: data.firmware_version_id || 0,
-      address: dto.address || '',
-      city: dto.city || '',
-      status: dto.status || 'unknown',
-      device_state: dto.deviceState || dto.device_state || 0,
-    };
+    return this.mapToDeviceResponseDTO(dto);
   }
 
   async controlDevice(deviceId: number, action: number): Promise<{ success: boolean; message: string }> {
@@ -255,19 +187,7 @@ export class DeviceRepository implements IDeviceRepository {
 
   async createSensorDevice(data: CreateSensorDeviceDTO): Promise<DeviceResponseDTO> {
     const response = await httpClient.post<any>('/devices/sensors', data);
-    return {
-      id: response.id,
-      name: response.name || '',
-      type: response.type || '',
-      ip_address: response.ip_address || '',
-      mac_address: response.mac_address || '',
-      firmware_version: response.firmware_version || '',
-      version_id: response.version_id || 0,
-      address: response.address || '',
-      city: response.city || '',
-      status: response.status || 'unknown',
-      device_state: response.device_state || 0,
-    };
+    return this.mapToDeviceResponseDTO(response);
   }
 
   async getMySolarDevices(): Promise<SolarDeviceView[]> {
@@ -275,8 +195,11 @@ export class DeviceRepository implements IDeviceRepository {
     return response.devices || [];
   }
 
-  async getDevice(deviceId: string | number): Promise<{ device: any }> {
-    return await httpClient.get(`/devices/${deviceId}`);
+  async getDevice(deviceId: string | number): Promise<{ device: DeviceResponseDTO }> {
+    const response = await httpClient.get<{ device: any }>(`/devices/${deviceId}`);
+    return {
+      device: this.mapToDeviceResponseDTO(response.device)
+    };
   }
 
   async uploadFirmware(deviceId: number, firmwareFile: File): Promise<{ message: string }> {

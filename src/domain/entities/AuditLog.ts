@@ -7,3 +7,11 @@ export interface AuditLog {
   ipAddress: string;
   timestamp: number;
 }
+
+export interface AuditFilter {
+  action?: string;
+  username?: string;
+  ipAddress?: string;
+  startDate?: string;
+  endDate?: string;
+}

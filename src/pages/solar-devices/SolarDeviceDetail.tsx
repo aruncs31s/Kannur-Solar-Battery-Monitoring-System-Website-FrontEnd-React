@@ -140,7 +140,7 @@ export const SolarDeviceDetail = () => {
             { label: 'Latest Power', value: `${(latestReading?.power ?? 0).toFixed(2)} W`, icon: <TrendingUp size={18} />, style: 'stat-card-power' },
             { label: 'Avg Voltage', value: `${avgVoltage.toFixed(2)} V`, icon: <Battery size={18} />, style: 'stat-card-solar' },
             { label: 'Avg Current', value: `${avgCurrent.toFixed(2)} A`, icon: <Activity size={18} />, style: 'stat-card-solar' },
-            { label: 'Microcontrollers', value: microcontrollers.length.toString(), icon: <Cpu size={18} />, style: '' },
+            { label: 'Microcontrollers', value: microcontrollers.length.toString(), icon: <Cpu size={18} />, style: 'stat-card-mc' },
           ].map(s => (
             <div key={s.label} className={`card ${s.style}`} style={{ padding: '1.25rem 1.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', opacity: s.style ? 0.9 : 1 }}>

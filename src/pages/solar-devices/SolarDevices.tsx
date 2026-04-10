@@ -7,7 +7,7 @@ import {
   Zap, TrendingUp, Filter, RefreshCw, AlertCircle
 } from 'lucide-react';
 import { httpClient } from '../../infrastructure/http/HttpClient';
-import { DeviceResponseDTO } from '../../domain/entities/Device';
+import { DeviceResponseDTO, DEVICE_STATE_MAPPING } from '../../domain/entities/Device';
 import { DeviceStateBadge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { AddSolarDeviceModal } from '../../components/AddSolarDeviceModal';
@@ -39,19 +39,23 @@ export const SolarDevices = () => {
     setError('');
     try {
       const response = await httpClient.get<{ devices: any[] }>('/devices/solar');
-      const mapped: DeviceResponseDTO[] = (response.devices || []).map((d: any) => ({
-        id: d.id,
-        name: d.name || '',
-        type: d.type || '',
-        ip_address: d.ip_address || '',
-        mac_address: d.mac_address || '',
-        firmware_version: d.firmware_version || '',
-        version_id: d.version_id || 0,
-        address: d.address || '',
-        city: d.city || '',
-        device_state: d.device_state || d.current_state || 0,
-        hardware_type: d.hardware_type || 4,
-      }));
+      const mapped: DeviceResponseDTO[] = (response.devices || []).map((d: any) => {
+        const stateId = d.device_state || d.current_state || 0;
+        return {
+          id: d.id,
+          name: d.name || '',
+          type: d.type || '',
+          ip_address: d.ip_address || '',
+          mac_address: d.mac_address || '',
+          firmware_version: d.firmware_version || '',
+          version_id: d.version_id || 0,
+          address: d.address || '',
+          city: d.city || '',
+          device_state: stateId,
+          status: d.status || DEVICE_STATE_MAPPING[stateId] || 'unknown',
+          hardware_type: d.hardware_type || 4,
+        };
+      });
       setDevices(mapped);
     } catch (err: any) {
       setError('Failed to load solar devices');

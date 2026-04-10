@@ -34,26 +34,34 @@ export const UserInfoCard = ({ user, stats, loading }: UserInfoCardProps) => {
   }
 
   return (
-    <div className="bg-surface-primary rounded-lg shadow-md p-8">
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <div className="bg-primary-100 p-4 rounded-full">
-            <User className="text-primary-500" size={40} />
+    <div className="card" style={{ background: 'linear-gradient(135deg, var(--mc-bg) 0%, var(--surface-primary) 100%)', padding: '2rem', border: '1px solid var(--mc-border)' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+          <div style={{
+            padding: '1.25rem',
+            background: 'linear-gradient(135deg, var(--nord-9) 0%, var(--nord-10) 100%)',
+            borderRadius: 'var(--radius-full)',
+            color: 'white',
+            boxShadow: '0 8px 16px -4px var(--nord-9-alpha-40)'
+          }}>
+            <User size={48} />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-text-primary">
+            <h2 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
               {user?.name || user?.username}
             </h2>
-            <p className="text-text-secondary">{user?.email || 'No email provided'}</p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', marginTop: '0.25rem' }}>
+              {user?.email || 'No email provided'}
+            </p>
             {user?.role && (
-              <span className="inline-block mt-1 px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm font-medium">
+              <div className="badge badge-micro" style={{ marginTop: '0.75rem', padding: '0.25rem 0.75rem', fontSize: '0.75rem' }}>
                 {user.role}
-              </span>
+              </div>
             )}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-6 border-t border-border-primary">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', borderTop: '1px solid var(--border-secondary)', paddingTop: '2rem' }}>
           <StatCard
             icon={<HardDrive size={20} />}
             label="Total Devices"

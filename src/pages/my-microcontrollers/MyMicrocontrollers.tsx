@@ -114,7 +114,8 @@ export const MyMicrocontrollers = () => {
       >
         <button
           onClick={() => setShowCreateModal(true)}
-          className="bg-blue-600 hover:opacity-90 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
+          className="btn btn-primary btn-lg"
+          style={{ padding: '0.75rem 1.5rem' }}
         >
           <Plus size={20} />
           Add Microcontroller

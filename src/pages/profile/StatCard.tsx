@@ -9,13 +9,20 @@ export interface StatCardProps {
 }
 
 export const StatCard = ({ icon, label, value, bgColor, iconColor }: StatCardProps) => {
+  // Map old tailwind colors to custom CSS vars if needed, but we can default to primary text
+  let mappedColor = 'var(--text-primary)';
+  if (iconColor.includes('success')) mappedColor = 'var(--success)';
+  else if (iconColor.includes('error')) mappedColor = 'var(--error)';
+  else if (iconColor.includes('warning')) mappedColor = 'var(--warning)';
+  else if (iconColor.includes('info')) mappedColor = 'var(--nord-10)';
+
   return (
-    <div className={`${bgColor} p-4 rounded-lg`}>
-      <div className={`flex items-center gap-2 ${iconColor} mb-1`}>
+    <div className="metric-card" style={{ background: 'var(--surface-primary)', border: '1px solid var(--border-secondary)', padding: '1rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: mappedColor, marginBottom: '0.25rem' }}>
         {icon}
-        <span className="text-sm font-medium">{label}</span>
+        <span className="metric-label" style={{ color: mappedColor, margin: 0 }}>{label}</span>
       </div>
-      <p className={`text-2xl font-bold ${iconColor.replace('text-', 'text-').replace('-600', '-900').replace('-700', '-900')}`}>
+      <p className="metric-value" style={{ color: 'var(--text-primary)' }}>
         {value}
       </p>
     </div>

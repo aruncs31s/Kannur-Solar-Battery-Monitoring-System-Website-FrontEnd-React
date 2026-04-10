@@ -4,6 +4,7 @@ export { Badge, DeviceStateBadge } from './ui/Badge';
 export { DeviceTypeIcon, getHardwareTypeInfo, isSolarDevice, isMicrocontroller, isSensor, isActuator, HARDWARE_TYPES } from './ui/DeviceTypeIcon';
 export { ReadingMetricsCard } from './ui/ReadingMetricsCard';
 export { HierarchyBreadcrumb } from './ui/HierarchyBreadcrumb';
+export { Pagination } from './ui/Pagination';
 export type { BreadcrumbItem } from './ui/HierarchyBreadcrumb';
 
 // Legacy exports (keep existing)

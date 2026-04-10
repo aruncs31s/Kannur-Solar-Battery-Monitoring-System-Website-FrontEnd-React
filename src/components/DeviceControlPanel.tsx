@@ -1,5 +1,5 @@
 import { Power, PowerOff, Settings, RefreshCw, Activity } from 'lucide-react';
-
+import { DEVICE_ACTIONS, DEVICE_STATE_IDS } from '../domain/entities/Device';
 interface DeviceControlPanelProps {
   deviceState: number;
   canControl: boolean;
@@ -7,25 +7,6 @@ interface DeviceControlPanelProps {
   onRefresh: () => void;
   onGenerateToken: () => void;
 }
-
-const DEVICE_STATES = {
-  1: 'Active',
-  2: 'InActive',
-  3: 'Maintenance',
-  4: 'Decommissioned',
-  5: 'Initialized',
-} as const;
-
-const DEVICE_ACTIONS = {
-  CREATE: 1,
-  UPDATE: 2,
-  DELETE: 3,
-  TURN_ON: 4,
-  TURN_OFF: 5,
-  CONFIGURE: 6,
-} as const;
-
-
 
 
 export const DeviceControlPanel = ({
@@ -43,7 +24,7 @@ export const DeviceControlPanel = ({
       <div className="grid grid-cols-2 gap-4">
         <button
           onClick={() => onControl(DEVICE_ACTIONS.TURN_ON)}
-          disabled={deviceState === 1}
+          disabled={deviceState === DEVICE_STATE_IDS.ACTIVE}
           className="flex flex-col items-center justify-center p-4 bg-success hover:bg-success/80 disabled:bg-nord-3 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
         >
           <Power size={24} />
@@ -51,7 +32,7 @@ export const DeviceControlPanel = ({
         </button>
         <button
           onClick={() => onControl(DEVICE_ACTIONS.TURN_OFF)}
-          disabled={deviceState === 2}
+          disabled={deviceState === DEVICE_STATE_IDS.INACTIVE}
           className="flex flex-col items-center justify-center p-4 bg-error hover:bg-error/80 disabled:bg-nord-3 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
         >
           <PowerOff size={24} />
@@ -59,7 +40,7 @@ export const DeviceControlPanel = ({
         </button>
         <button
           onClick={() => onControl(DEVICE_ACTIONS.CONFIGURE)}
-          disabled={deviceState === 3 || deviceState === 4}
+          disabled={deviceState === DEVICE_STATE_IDS.MAINTENANCE || deviceState === DEVICE_STATE_IDS.DECOMMISSIONED}
           className="flex flex-col items-center justify-center p-4 bg-nord-8 hover:bg-nord-9 disabled:bg-nord-3 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
         >
           <Settings size={24} />

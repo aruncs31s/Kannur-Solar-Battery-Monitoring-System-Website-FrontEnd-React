@@ -7,4 +7,5 @@ export interface IUserRepository {
   getAll(): Promise<User[]>;
   create(data: Omit<CreateUserDTO, 'id'>): Promise<User>;
   delete(id: number): Promise<void>;
+  getProfile(): Promise<any>;
 }

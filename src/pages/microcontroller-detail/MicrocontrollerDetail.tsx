@@ -379,6 +379,7 @@ export const MCDeviceDetail = () => {
       2: 'inactive',
       3: 'maintenance',
       4: 'decommissioned',
+      5: 'active',
     };
     return states[stateId] || 'unknown';
   };
@@ -589,42 +590,45 @@ export const MCDeviceDetail = () => {
         />
 
         {/* Latest Reading */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Latest Reading</h2>
-          {latestReading ? (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-nord-3 dark:text-nord-4">Voltage</span>
-                <span className="text-2xl font-bold text-nord-8">{(latestReading.voltage ?? 0).toFixed(2)}V</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-nord-3 dark:text-nord-4">Current</span>
-                <span className="text-2xl font-bold text-success">{(latestReading.current ?? 0).toFixed(2)}A</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-nord-3 dark:text-nord-4">Power</span>
-                <span className="text-2xl font-bold text-nord-15">{(latestReading.power ?? 0).toFixed(2)}W</span>
-              </div>
-              {latestReading.temperature && (
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Temperature</span>
-                  <span className="text-2xl font-bold text-orange-600 dark:text-orange-400">{latestReading.temperature.toFixed(1)}°C</span>
+        <div className="card">
+          <div className="card-header">
+            <h2 className="section-title">Latest Reading Analysis</h2>
+          </div>
+          <div className="card-body">
+            {latestReading ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem' }}>
+                  <div className="metric-card">
+                    <span className="metric-label" style={{ color: 'var(--nord-10)' }}>Voltage</span>
+                    <span className="metric-value" style={{ color: 'var(--nord-10)' }}>{(latestReading.voltage ?? 0).toFixed(2)}V</span>
+                  </div>
+                  <div className="metric-card">
+                    <span className="metric-label" style={{ color: 'var(--success)' }}>Current</span>
+                    <span className="metric-value" style={{ color: 'var(--success)' }}>{(latestReading.current ?? 0).toFixed(2)}A</span>
+                  </div>
+                  <div className="metric-card">
+                    <span className="metric-label" style={{ color: 'var(--nord-15)' }}>Power</span>
+                    <span className="metric-value" style={{ color: 'var(--nord-15)' }}>{(latestReading.power ?? 0).toFixed(2)}W</span>
+                  </div>
                 </div>
-              )}
-              <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                {new Date(latestReading.timestamp).toLocaleString()}
+                
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: 'var(--surface-secondary)', borderRadius: 'var(--radius-md)' }}>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+                    {new Date(latestReading.timestamp).toLocaleString()}
+                  </div>
+                  <button
+                    onClick={() => navigate(`/devices/${id}/history`)}
+                    className="btn btn-ghost btn-sm"
+                    style={{ color: 'var(--text-accent)' }}
+                  >
+                    <Activity size={14} /> See History
+                  </button>
+                </div>
               </div>
-              <button
-                onClick={() => navigate(`/devices/${id}/history`)}
-                className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors"
-              >
-                <Activity size={16} />
-                See Older Readings
-              </button>
-            </div>
-          ) : (
-            <div className="text-gray-500 dark:text-gray-400">No readings available</div>
-          )}
+            ) : (
+              <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No readings available</div>
+            )}
+          </div>
         </div>
 
         {/* Control Panel */}
@@ -653,11 +657,14 @@ export const MCDeviceDetail = () => {
 
       {/* Main Aggregate Chart */}
       {readings.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              {selectedDay ? `Detailed View - ${selectedDay}` : 'Aggregate Performance Chart'}
-            </h2>
+        <div className="card">
+          <div className="card-header">
+            <div>
+              <h2 className="section-title">
+                {selectedDay ? `Detailed View - ${selectedDay}` : 'Aggregate Performance Chart'}
+              </h2>
+              {!selectedDay && <p className="section-desc">Historical sensor data trends over time</p>}
+            </div>
             {selectedDay && (
               <button
                 onClick={() => setSelectedDay(null)}

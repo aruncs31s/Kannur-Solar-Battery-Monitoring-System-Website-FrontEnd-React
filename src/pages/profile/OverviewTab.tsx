@@ -14,18 +14,18 @@ export const OverviewTab = ({ user }: OverviewTabProps) => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       <div>
-        <h3 className="text-xl font-semibold text-text-primary mb-4">
+        <h3 className="section-title" style={{ marginBottom: '1.5rem' }}>
           Personal Information
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
           {infoItems.map(({ label, value, isMonospace }) => (
-            <div key={label}>
-              <label className="block text-sm font-medium text-text-secondary mb-1">
+            <div key={label} style={{ background: 'var(--surface-secondary)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-secondary)' }}>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.4rem' }}>
                 {label}
               </label>
-              <p className={`text-lg text-text-primary ${isMonospace ? 'font-mono' : ''}`}>
+              <p style={{ fontSize: '1rem', color: 'var(--text-primary)', fontWeight: 500, fontFamily: isMonospace ? 'monospace' : 'inherit' }}>
                 {value}
               </p>
             </div>
@@ -33,17 +33,15 @@ export const OverviewTab = ({ user }: OverviewTabProps) => {
         </div>
       </div>
 
-      <div className="bg-warning-50 border border-warning-200 rounded-lg p-4">
-        <p className="text-sm text-warning-800">
-          <strong>Note:</strong> Profile editing is currently disabled as this feature
-          is not yet implemented in the backend. Contact your administrator to update
-          your account information.
+      <div style={{ padding: '1rem 1.25rem', background: 'var(--warning-bg)', border: '1px solid var(--warning-border)', borderRadius: 'var(--radius-md)' }}>
+        <p style={{ color: 'var(--warning)', fontSize: '0.875rem' }}>
+          <strong style={{ fontWeight: 600 }}>Note:</strong> Profile editing is currently disabled. Contact your administrator to update your account information.
         </p>
       </div>
 
-      <div className="bg-info-50 border border-info-200 rounded-lg p-6">
-        <h3 className="font-semibold text-info-900 mb-2">Security Tips</h3>
-        <ul className="text-sm text-info-800 space-y-1">
+      <div style={{ padding: '1.25rem', background: 'var(--info-bg)', border: '1px solid var(--info-border)', borderRadius: 'var(--radius-md)' }}>
+        <h3 style={{ color: 'var(--info)', fontWeight: 600, marginBottom: '0.5rem', fontSize: '0.9rem' }}>Security Tips</h3>
+        <ul style={{ color: 'var(--nord-10)', fontSize: '0.8125rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', listStyle: 'none', padding: 0 }}>
           <li>• Use a strong password with uppercase, lowercase, numbers, and symbols</li>
           <li>• Change your password regularly</li>
           <li>• Never share your login credentials with anyone</li>

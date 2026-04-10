@@ -79,4 +79,10 @@ export class UserRepository implements IUserRepository {
   async delete(id: number): Promise<void> {
     await httpClient.delete(`/users/${id}`);
   }
+
+  async getProfile(): Promise<any> {
+    const response = await httpClient.get<any>('/profile');
+    return response.profile;
+  }
 }
+

@@ -223,19 +223,26 @@ export const Navigation = () => {
             </motion.button>
 
             {/* User pill */}
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: '0.5rem',
-              padding: '0.3rem 0.75rem 0.3rem 0.4rem',
-              background: 'var(--surface-secondary)', border: '1px solid var(--border-primary)',
-              borderRadius: 'var(--radius-md)',
-            }}>
+            <Link
+              to="/profile"
+              style={{
+                display: 'flex', alignItems: 'center', gap: '0.5rem',
+                padding: '0.3rem 0.75rem 0.3rem 0.4rem',
+                background: 'var(--surface-secondary)', border: '1px solid var(--border-primary)',
+                borderRadius: 'var(--radius-md)',
+                textDecoration: 'none',
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--surface-tertiary)'}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'var(--surface-secondary)'}
+            >
               <div style={{ padding: '0.25rem', background: 'var(--primary-200)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' }}>
                 <User size={13} />
               </div>
               <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                 {user?.username || 'User'}
               </span>
-            </div>
+            </Link>
 
             <motion.button
               whileTap={{ scale: 0.95 }}
@@ -305,10 +312,14 @@ export const Navigation = () => {
                   </motion.div>
                 ))}
                 <div style={{ paddingTop: '0.75rem', borderTop: '1px solid var(--border-secondary)', marginTop: '0.25rem', display: 'flex', gap: '0.5rem' }}>
-                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', background: 'var(--surface-secondary)', borderRadius: 'var(--radius-md)' }}>
+                  <Link 
+                    to="/profile"
+                    onClick={() => setIsOpen(false)}
+                    style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', background: 'var(--surface-secondary)', borderRadius: 'var(--radius-md)', textDecoration: 'none' }}
+                  >
                     <User size={15} style={{ color: 'var(--text-accent)' }} />
                     <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)' }}>{user?.username || 'User'}</span>
-                  </div>
+                  </Link>
                   <button
                     onClick={handleLogout}
                     style={{ padding: '0.5rem 0.875rem', background: 'var(--error-bg)', border: '1px solid var(--error-border)', borderRadius: 'var(--radius-md)', color: 'var(--error)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.875rem', fontWeight: 600 }}

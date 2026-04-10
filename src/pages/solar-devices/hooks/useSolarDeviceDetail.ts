@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { httpClient } from '../../../infrastructure/http/HttpClient';
 import { devicesAPI } from '../../../api/devices';
-import { DeviceResponseDTO, ConnectedDeviceDTO, DeviceTypeDTO } from '../../../domain/entities/Device';
+import { DeviceResponseDTO, ConnectedDeviceDTO, DeviceTypeDTO, DEVICE_STATE_MAPPING } from '../../../domain/entities/Device';
 import { Reading } from '../../../domain/entities/Reading';
 import { isSensor } from '../../../components/ui/DeviceTypeIcon';
 import { MCWithSensors } from '../types';
@@ -35,6 +35,7 @@ export const useSolarDeviceDetail = () => {
     try {
       const resp = await httpClient.get<{ device: any }>(`/devices/${id}`);
       const d = resp.device;
+      const stateId = d.current_state || d.device_state || 1;
       setDevice({
         id: d.id,
         name: d.name,
@@ -45,7 +46,8 @@ export const useSolarDeviceDetail = () => {
         version_id: d.version_id || 0,
         address: d.details?.address || '',
         city: d.details?.city || '',
-        device_state: d.current_state || 1,
+        device_state: stateId,
+        status: d.status || DEVICE_STATE_MAPPING[stateId] || 'unknown',
         hardware_type: d.device_type?.hardware_type ?? 4,
       });
     } catch (err: any) {

@@ -52,14 +52,48 @@ export interface DeviceResponseDTO {
 
 export type DeviceStatus = "active" | "inactive" | "error" | "maintenance" | "decommissioned" | "unknown";
 
-const DEVICE_STATUS = {
-  ACTIVE: "active",
-  INACTIVE: "inactive",
-  ERROR: "error",
-  MAINTENANCE: "maintenance",
-  DISCOMMISSIONED: "decommissioned",
-  UNKNOWN: "unknown",
+export const DEVICE_STATE_IDS = {
+  ACTIVE: 1,
+  INACTIVE: 2,
+  MAINTENANCE: 3,
+  DECOMMISSIONED: 4,
+  INITIALIZED: 5,
+} as const;
+
+export const DEVICE_STATES = {
+  [DEVICE_STATE_IDS.ACTIVE]: 'Active',
+  [DEVICE_STATE_IDS.INACTIVE]: 'InActive',
+  [DEVICE_STATE_IDS.MAINTENANCE]: 'Maintenance',
+  [DEVICE_STATE_IDS.DECOMMISSIONED]: 'Decommissioned',
+  [DEVICE_STATE_IDS.INITIALIZED]: 'Initialized',
+} as const;
+
+export const DEVICE_ACTIONS = {
+  CREATE: 1,
+  UPDATE: 2,
+  DELETE: 3,
+  TURN_ON: 4,
+  TURN_OFF: 5,
+  CONFIGURE: 6,
+} as const;
+
+
+export const DEVICE_STATUS = {
+  ACTIVE: "Active",
+  INACTIVE: "InActive",
+  ERROR: "Error",
+  MAINTENANCE: "Maintenance",
+  DISCOMMISSIONED: "Decommissioned",
+  UNKNOWN: "Unknown",
 }
+
+export const DEVICE_STATE_MAPPING: Record<number, DeviceStatus> = {
+  [DEVICE_STATE_IDS.ACTIVE]: 'active',
+  [DEVICE_STATE_IDS.INACTIVE]: 'inactive',
+  [DEVICE_STATE_IDS.MAINTENANCE]: 'maintenance',
+  [DEVICE_STATE_IDS.DECOMMISSIONED]: 'decommissioned',
+  [DEVICE_STATE_IDS.INITIALIZED]: 'active',
+};
 
 export type DeviceStates = {
   [key: number]: DeviceStatus;

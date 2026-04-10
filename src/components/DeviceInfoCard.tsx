@@ -31,59 +31,64 @@ export const DeviceInfoCard = ({
   onViewHistory,
 }: DeviceInfoCardProps) => {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Device Information</h2>
-        <div className="flex gap-2">
+    <div className="card">
+      <div className="card-header">
+        <h2 className="section-title">Device Information</h2>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button
             onClick={onUpdate}
-            className="p-2 text-nord-8 hover:text-nord-9 hover:bg-nord-6 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            className="btn btn-icon btn-secondary"
             title="Update Device"
+            style={{ width: 32, height: 32, padding: 0 }}
           >
-            <Edit size={20} />
+            <Edit size={16} />
           </button>
         </div>
       </div>
-      <div className="space-y-3">
-        <div>
-          <span className="text-gray-600 dark:text-gray-400 text-sm">Status</span>
-          <div className="mt-1 space-y-1">
-            <StatusBadge status={status} />
-            {latestReading && (
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Last reading: {new Date(latestReading.timestamp).toLocaleString()}
-              </p>
-            )}
+      <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem' }}>
+          <div>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Status</span>
+            <div style={{ marginTop: '0.4rem' }}>
+              <StatusBadge status={status} />
+              {latestReading && (
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.4rem' }}>
+                  Last: {new Date(latestReading.timestamp).toLocaleString()}
+                </p>
+              )}
+            </div>
+          </div>
+          <div>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Hardware Type</span>
+            <p style={{ color: 'var(--text-primary)', fontWeight: 600, marginTop: '0.4rem' }}>{device.type}</p>
+          </div>
+          <div>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>IP Address</span>
+            <p style={{ color: 'var(--text-primary)', fontWeight: 600, marginTop: '0.4rem', fontFamily: 'monospace' }}>{device.ip_address}</p>
+          </div>
+          <div>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>MAC Address</span>
+            <p style={{ color: 'var(--text-primary)', fontWeight: 600, marginTop: '0.4rem', fontFamily: 'monospace' }}>{device.mac_address}</p>
+          </div>
+          <div>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Firmware</span>
+            <p style={{ color: 'var(--text-primary)', fontWeight: 600, marginTop: '0.4rem' }}>v{device.firmware_version}</p>
+          </div>
+          <div>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Location</span>
+            <p style={{ color: 'var(--text-primary)', fontWeight: 600, marginTop: '0.4rem' }}>{device.city}</p>
           </div>
         </div>
-        <div>
-          <span className="text-gray-600 dark:text-gray-400 text-sm">Type</span>
-          <p className="text-gray-900 dark:text-white font-medium">{device.type}</p>
-        </div>
-        <div>
-          <span className="text-gray-600 dark:text-gray-400 text-sm">IP Address</span>
-          <p className="text-gray-900 dark:text-white font-medium">{device.ip_address}</p>
-        </div>
-        <div>
-          <span className="text-gray-600 dark:text-gray-400 text-sm">MAC Address</span>
-          <p className="text-gray-900 dark:text-white font-medium">{device.mac_address}</p>
-        </div>
-        <div>
-          <span className="text-gray-600 dark:text-gray-400 text-sm">Firmware</span>
-          <p className="text-gray-900 dark:text-white font-medium">{device.firmware_version}</p>
-        </div>
-        <div>
-          <span className="text-gray-600 dark:text-gray-400 text-sm">Location</span>
-          <p className="text-gray-900 dark:text-white font-medium">{device.address}, {device.city}</p>
-        </div>
+
+        <button
+          onClick={onViewHistory}
+          className="btn btn-secondary"
+          style={{ marginTop: '0.5rem', justifyContent: 'center' }}
+        >
+          <History size={16} />
+          View State History
+        </button>
       </div>
-      <button
-        onClick={onViewHistory}
-        className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2 bg-nord-8 hover:bg-nord-9 text-white rounded-lg transition-colors"
-      >
-        <History size={16} />
-        View State History
-      </button>
     </div>
   );
 };

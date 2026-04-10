@@ -63,54 +63,63 @@ export const DeviceHeader = ({
   };
 
   return (
-    <div className="rounded-2xl border border-border-primary bg-gradient-to-br from-blue-500/10 via-sky-500/10 to-emerald-500/10 p-6 shadow-lg">
+    <div className="card" style={{ background: 'linear-gradient(135deg, var(--mc-bg) 0%, var(--surface-primary) 100%)', padding: '1.5rem', border: '1px solid var(--mc-border)' }}>
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-start gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-500/15 text-primary-600 dark:text-primary-300">
+          <div style={{
+            padding: '0.75rem',
+            background: 'var(--mc-bg)',
+            borderRadius: 'var(--radius-lg)',
+            color: 'var(--mc-color)',
+            flexShrink: 0
+          }}>
             <Settings
               onClick={onUpdate}
-              className="cursor-pointer hover:text-primary-700 dark:hover:text-primary-200 transition-colors"
+              className="cursor-pointer hover:scale-110 transition-transform"
               size={24}
             />
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary">Microcontroller</p>
-            <h1 className="text-3xl font-bold text-text-primary">{device.name}</h1>
-            <p className="text-sm text-text-secondary">{device.type} • {device.city}</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <p className="text-xs font-bold uppercase tracking-[0.15em] text-text-muted">Microcontroller</p>
+              <div className="badge badge-micro" style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem' }}>MCU</div>
+            </div>
+            <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-primary)', margin: '0.25rem 0' }}>{device.name}</h1>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)' }}>{device.type} • {device.city}</p>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <StatusBadge status={deviceOnline ? 'online' : getStatusType(device.device_state, deviceOnline)} />
-          <span className="rounded-full bg-surface-secondary px-4 py-1 text-sm font-semibold text-text-secondary">
-            Last updated: {formatTimestamp(latestReading?.timestamp)}
-          </span>
+        <div className="flex flex-wrap items-center gap-2">
+          <StatusBadge status={deviceOnline ? 'online' : (getStatusType(device.device_state, deviceOnline))} />
           <button
             onClick={onGenerateToken}
-            className="rounded-full bg-blue-600 hover:bg-blue-700 px-4 py-1 text-sm font-semibold text-white transition-colors flex items-center gap-2"
+            className="btn btn-primary btn-sm"
           >
-            <Activity size={16} />
+            <Activity size={14} />
             Generate Token
           </button>
           <button
             onClick={onBack}
-            className="rounded-full border border-border-primary px-4 py-1 text-sm font-semibold text-text-secondary transition-colors hover:text-text-primary"
+            className="btn btn-secondary btn-sm"
           >
-            ← Back to Devices
+            ← Back
           </button>
         </div>
       </div>
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border border-border-primary bg-surface-primary/70 p-4">
-          <p className="text-xs font-semibold uppercase tracking-widest text-text-secondary">Latest Voltage</p>
-          <p className="mt-2 text-2xl font-bold text-text-primary">{formatMetric(latestReading?.voltage ?? null, 'V')}</p>
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="metric-card" style={{ background: 'var(--surface-primary)', border: '1px solid var(--border-secondary)' }}>
+          <p className="metric-label" style={{ color: 'var(--nord-10)' }}>Voltage</p>
+          <p className="metric-value" style={{ color: 'var(--nord-10)' }}>{formatMetric(latestReading?.voltage ?? null, 'V')}</p>
+          <p className="metric-sub">{formatTimestamp(latestReading?.timestamp)}</p>
         </div>
-        <div className="rounded-xl border border-border-primary bg-surface-primary/70 p-4">
-          <p className="text-xs font-semibold uppercase tracking-widest text-text-secondary">Latest Current</p>
-          <p className="mt-2 text-2xl font-bold text-text-primary">{formatMetric(latestReading?.current ?? null, 'A')}</p>
+        <div className="metric-card" style={{ background: 'var(--surface-primary)', border: '1px solid var(--border-secondary)' }}>
+          <p className="metric-label" style={{ color: 'var(--success)' }}>Current</p>
+          <p className="metric-value" style={{ color: 'var(--success)' }}>{formatMetric(latestReading?.current ?? null, 'A')}</p>
+          <p className="metric-sub">{formatTimestamp(latestReading?.timestamp)}</p>
         </div>
-        <div className="rounded-xl border border-border-primary bg-surface-primary/70 p-4">
-          <p className="text-xs font-semibold uppercase tracking-widest text-text-secondary">Latest Power</p>
-          <p className="mt-2 text-2xl font-bold text-text-primary">{formatMetric(latestReading?.power ?? null, 'W')}</p>
+        <div className="metric-card" style={{ background: 'var(--surface-primary)', border: '1px solid var(--border-secondary)' }}>
+          <p className="metric-label" style={{ color: 'var(--nord-15)' }}>Power</p>
+          <p className="metric-value" style={{ color: 'var(--nord-15)' }}>{formatMetric(latestReading?.power ?? null, 'W')}</p>
+          <p className="metric-sub">{formatTimestamp(latestReading?.timestamp)}</p>
         </div>
       </div>
     </div>

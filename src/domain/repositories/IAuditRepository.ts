@@ -1,5 +1,6 @@
-import { AuditLog } from '../entities/AuditLog';
+import { ListWithTotalCount } from '../../application/types/api';
+import { AuditLog, AuditFilter } from '../entities/AuditLog';
 
 export interface IAuditRepository {
-  getAll(): Promise<AuditLog[]>;
+  getAll(limit: number, offset: number, filters?: AuditFilter): Promise<ListWithTotalCount<AuditLog>>;
 }
