@@ -1,5 +1,5 @@
 import { IReadingRepository } from '../../domain/repositories/IReadingRepository';
-import { Reading, ReadingFilters } from '../../domain/entities/Reading';
+import { Reading, ReadingFilters, AdvancedReadingFilterDTO, AdvancedReadingViewResponseDTO } from '../../domain/entities/Reading';
 import { httpClient } from '../http/HttpClient';
 
 export class ReadingRepository implements IReadingRepository {
@@ -56,4 +56,34 @@ export class ReadingRepository implements IReadingRepository {
       timestamp: new Date(dto.created_at).getTime(),
     }));
   }
+
+  async getAdvancedReadings(filters: AdvancedReadingFilterDTO): Promise<AdvancedReadingViewResponseDTO> {
+    const params = new URLSearchParams();
+    if (filters.location_id) params.append('location_id', filters.location_id.toString());
+    if (filters.ip_address) params.append('ip_address', filters.ip_address);
+    if (filters.start_time) params.append('start_time', filters.start_time);
+    if (filters.end_time) params.append('end_time', filters.end_time);
+    if (filters.limit) params.append('limit', filters.limit.toString());
+    if (filters.interval) params.append('interval', filters.interval);
+
+    try {
+      const response = await httpClient.get<AdvancedReadingViewResponseDTO>(
+        `/readings?${params.toString()}`
+      );
+      
+      // Map API response to expected DTO output
+      return {
+        readings: (response.readings || []).map(r => ({
+          ...r,
+          // Ensure formatting of timestamp if necessary, assuming backend returns string
+          timestamp: new Date(r.timestamp).toISOString() 
+        })),
+        total: response.total || 0
+      };
+    } catch (error) {
+       console.error("Error fetching advanced readings", error);
+       throw error;
+    }
+  }
 }
+

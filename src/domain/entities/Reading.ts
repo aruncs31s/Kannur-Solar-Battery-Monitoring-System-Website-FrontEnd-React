@@ -49,3 +49,27 @@ export interface ReadingFilters {
   interval?: string; // Duration string like "1h", "30m", "15m"
   count?: number; // Number of readings to return
 }
+
+export interface AdvancedReadingFilterDTO {
+  location_id?: number;
+  ip_address?: string;
+  start_time?: string; // ISO 8601
+  end_time?: string; // ISO 8601
+  limit?: number;
+  interval?: string;
+}
+
+export interface AdvancedReadingViewDTO {
+  id: string;
+  device_id: number;
+  device_name: string;
+  voltage: number;
+  current: number;
+  power: number;
+  timestamp: string; // From backend created_at as string
+}
+
+export interface AdvancedReadingViewResponseDTO {
+  readings: AdvancedReadingViewDTO[];
+  total: number;
+}
