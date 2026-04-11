@@ -1,5 +1,5 @@
 import { X, Calendar, Activity, RotateCcw } from 'lucide-react';
-import { DEVICE_STATES, DEVICE_STATE_IDS } from '../../../domain/entities/Device';
+import { DEVICE_STATE_IDS } from '../../../domain/entities/Device';
 
 export interface HistoryFiltersProps {
   fromDate: string;
@@ -35,7 +35,7 @@ export const HistoryFilters = ({
           <Activity size={20} className="text-primary-500" />
           Filter Timeline
         </h2>
-        <button 
+        <button
           onClick={onClearFilters}
           className="text-xs font-bold text-primary-500 hover:text-primary-400 flex items-center gap-1 transition-colors uppercase tracking-wider"
         >
@@ -87,11 +87,10 @@ export const HistoryFilters = ({
                   onStatesChange([...selectedStates, state.id]);
                 }
               }}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-bold transition-all duration-300 ${
-                selectedStates.includes(state.id)
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-bold transition-all duration-300 ${selectedStates.includes(state.id)
                   ? 'bg-primary-500/10 border-primary-500 text-primary-500 bg-surface-tertiary shadow-sm'
                   : 'bg-surface-secondary border-border-primary text-text-tertiary hover:bg-surface-tertiary hover:text-text-secondary'
-              }`}
+                }`}
             >
               <div className={`w-2 h-2 rounded-full ${state.color}`} />
               {state.label}

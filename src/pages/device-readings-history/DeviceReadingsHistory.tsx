@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Calendar, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
 import { readingsAPI } from '../../api/readings';
+import { devicesAPI } from '../../api/devices';
 import { Reading } from '../../domain/entities/Reading';
 import ExportPanel from '../../components/ExportPanel';
 
@@ -173,14 +174,10 @@ export const DeviceReadingsHistory = () => {
   }, [id, startDate, endDate, interval, count]);
 
   const loadDeviceName = async () => {
+    if (!id) return;
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8080/api/devices/${id}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
+      const data = await devicesAPI.getDevice(id);
+      if (data && data.device) {
         setDeviceName(data.device.name);
       }
     } catch (err) {

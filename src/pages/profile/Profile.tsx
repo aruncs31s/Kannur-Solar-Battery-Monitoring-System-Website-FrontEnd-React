@@ -1,3 +1,4 @@
+import { useParams } from 'react-router-dom';
 import { FormError } from '../../components/FormComponents';
 import { useProfileData } from './hooks/useProfileData';
 import { useProfileFormatters } from './useProfileFormatters';
@@ -8,6 +9,9 @@ import { DevicesTab } from './DevicesTab';
 import { ActivityTab } from './ActivityTab';
 
 export const Profile = () => {
+  const { id } = useParams<{ id: string }>();
+  const userId = id ? parseInt(id, 10) : undefined;
+
   const {
     user,
     loading,
@@ -19,7 +23,7 @@ export const Profile = () => {
     devicesLoading,
     activityLoading,
     stats,
-  } = useProfileData();
+  } = useProfileData(userId);
 
   const {
     getDeviceStatusText,

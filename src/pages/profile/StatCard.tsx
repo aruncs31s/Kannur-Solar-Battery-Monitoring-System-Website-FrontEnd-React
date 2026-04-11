@@ -8,7 +8,7 @@ export interface StatCardProps {
   iconColor: string;
 }
 
-export const StatCard = ({ icon, label, value, bgColor, iconColor }: StatCardProps) => {
+export const StatCard = ({ icon, label, value, iconColor }: StatCardProps) => {
   // Map old tailwind colors to custom CSS vars if needed, but we can default to primary text
   let mappedColor = 'var(--text-primary)';
   if (iconColor.includes('success')) mappedColor = 'var(--success)';

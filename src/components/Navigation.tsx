@@ -2,7 +2,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   Menu, X, LogOut, User, Moon, Sun, Zap, ChevronDown,
   LayoutDashboard, Cpu, MapPin, Map,
-  Shield, FileText, Activity
+  Shield, FileText, Activity, Bell, Users
 } from 'lucide-react';
 
 import { useState, useEffect } from 'react';
@@ -12,6 +12,7 @@ import { useThemeStore } from '../store/themeStore';
 import { useSearchStore } from '../store/searchStore';
 import { SearchBar } from './SearchBar';
 import { devicesAPI } from '../api/devices';
+import { httpClient } from '../infrastructure/http/HttpClient';
 
 interface NavItem {
   name: string;
@@ -25,6 +26,7 @@ export const Navigation = () => {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [searchResults, setSearchResults] = useState<Array<{ id: number; name: string }>>([]);
+  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
   const { logout, user } = useAuthStore();
@@ -37,16 +39,17 @@ export const Navigation = () => {
   };
 
   const navItems: NavItem[] = [
-    { name: 'Dashboard',        path: '/',                  icon: <LayoutDashboard size={15} /> },
-    { name: 'Solar Devices',    path: '/solar-devices',     icon: <Sun size={15} /> },
-    { name: 'Locations',        path: '/locations',         icon: <MapPin size={15} /> },
-    { name: 'Map',              path: '/map',               icon: <Map size={15} /> },
+    { name: 'Dashboard',        path: '/',                    icon: <LayoutDashboard size={15} /> },
+    { name: 'Solar Devices',    path: '/solar-devices',       icon: <Sun size={15} /> },
+    { name: 'Locations',        path: '/locations',           icon: <MapPin size={15} /> },
+    { name: 'Map',              path: '/map',                 icon: <Map size={15} /> },
     { name: 'Microcontrollers', path: '/my-microcontrollers', icon: <Cpu size={15} /> },
-    { name: 'My Devices',       path: '/my-devices',        icon: <Zap size={15} /> },
-    { name: 'All Devices',      path: '/devices',           icon: <Cpu size={15} /> },
-    { name: 'Readings',         path: '/readings',          icon: <Activity size={15} /> },
-    { name: 'Audit',            path: '/audit',             icon: <FileText size={15} /> },
-    { name: 'Admin',            path: '/admin',             icon: <Shield size={15} />, roles: ['admin'] },
+    { name: 'My Devices',       path: '/my-devices',          icon: <Zap size={15} /> },
+    { name: 'All Devices',      path: '/devices',             icon: <Cpu size={15} /> },
+    { name: 'Readings',         path: '/readings',            icon: <Activity size={15} /> },
+    { name: 'Audit',            path: '/audit',               icon: <FileText size={15} /> },
+    { name: 'Users',            path: '/users',               icon: <Users size={15} />,     roles: ['admin'] },
+    { name: 'Admin',            path: '/admin',               icon: <Shield size={15} />,    roles: ['admin'] },
   ];
 
   const filteredNavItems = navItems.filter(item => {
@@ -64,6 +67,20 @@ export const Navigation = () => {
     };
     fetchSearchResults();
   }, [query]);
+
+  // Poll unread notification count
+  useEffect(() => {
+    if (!user) return;
+    const fetchUnread = async () => {
+      try {
+        const res = await httpClient.get<{ unread_count: number }>('/notifications?unread_only=true');
+        setUnreadNotifCount(res.unread_count || 0);
+      } catch { /* silent */ }
+    };
+    fetchUnread();
+    const timer = setInterval(fetchUnread, 30000);
+    return () => clearInterval(timer);
+  }, [user]);
 
   const mainNavItems = filteredNavItems.slice(0, 4);  // Dashboard, Solar, Locations, Map
   const moreNavItems = filteredNavItems.slice(4);
@@ -221,6 +238,36 @@ export const Navigation = () => {
             >
               {isDark ? <Sun size={16} /> : <Moon size={16} />}
             </motion.button>
+
+            {/* Notifications Bell */}
+            <Link
+              to="/notifications"
+              style={{ position: 'relative', display: 'flex', alignItems: 'center' }}
+            >
+              <motion.span
+                whileTap={{ scale: 0.9 }}
+                style={{
+                  padding: '0.4rem', borderRadius: 'var(--radius-md)',
+                  background: 'var(--surface-secondary)', border: '1px solid var(--border-primary)',
+                  color: unreadNotifCount > 0 ? 'var(--warning)' : 'var(--text-secondary)',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}
+              >
+                <Bell size={16} />
+              </motion.span>
+              {unreadNotifCount > 0 && (
+                <span style={{
+                  position: 'absolute', top: -4, right: -4,
+                  background: 'var(--error)', color: '#fff',
+                  fontSize: '0.6rem', fontWeight: 800,
+                  borderRadius: '999px', minWidth: 16, height: 16,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  padding: '0 3px', lineHeight: 1,
+                }}>
+                  {unreadNotifCount > 99 ? '99+' : unreadNotifCount}
+                </span>
+              )}
+            </Link>
 
             {/* User pill */}
             <Link

@@ -1,8 +1,7 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 
 // const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
-const API_BASE_URL = 'http://localhost:8080/api';
-
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 class HttpClient {
   private client: AxiosInstance;
 
@@ -55,7 +54,7 @@ class HttpClient {
               const { token, refresh_token } = res.data;
               localStorage.setItem('token', token);
               localStorage.setItem('refresh_token', refresh_token);
-              
+
               if (error.config) {
                 error.config.headers.Authorization = `Bearer ${token}`;
                 return axios.request(error.config);

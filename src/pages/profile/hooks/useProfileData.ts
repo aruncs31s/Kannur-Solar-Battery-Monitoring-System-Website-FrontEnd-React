@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../../../store/authStore';
 import { usersAPI } from '../../../api/users';
+import { httpClient } from '../../../infrastructure/http/HttpClient';
 import { DeviceResponseDTO } from '../../../domain/entities/Device';
 import { AuditLog } from '../../../domain/entities/AuditLog';
 
-export const useProfileData = () => {
-  const { user } = useAuthStore();
+export const useProfileData = (id?: number) => {
+  const { user: currentUser } = useAuthStore();
+  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [devices, setDevices] = useState<DeviceResponseDTO[]>([]);
@@ -16,29 +18,34 @@ export const useProfileData = () => {
 
   useEffect(() => {
     const fetchUserDetails = async () => {
-      if (!user) return;
+      // If no id, we need a currentUser
+      if (!id && !currentUser) return;
 
       setLoading(true);
       setDevicesLoading(true);
       setActivityLoading(true);
       try {
-        const profileData = await usersAPI.getProfile();
+        const profileData = id 
+          ? await httpClient.get<any>(`/users/${id}/profile`)
+          : await usersAPI.getProfile();
         
-        // The API returns the user, their devices, and their activity
-        if (profileData.devices) {
-          setDevices(profileData.devices);
+        // In individual user profile, we get common structure
+        const p = profileData.profile || profileData;
+        setUser(p.user);
+
+        if (p.devices) {
+          setDevices(p.devices);
         }
         
-        if (profileData.activity) {
-           // map activity from API DTO to frontend format if needed
-          const mappedLogs = profileData.activity.map((log: any) => ({
+        if (p.activity) {
+          const mappedLogs = p.activity.map((log: any) => ({
              id: log.id,
-             userId: user.id || 0,
+             userId: id || currentUser?.id || 0,
              action: log.action,
              entityType: 'Device',
              entityId: log.device_id?.toString() || '',
              details: log.details,
-             timestamp: new Date(log.created_at).getTime(), // Convert string timestamp to number
+             timestamp: new Date(log.created_at).getTime(),
              ipAddress: log.ip_address,
           })) as AuditLog[];
           setRecentActivity(mappedLogs);
@@ -54,7 +61,7 @@ export const useProfileData = () => {
     };
 
     fetchUserDetails();
-  }, [user]);
+  }, [id, currentUser]);
 
   const stats = {
     totalDevices: devices.length,

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Sun, TrendingUp } from 'lucide-react';
 import { Section } from './Section';
 import { SolarDeviceCard } from './SolarDeviceCard';

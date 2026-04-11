@@ -31,6 +31,9 @@ import { NotFound } from "./pages/not-found/NotFound";
 import { ApiError } from "./pages/api-error/ApiError";
 import { SolarDevices } from "./pages/solar-devices/SolarDevices";
 import { SolarDeviceDetail } from "./pages/solar-devices/SolarDeviceDetail";
+import { NotificationsPage } from "./pages/notifications/NotificationsPage";
+import { UsersPage } from "./pages/users/UsersPage";
+import { TransferHistoryPage } from "./pages/transfer-history/TransferHistoryPage";
 
 function App() {
   const { initAuth } = useAuthStore();
@@ -207,6 +210,16 @@ function App() {
           }
         />
         <Route
+          path="/users/:id/profile"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <Layout>
+                <Profile />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/admin"
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
@@ -287,6 +300,43 @@ function App() {
           }
         />
         <Route path="/server-error" element={<ApiError />} />
+
+        {/* Notifications */}
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <NotificationsPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Users admin page */}
+        <Route
+          path="/users"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <Layout>
+                <UsersPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Device transfer history */}
+        <Route
+          path="/devices/:id/transfer-history"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <TransferHistoryPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>

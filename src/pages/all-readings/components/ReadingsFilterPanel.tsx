@@ -1,16 +1,11 @@
 import { Search, MapPin, Monitor, Calendar, Hash, RefreshCcw } from 'lucide-react';
 import { LocationResponseDTO } from '../../../domain/entities/Location';
+import { AdvancedReadingFilterDTO } from '../../../domain/entities/Reading';
 
 export interface ReadingsFilterPanelProps {
   locations: LocationResponseDTO[];
-  filters: {
-    location_id?: number;
-    ip_address?: string;
-    start_time?: string;
-    end_time?: string;
-    limit?: number;
-  };
-  onFilterChange: (key: string, value: any) => void;
+  filters: AdvancedReadingFilterDTO;
+  onFilterChange: (key: keyof AdvancedReadingFilterDTO, value: any) => void;
   onApplyFilters: () => void;
   onClearFilters: () => void;
 }
@@ -35,7 +30,7 @@ export const ReadingsFilterPanel = ({
           <Search size={20} className="text-primary-500" />
           Advanced Filters
         </h2>
-        <button 
+        <button
           type="button"
           onClick={onClearFilters}
           className="text-xs font-bold text-primary-500 hover:text-primary-400 flex items-center gap-1 transition-colors uppercase tracking-wider"

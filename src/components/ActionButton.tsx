@@ -1,4 +1,4 @@
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 type ButtonVariant = 'primary' | 'secondary' | 'success' | 'danger' | 'warning' | 'info';
@@ -9,6 +9,7 @@ interface BaseButtonProps {
   variant?: ButtonVariant;
   onClick?: () => void;
   disabled?: boolean;
+  loading?: boolean;
   className?: string;
 }
 
@@ -30,6 +31,7 @@ export const ActionButton = ({
   onClick,
   to,
   disabled = false,
+  loading = false,
   className = ''
 }: ActionButtonComponentProps) => {
   const variantClasses = {
@@ -41,18 +43,24 @@ export const ActionButton = ({
     info: 'bg-blue-600 hover:bg-blue-700 text-white',
   };
 
-  const baseClasses = `${variantClasses[variant]} px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors ${
-    disabled ? 'opacity-50 cursor-not-allowed' : ''
+  const isActuallyDisabled = disabled || loading;
+
+  const baseClasses = `${variantClasses[variant]} px-6 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-all duration-200 ${
+    isActuallyDisabled ? 'opacity-60 cursor-not-allowed scale-[0.98]' : 'active:scale-95'
   } ${className}`;
 
   const content = (
     <>
-      {Icon && <Icon size={20} />}
-      {label}
+      {loading ? (
+        <Loader2 size={20} className="animate-spin" />
+      ) : (
+        Icon && <Icon size={20} />
+      )}
+      <span>{label}</span>
     </>
   );
 
-  if (to) {
+  if (to && !loading) {
     return (
       <Link to={to} className={baseClasses}>
         {content}
@@ -61,7 +69,11 @@ export const ActionButton = ({
   }
 
   return (
-    <button onClick={onClick} disabled={disabled} className={baseClasses}>
+    <button 
+      onClick={loading ? undefined : onClick} 
+      disabled={isActuallyDisabled} 
+      className={baseClasses}
+    >
       {content}
     </button>
   );

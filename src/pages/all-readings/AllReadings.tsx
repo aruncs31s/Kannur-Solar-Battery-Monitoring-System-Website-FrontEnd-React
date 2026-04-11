@@ -18,6 +18,14 @@ export const AllReadings = () => {
     refreshReadings
   } = useAdvancedReadings();
 
+  const exportData = readings.map(r => ({
+    deviceName: r.device_name,
+    timestamp: new Date(r.timestamp).getTime(),
+    voltage: r.voltage,
+    current: r.current,
+    power: r.power
+  }));
+
   return (
     <div className="space-y-6 animate-fade-in pb-10">
       <div className="flex justify-between items-end mb-6">
@@ -37,7 +45,7 @@ export const AllReadings = () => {
             {loading ? 'Refreshing...' : 'Refresh Data'}
           </button>
           <ExportPanel
-            data={readings}
+            data={exportData}
             defaultFilename="advanced-readings-export"
             disabled={readings.length === 0}
           />
