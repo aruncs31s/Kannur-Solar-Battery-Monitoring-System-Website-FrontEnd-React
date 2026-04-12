@@ -138,6 +138,19 @@ export const useSolarDeviceDetail = () => {
   };
 
   const refresh = () => setRefreshKey(k => k + 1);
+  
+  const removeMC = async (mcId: number) => {
+    if (!window.confirm('Are you sure you want to remove this microcontroller from the solar charger?')) {
+      return;
+    }
+
+    try {
+      await httpClient.delete(`/devices/${id}/connected/${mcId}`);
+      refresh();
+    } catch (err) {
+      alert('Failed to remove microcontroller');
+    }
+  };
 
   return {
     id,
@@ -154,6 +167,7 @@ export const useSolarDeviceDetail = () => {
     setShowAddMCModal,
     deviceTypes,
     toggleMC,
-    refresh
+    refresh,
+    removeMC
   };
 };

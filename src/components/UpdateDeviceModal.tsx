@@ -1,5 +1,6 @@
-import { X } from 'lucide-react';
 import { UpdateDeviceDTO } from '../domain/entities/Device';
+import { Modal } from './Modal';
+import { FormField } from './FormComponents';
 
 interface UpdateDeviceModalProps {
   isOpen: boolean;
@@ -27,51 +28,41 @@ export const UpdateDeviceModal = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-surface-primary rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-border-primary flex justify-between items-center">
-          <h3 className="text-2xl font-bold text-text-primary">Update Device</h3>
-          <button
-            onClick={onClose}
-            className="text-text-secondary hover:text-text-primary transition-colors"
-          >
-            <X size={24} />
-          </button>
-        </div>
-        
-        <form onSubmit={onSubmit} className="p-6 space-y-4">
-          {message && (
-            <div className={`p-4 rounded-lg ${
-              message.includes('success') 
-                ? 'bg-success/10 text-success' 
-                : 'bg-error/10 text-error'
-            }`}>
-              {message}
-            </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-semibold text-text-secondary mb-2">
-              Device Name *
-            </label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-              required
-              className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              placeholder="Enter device name"
-            />
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Update Device"
+      size="lg"
+    >
+      <form onSubmit={onSubmit} className="space-y-6">
+        {message && (
+          <div className={`p-4 rounded-xl shadow-sm animate-in fade-in slide-in-from-top-2 duration-300 ${
+            message.toLowerCase().includes('success') 
+              ? 'bg-success-bg text-success border border-success-border' 
+              : 'bg-error-bg text-error border border-error-border'
+          }`}>
+            <p className="text-sm font-semibold">{message}</p>
           </div>
+        )}
 
-          <div>
-            <label className="block text-sm font-semibold text-text-secondary mb-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          <FormField
+            label="Device Name"
+            name="name"
+            value={formData.name || ''}
+            onChange={(e) => handleInputChange('name', e.target.value)}
+            required
+            placeholder="Enter device name"
+          />
+
+          <div className="flex flex-col gap-2 group">
+            <label className="text-sm font-bold text-text-secondary group-focus-within:text-primary-500 transition-colors">
               Device Type
             </label>
             <select
               value={formData.type}
               onChange={(e) => handleInputChange('type', parseInt(e.target.value))}
-              className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full px-4 py-2.5 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all duration-200"
             >
               <option value="">Select device type</option>
               {deviceTypes.map((type) => (
@@ -82,88 +73,64 @@ export const UpdateDeviceModal = ({
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-text-secondary mb-2">
-              IP Address
-            </label>
-            <input
-              type="text"
-              value={formData.ip_address}
-              onChange={(e) => handleInputChange('ip_address', e.target.value)}
-              className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              placeholder="192.168.1.100"
-            />
-          </div>
+          <FormField
+            label="IP Address"
+            name="ip_address"
+            value={formData.ip_address || ''}
+            onChange={(e) => handleInputChange('ip_address', e.target.value)}
+            placeholder="192.168.1.100"
+          />
 
-          <div>
-            <label className="block text-sm font-semibold text-text-secondary mb-2">
-              MAC Address
-            </label>
-            <input
-              type="text"
-              value={formData.mac_address}
-              onChange={(e) => handleInputChange('mac_address', e.target.value)}
-              className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              placeholder="AA:BB:CC:DD:EE:FF"
-            />
-          </div>
+          <FormField
+            label="MAC Address"
+            name="mac_address"
+            value={formData.mac_address || ''}
+            onChange={(e) => handleInputChange('mac_address', e.target.value)}
+            placeholder="AA:BB:CC:DD:EE:FF"
+          />
 
-          <div>
-            <label className="block text-sm font-semibold text-text-secondary mb-2">
-              Firmware Version ID
-            </label>
-            <input
-              type="number"
-              value={formData.firmware_version_id}
-              onChange={(e) => handleInputChange('firmware_version_id', parseInt(e.target.value))}
-              className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              placeholder="Enter firmware version ID"
-            />
-          </div>
+          <FormField
+            label="Firmware Version ID"
+            name="firmware_version_id"
+            type="number"
+            value={formData.firmware_version_id?.toString() || ''}
+            onChange={(e) => handleInputChange('firmware_version_id', parseInt(e.target.value))}
+            placeholder="Enter firmware version ID"
+          />
 
-          <div>
-            <label className="block text-sm font-semibold text-text-secondary mb-2">
-              Address
-            </label>
-            <input
-              type="text"
-              value={formData.address}
-              onChange={(e) => handleInputChange('address', e.target.value)}
-              className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              placeholder="123 Street Name"
-            />
-          </div>
+          <FormField
+            label="Address"
+            name="address"
+            value={formData.address || ''}
+            onChange={(e) => handleInputChange('address', e.target.value)}
+            placeholder="123 Street Name"
+          />
 
-          <div>
-            <label className="block text-sm font-semibold text-text-secondary mb-2">
-              City
-            </label>
-            <input
-              type="text"
-              value={formData.city}
-              onChange={(e) => handleInputChange('city', e.target.value)}
-              className="w-full px-4 py-2 bg-surface-secondary border border-border-primary rounded-lg text-text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              placeholder="Enter city"
-            />
-          </div>
+          <FormField
+            label="City"
+            name="city"
+            value={formData.city || ''}
+            onChange={(e) => handleInputChange('city', e.target.value)}
+            placeholder="Enter city"
+          />
+        </div>
 
-          <div className="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-2 bg-surface-secondary hover:bg-surface-tertiary text-text-primary rounded-lg font-medium transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-6 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors"
-            >
-              Update Device
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div className="flex justify-end gap-3 pt-4 border-t border-border-primary">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-6 py-2.5 bg-surface-secondary hover:bg-surface-tertiary text-text-primary rounded-lg font-medium transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="px-6 py-2.5 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-all shadow-md hover:shadow-lg active:scale-95"
+          >
+            Update Device
+          </button>
+        </div>
+      </form>
+    </Modal>
   );
 };

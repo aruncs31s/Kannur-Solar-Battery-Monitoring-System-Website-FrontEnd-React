@@ -36,7 +36,8 @@ export const SolarDeviceDetail = () => {
     setShowAddMCModal,
     deviceTypes,
     toggleMC,
-    refresh
+    refresh,
+    removeMC
   } = useSolarDeviceDetail();
 
   const chartData = readings
@@ -234,6 +235,7 @@ export const SolarDeviceDetail = () => {
                 onToggle={() => toggleMC(mc.id)}
                 onNavigate={() => navigate(`/devices/mc/${mc.id}`)}
                 onSensorClick={(sensorId) => navigate(`/devices/${sensorId}`)}
+                onRemove={removeMC}
               />
             ))}
           </div>

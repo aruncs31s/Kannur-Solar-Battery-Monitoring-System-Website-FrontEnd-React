@@ -18,75 +18,66 @@ export const ReadingsTable = ({
   onReadingsLimitChange,
 }: ReadingsTableProps) => {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-      <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+    <div className="bg-surface-primary rounded-xl shadow-xl border border-border-primary overflow-hidden">
+      <div className="p-6 border-b border-border-primary flex justify-between items-center bg-surface-primary/50 backdrop-blur-sm">
+        <h2 className="text-xl font-bold text-text-primary tracking-tight">
           {useDateFilter ? `Readings (${startDate} to ${endDate})` : 'Recent Readings'}
         </h2>
         <div className="flex items-center gap-4">
-          <label className="text-sm text-gray-600 dark:text-gray-400">
-            Show:
+          <label className="text-sm font-bold text-text-muted flex items-center gap-2">
+            SHOW LIMIT:
             <select
               value={readingsLimit}
               onChange={(e) => onReadingsLimitChange(Number(e.target.value))}
-              className="ml-2 px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="px-3 py-1.5 border border-border-primary rounded-lg bg-surface-secondary text-text-primary font-bold text-xs focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none"
             >
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-              <option value={500}>500</option>
+              {[10, 20, 50, 100, 500].map(val => (
+                <option key={val} value={val}>{val}</option>
+              ))}
             </select>
           </label>
         </div>
       </div>
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead className="bg-gray-50 dark:bg-gray-900">
+        <table className="min-w-full divide-y divide-border-primary">
+          <thead className="bg-surface-secondary">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Timestamp
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Voltage (V)
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Current (A)
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Power (W)
-              </th>
+              {['Timestamp', 'Voltage (V)', 'Current (A)', 'Power (W)'].map((header) => (
+                <th key={header} className="px-6 py-4 text-left text-[10px] font-bold text-text-muted uppercase tracking-widest">
+                  {header}
+                </th>
+              ))}
               {readings.some(r => r.temperature) && (
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-[10px] font-bold text-text-muted uppercase tracking-widest">
                   Temperature (°C)
                 </th>
               )}
             </tr>
           </thead>
-          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+          <tbody className="divide-y divide-border-secondary">
             {readings.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
-                  No readings available
+                <td colSpan={5} className="px-6 py-12 text-center text-text-tertiary italic font-medium">
+                  No readings detected in registry
                 </td>
               </tr>
             ) : (
               readings.map((reading) => (
-                <tr key={reading.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                <tr key={reading.id} className="hover:bg-surface-hover/50 transition-colors group">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-text-secondary group-hover:text-text-primary transition-colors">
                     {new Date(reading.timestamp).toLocaleString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-nord-8">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-nord-8">
                     {(reading.voltage ?? 0).toFixed(2)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-success">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-success">
                     {(reading.current ?? 0).toFixed(2)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-nord-15">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-nord-15">
                     {(reading.power ?? 0).toFixed(2)}
                   </td>
                   {reading.temperature && (
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-orange-600 dark:text-orange-400">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-warning">
                       {reading.temperature.toFixed(1)}
                     </td>
                   )}

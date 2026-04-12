@@ -35,12 +35,12 @@ export const ActionButton = ({
   className = ''
 }: ActionButtonComponentProps) => {
   const variantClasses = {
-    primary: 'bg-primary-500 hover:bg-primary-600 text-white',
-    secondary: 'bg-gray-500 hover:bg-gray-600 text-white',
-    success: 'bg-green-600 hover:bg-green-700 text-white',
-    danger: 'bg-red-600 hover:bg-red-700 text-white',
-    warning: 'bg-yellow-600 hover:bg-yellow-700 text-white',
-    info: 'bg-blue-600 hover:bg-blue-700 text-white',
+    primary: 'bg-primary-500 hover:bg-primary-600 text-white shadow-primary-500/20',
+    secondary: 'bg-surface-secondary hover:bg-surface-tertiary text-text-primary border-border-primary',
+    success: 'bg-success-bg hover:bg-success text-success hover:text-white border-success-border',
+    danger: 'bg-error-bg hover:bg-error text-error hover:text-white border-error-border',
+    warning: 'bg-warning-bg hover:bg-warning text-warning hover:text-white border-warning-border',
+    info: 'bg-info-bg hover:bg-info text-info hover:text-white border-info-border',
   };
 
   const isActuallyDisabled = disabled || loading;

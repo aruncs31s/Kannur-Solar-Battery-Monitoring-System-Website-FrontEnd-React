@@ -1,5 +1,5 @@
 import { IDeviceRepository } from '../../domain/repositories/IDeviceRepository';
-import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO, MicrocontrollerDTO, CreateSensorDeviceDTO, SolarDeviceView, DeviceStateHistoryResponse, DeviceStateHistoryFilters, CreateDeviceTypeDTO, DeviceState, CreateDeviceStateDTO, UpdateDeviceStateDTO, DeviceStatus, ConnectedDeviceDTO, CreateConnectedDeviceDTO, MainStatsDTO } from '../../domain/entities/Device';
+import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO, MicrocontrollerDTO, CreateSensorDeviceDTO, SolarDeviceView, DeviceStateHistoryResponse, DeviceStateHistoryFilters, CreateDeviceTypeDTO, DeviceState, CreateDeviceStateDTO, UpdateDeviceStateDTO, DeviceStatus, ConnectedDeviceDTO, CreateConnectedDeviceDTO, MainStatsDTO, DeviceOwnership, TransferOwnershipDTO } from '../../domain/entities/Device';
 import { DeviceTokenResponse, MicrocontrollerStats } from '../../api/devices';
 import { ProgressiveReadingsResponse, ProgressiveReadingsDTO, ReadingResponseDTO } from '../../domain/entities/Reading';
 import { httpClient } from '../http/HttpClient';
@@ -161,6 +161,19 @@ export class DeviceRepository implements IDeviceRepository {
 
   async createAndConnectDevice(deviceId: number, data: CreateConnectedDeviceDTO): Promise<{ message: string }> {
     return await httpClient.post(`/devices/${deviceId}/connected/new`, data);
+  }
+
+  async getOwnership(deviceId: number): Promise<DeviceOwnership> {
+    const response = await httpClient.get<{ ownership: DeviceOwnership }>(`/devices/${deviceId}/ownership`);
+    return response.ownership;
+  }
+
+  async transferOwnership(deviceId: number, data: TransferOwnershipDTO): Promise<void> {
+    await httpClient.post(`/devices/${deviceId}/transfer`, data);
+  }
+
+  async setVisibility(deviceId: number, isPublic: boolean): Promise<void> {
+    await httpClient.put(`/devices/${deviceId}/public`, { is_public: isPublic });
   }
 
   async getProgressiveReadings(deviceId: number): Promise<ProgressiveReadingsResponse> {

@@ -1,5 +1,5 @@
 import { container } from '../application/di/container';
-import { CreateDeviceDTO, CreateSolarDeviceDTO, CreateSensorDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, SolarDeviceView, MicrocontrollerDTO, DeviceStateHistoryResponse, DeviceStateHistoryFilters, CreateDeviceTypeDTO, UpdateDeviceDTO, DeviceState, CreateDeviceStateDTO, UpdateDeviceStateDTO, ConnectedDeviceDTO, CreateConnectedDeviceDTO, MainStatsDTO } from '../domain/entities/Device';
+import { CreateDeviceDTO, CreateSolarDeviceDTO, CreateSensorDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, SolarDeviceView, MicrocontrollerDTO, DeviceStateHistoryResponse, DeviceStateHistoryFilters, CreateDeviceTypeDTO, UpdateDeviceDTO, DeviceState, CreateDeviceStateDTO, UpdateDeviceStateDTO, ConnectedDeviceDTO, CreateConnectedDeviceDTO, MainStatsDTO, DeviceOwnership, TransferOwnershipDTO } from '../domain/entities/Device';
 import { DeviceTypeDTO } from '../domain/entities/Device';
 
 export interface DeviceTokenResponse {
@@ -165,6 +165,15 @@ export const devicesAPI = {
 
   getMainStats: async (): Promise<MainStatsDTO> => {
     return await container.getGetMainStatsUseCase().execute();
+  },
+  getOwnership: async (deviceId: number): Promise<DeviceOwnership> => {
+    return await container.getGetDeviceOwnershipUseCase().execute(deviceId);
+  },
+  transferOwnership: async (deviceId: number, data: TransferOwnershipDTO): Promise<void> => {
+    return await container.getTransferDeviceOwnershipUseCase().execute(deviceId, data);
+  },
+  setVisibility: async (deviceId: number, isPublic: boolean): Promise<void> => {
+    return await container.getSetDeviceVisibilityUseCase().execute(deviceId, isPublic);
   },
 };
 

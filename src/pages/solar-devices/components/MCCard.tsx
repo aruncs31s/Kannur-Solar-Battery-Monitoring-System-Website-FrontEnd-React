@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Cpu, ChevronDown, ChevronRight, Zap, Activity, TrendingUp, Radio } from 'lucide-react';
+import { Cpu, ChevronDown, ChevronRight, Zap, Activity, TrendingUp, Radio, Trash2 } from 'lucide-react';
 import { DeviceStateBadge } from '../../../components/ui/Badge';
 import { ReadingMetricsCard } from '../../../components/ui/ReadingMetricsCard';
 import { Button } from '../../../components/ui/Button';
@@ -12,9 +12,10 @@ export interface MCCardProps {
   onToggle: () => void;
   onNavigate: () => void;
   onSensorClick: (id: number) => void;
+  onRemove: (id: number) => void;
 }
 
-export const MCCard = ({ mc, index, onToggle, onNavigate, onSensorClick }: MCCardProps) => {
+export const MCCard = ({ mc, index, onToggle, onNavigate, onSensorClick, onRemove }: MCCardProps) => {
   return (
     <motion.div
       className="card"
@@ -140,13 +141,27 @@ export const MCCard = ({ mc, index, onToggle, onNavigate, onSensorClick }: MCCar
               )}
 
               {/* Actions */}
-              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', flexWrap: 'wrap' }}>
                 <Button variant="secondary" size="sm" leftIcon={<Cpu size={13} />} onClick={onNavigate}>
                   View Detail
                 </Button>
                 <Button variant="ghost" size="sm" leftIcon={<Activity size={13} />} onClick={() => window.open(`/devices/${mc.id}/history`, '_blank')}>
                   Readings History
                 </Button>
+                <div style={{ marginLeft: 'auto' }}>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    leftIcon={<Trash2 size={13} />} 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRemove(mc.id);
+                    }}
+                    style={{ color: 'var(--nord-11)' }}
+                  >
+                    Remove from Charger
+                  </Button>
+                </div>
               </div>
             </div>
           </motion.div>

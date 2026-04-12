@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { readingsAPI } from '../../../api/readings';
 import { devicesAPI } from '../../../api/devices';
-import { ConnectedDeviceDTO, DeviceTypeDTO, DEVICE_ACTIONS, DEVICE_STATE_MAPPING } from '../../../domain/entities/Device';
+import { ConnectedDeviceDTO, DeviceTypeDTO, DEVICE_ACTIONS, DEVICE_STATE_MAPPING, DeviceOwnership } from '../../../domain/entities/Device';
 import { Reading } from '../../../domain/entities/Reading';
 
 export const useDeviceDetailData = (id: string | undefined) => {
@@ -53,6 +53,11 @@ export const useDeviceDetailData = (id: string | undefined) => {
   const [expandedDevices, setExpandedDevices] = useState<{ [deviceId: number]: boolean }>({});
   const [loadingSingleReading, setLoadingSingleReading] = useState(false);
   const [loadingMultipleReadings, setLoadingMultipleReadings] = useState(false);
+  
+  // Ownership state
+  const [ownership, setOwnership] = useState<DeviceOwnership | null>(null);
+  const [loadingOwnership, setLoadingOwnership] = useState(false);
+  const [showTransferModal, setShowTransferModal] = useState(false);
 
   const getDefaultDates = () => {
     const today = new Date();
@@ -80,6 +85,7 @@ export const useDeviceDetailData = (id: string | undefined) => {
       loadDeviceTypes();
       loadDeviceType();
       loadConnectedDevices();
+      loadOwnership();
 
       intervalId = setInterval(() => {
         if (isMounted) {
@@ -131,6 +137,37 @@ export const useDeviceDetailData = (id: string | undefined) => {
       setConnectedDevices(data);
     } catch (err) {
       console.error('Failed to load connected devices:', err);
+    }
+  };
+
+  const loadOwnership = async () => {
+    if (!id) return;
+    setLoadingOwnership(true);
+    try {
+      const data = await devicesAPI.getOwnership(parseInt(id));
+      setOwnership(data);
+    } catch (err) {
+      console.error('Failed to load ownership info:', err);
+    } finally {
+      setLoadingOwnership(false);
+    }
+  };
+
+  const handleTransferOwnership = async (toUserId: number, note: string) => {
+    if (!id) return;
+    await devicesAPI.transferOwnership(parseInt(id), { to_user_id: toUserId, note });
+    await loadOwnership();
+  };
+
+  const handleToggleVisibility = async (isPublic: boolean) => {
+    if (!id) return;
+    try {
+      await devicesAPI.setVisibility(parseInt(id), isPublic);
+      if (ownership) {
+        setOwnership({ ...ownership, is_public: isPublic });
+      }
+    } catch (err) {
+      console.error('Failed to toggle visibility:', err);
     }
   };
 
@@ -516,6 +553,13 @@ export const useDeviceDetailData = (id: string | undefined) => {
     loadConnectedDevices,
     handleConnectedDeviceClick,
     closeConnectedReadingsModal,
+    loadOwnership,
+    handleTransferOwnership,
+    handleToggleVisibility,
+    ownership,
+    loadingOwnership,
+    showTransferModal,
+    setShowTransferModal,
     loadDeviceData,
     loadReadings,
     setControlMessage

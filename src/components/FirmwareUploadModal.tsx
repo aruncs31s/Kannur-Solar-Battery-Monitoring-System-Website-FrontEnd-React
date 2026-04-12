@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
-import { X, Upload, AlertCircle, CheckCircle } from 'lucide-react';
+import { Upload, AlertCircle, CheckCircle } from 'lucide-react';
 import { devicesAPI } from '../api/devices';
+import { Modal } from './Modal';
 
 interface FirmwareUploadModalProps {
   isOpen: boolean;
@@ -27,14 +28,12 @@ export const FirmwareUploadModal = ({
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Validate file type (should be .bin for firmware)
       if (!file.name.toLowerCase().endsWith('.bin')) {
         setMessage('Please select a valid firmware file (.bin)');
         setIsSuccess(false);
         return;
       }
 
-      // Validate file size (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
         setMessage('File size must be less than 10MB');
         setIsSuccess(false);
@@ -59,7 +58,6 @@ export const FirmwareUploadModal = ({
     setIsSuccess(false);
 
     try {
-      // Simulate progress for better UX
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => {
           if (prev >= 90) {
@@ -77,37 +75,22 @@ export const FirmwareUploadModal = ({
       setMessage('Firmware uploaded successfully!');
       setIsSuccess(true);
 
-      // Call success callback after a short delay
       setTimeout(() => {
         onUploadSuccess();
         handleClose();
       }, 2000);
 
     } catch (error: any) {
-      // Extract detailed error message
       let errorMessage = 'Upload failed';
-      
       if (error.response) {
-        // Server responded with error
         const status = error.response.status;
         const data = error.response.data;
-        
-        if (status === 400) {
-          errorMessage = data?.message || data?.error || 'Bad Request: Invalid file or parameters';
-        } else if (status === 413) {
-          errorMessage = 'File too large. Maximum size is 10MB';
-        } else if (status === 415) {
-          errorMessage = 'Unsupported file type. Please upload a .bin file';
-        } else if (status === 500) {
-          errorMessage = 'Server error. Please try again later';
-        } else {
-          errorMessage = data?.message || data?.error || `Error ${status}: ${error.message}`;
-        }
-      } else if (error.request) {
-        // Request made but no response
-        errorMessage = 'No response from server. Please check your connection';
+        if (status === 400) errorMessage = data?.message || data?.error || 'Bad Request';
+        else if (status === 413) errorMessage = 'File too large (max 10MB)';
+        else if (status === 415) errorMessage = 'Unsupported file type (.bin only)';
+        else if (status === 500) errorMessage = 'Server error';
+        else errorMessage = data?.message || data?.error || `Error ${status}`;
       } else {
-        // Error in request setup
         errorMessage = error.message || 'Upload failed';
       }
       
@@ -124,100 +107,100 @@ export const FirmwareUploadModal = ({
     setUploadProgress(0);
     setMessage('');
     setIsSuccess(false);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
     onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-        <div className="flex items-center justify-between p-6 border-b">
-          <h3 className="text-lg font-semibold text-gray-900">
-            Upload Firmware - {deviceName}
-          </h3>
-          <button
-            onClick={handleClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <X size={24} />
-          </button>
-        </div>
-
-        <div className="p-6">
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Firmware File (.bin)
-              </label>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".bin"
-                onChange={handleFileSelect}
-                disabled={uploading}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50"
-              />
-              {selectedFile && (
-                <p className="mt-2 text-sm text-gray-600">
-                  Selected: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title={`Upload Firmware - ${deviceName}`}
+      size="md"
+    >
+      <div className="space-y-6">
+        <div className="space-y-4">
+          <div className="flex flex-col gap-2 group">
+            <label className="text-sm font-bold text-text-secondary group-focus-within:text-primary-500 transition-colors">
+              Select Firmware File (.bin)
+            </label>
+            <div 
+              onClick={() => fileInputRef.current?.click()}
+              className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all ${
+                selectedFile 
+                  ? 'border-success/50 bg-success/5' 
+                  : 'border-border-primary hover:border-primary-500 bg-surface-secondary'
+              }`}
+            >
+              <Upload className={selectedFile ? 'text-success' : 'text-text-tertiary'} size={32} />
+              <div className="text-center">
+                <p className="text-sm font-semibold text-text-primary">
+                  {selectedFile ? selectedFile.name : 'Click to select or drag and drop'}
                 </p>
-              )}
+                <p className="text-xs text-text-tertiary mt-1">
+                  {selectedFile ? `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB` : 'Binary files only, max 10MB'}
+                </p>
+              </div>
             </div>
-
-            {uploading && (
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>Uploading...</span>
-                  <span>{uploadProgress}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${uploadProgress}%` }}
-                  ></div>
-                </div>
-              </div>
-            )}
-
-            {message && (
-              <div className={`flex items-center space-x-2 p-3 rounded-md ${
-                isSuccess
-                  ? 'bg-green-50 text-green-800 border border-green-200'
-                  : 'bg-red-50 text-red-800 border border-red-200'
-              }`}>
-                {isSuccess ? (
-                  <CheckCircle size={16} />
-                ) : (
-                  <AlertCircle size={16} />
-                )}
-                <span className="text-sm">{message}</span>
-              </div>
-            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".bin"
+              onChange={handleFileSelect}
+              disabled={uploading}
+              className="hidden"
+            />
           </div>
+
+          {uploading && (
+            <div className="space-y-2 animate-in fade-in duration-300">
+              <div className="flex justify-between text-sm font-medium text-text-secondary">
+                <span>Uploading...</span>
+                <span>{uploadProgress}%</span>
+              </div>
+              <div className="w-full bg-surface-tertiary rounded-full h-2.5 overflow-hidden">
+                <div
+                  className="bg-primary-500 h-full rounded-full transition-all duration-300 shadow-[0_0_8px_rgba(94,129,172,0.4)]"
+                  style={{ width: `${uploadProgress}%` }}
+                ></div>
+              </div>
+            </div>
+          )}
+
+          {message && (
+            <div className={`flex items-start gap-3 p-4 rounded-xl border animate-in slide-in-from-top-2 duration-300 ${
+              isSuccess
+                ? 'bg-success-bg text-success border-success-border'
+                : 'bg-error-bg text-error border-error-border'
+            }`}>
+              {isSuccess ? <CheckCircle className="mt-0.5" size={18} /> : <AlertCircle className="mt-0.5" size={18} />}
+              <span className="text-sm font-semibold">{message}</span>
+            </div>
+          )}
         </div>
 
-        <div className="flex items-center justify-end space-x-3 p-6 border-t bg-gray-50 rounded-b-lg">
+        <div className="flex items-center justify-end gap-3 pt-6 border-t border-border-primary">
           <button
             onClick={handleClose}
             disabled={uploading}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-2.5 text-sm font-bold text-text-secondary hover:text-text-primary transition-colors bg-surface-secondary hover:bg-surface-tertiary rounded-lg"
           >
             Cancel
           </button>
           <button
             onClick={handleUpload}
             disabled={!selectedFile || uploading}
-            className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-6 py-2.5 text-sm font-bold text-white bg-primary-500 hover:bg-primary-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg active:scale-95"
           >
-            <Upload size={16} />
-            <span>{uploading ? 'Uploading...' : 'Upload Firmware'}</span>
+            {uploading ? (
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <Upload size={18} />
+            )}
+            <span>{uploading ? 'Uploading...' : 'Upload'}</span>
           </button>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 };

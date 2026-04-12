@@ -8,7 +8,10 @@ import { UpdateDeviceModal } from '../../components/UpdateDeviceModal';
 import { DeviceControlPanel } from '../../components/DeviceControlPanel';
 import { DeviceInfoCard } from '../../components/DeviceInfoCard';
 import { AddConnectedDeviceModal } from '../../components/AddConnectedDeviceModal';
+import { DeviceOwnershipCard } from './components/DeviceOwnershipCard';
+import { TransferOwnershipModal } from '../../components/TransferOwnershipModal';
 import { useDeviceDetailData } from './hooks/useDeviceDetailData';
+import { useAuthStore } from '../../store/authStore';
 
 export const DeviceDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -40,6 +43,12 @@ export const DeviceDetail = () => {
     setExpandedDevices,
     loadingSingleReading,
     loadingMultipleReadings,
+    ownership,
+    loadingOwnership,
+    showTransferModal,
+    setShowTransferModal,
+    handleTransferOwnership,
+    handleToggleVisibility,
     allReadings,
     selectedDay,
     setSelectedDay,
@@ -65,6 +74,9 @@ export const DeviceDetail = () => {
     loadReadings,
     setControlMessage
   } = useDeviceDetailData(id);
+
+  const { user: currentUser } = useAuthStore();
+  const canEditOwnership = currentUser?.role === 'admin' || (device && ownership && parseInt(currentUser?.id || '0') === ownership.owner_id);
 
   if (loading) {
     return (
@@ -234,13 +246,24 @@ export const DeviceDetail = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* Device Info (reusable component) */}
-        <DeviceInfoCard
-          device={device}
-          status={getStatusType(device.device_state, deviceOnline)}
-          latestReading={latestReading}
-          onUpdate={openUpdateModal}
-          onViewHistory={() => navigate(`/devices/${id}/state-history`)}
-        />
+        <div className="space-y-6">
+          <DeviceInfoCard
+            device={device}
+            status={getStatusType(device.device_state, deviceOnline)}
+            latestReading={latestReading}
+            onUpdate={openUpdateModal}
+            onViewHistory={() => navigate(`/devices/${id}/state-history`)}
+          />
+
+          <DeviceOwnershipCard
+            ownership={ownership}
+            loading={loadingOwnership}
+            onTransferClick={() => setShowTransferModal(true)}
+            onVisibilityToggle={handleToggleVisibility}
+            onViewHistory={() => navigate(`/devices/${id}/transfer-history`)}
+            canEdit={!!canEditOwnership}
+          />
+        </div>
 
         {/* Control Panel or Connected Devices */}
         {canControl ? (
@@ -708,6 +731,13 @@ export const DeviceDetail = () => {
           </div>
         ) : null}
       </div>
+
+      <TransferOwnershipModal
+        isOpen={showTransferModal}
+        onClose={() => setShowTransferModal(false)}
+        onTransfer={handleTransferOwnership}
+        deviceName={device.name}
+      />
 
     </div>
   );

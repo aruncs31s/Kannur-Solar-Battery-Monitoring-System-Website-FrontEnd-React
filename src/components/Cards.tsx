@@ -47,8 +47,8 @@ export const StatusBadge = memo(({ status }: StatusBadgeProps) => {
       pulse: false,
     },
     online: {
-      bg: 'bg-green-500',
-      text: 'text-white',
+      bg: 'bg-success-bg border border-success-border',
+      text: 'text-success',
       icon: CheckCircle,
       pulse: true,
     },

@@ -22,44 +22,38 @@ export const DeviceCard = ({ device, getStatusText }: DeviceCardProps) => {
   return (
     <Link
       to={`/devices/${device.id}`}
-      className="card card-interactive"
+      className="bg-surface-secondary border border-border-primary rounded-lg p-4 hover:shadow-md transition-shadow"
     >
-      <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        <div className="flex justify-between items-start mb-1">
-          <div className="flex items-center gap-2">
-            <div style={{ padding: '0.5rem', background: 'var(--mc-bg)', borderRadius: 'var(--radius-md)', color: 'var(--mc-color)' }}>
-              <HardDrive size={18} />
-            </div>
-            <div>
-              <h4 className="font-semibold text-text-primary m-0" style={{ fontSize: '1rem' }}>{device.name}</h4>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', margin: 0 }}>Type: {device.type}</p>
-            </div>
-          </div>
-          {getStatusIcon()}
+      <div className="flex justify-between items-start mb-2">
+        <div className="flex items-center gap-2">
+          <HardDrive className="text-primary-500" size={20} />
+          <h4 className="font-semibold text-text-primary">{device.name}</h4>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-          <div style={{ padding: '0.5rem', background: 'var(--surface-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-secondary)' }}>
-            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.04em', marginBottom: '0.2rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-               Status
-            </div>
-            <div style={{ fontSize: '0.8rem', fontWeight: 600 }} className={device.device_state === 1 ? 'text-success' : 'text-error'}>
-               {getStatusText(device.device_state)}
-            </div>
-          </div>
-          <div style={{ padding: '0.5rem', background: 'var(--surface-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-secondary)' }}>
-            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.04em', marginBottom: '0.2rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-              <Wifi size={10} /> IP Address
-            </div>
-            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'monospace' }}>
-               {device.ip_address}
-            </div>
-          </div>
+        {getStatusIcon()}
+      </div>
+      <div className="space-y-2 text-sm">
+        <div className="flex items-center gap-2 text-text-secondary">
+          <span className="font-medium">Status:</span>
+          <span
+            className={
+              device.device_state === 1 ? 'text-success-600' : 'text-error-600'
+            }
+          >
+            {getStatusText(device.device_state)}
+          </span>
         </div>
-        <div className="flex items-center gap-2 text-text-secondary" style={{ fontSize: '0.8125rem', marginTop: '0.25rem' }}>
+        <div className="flex items-center gap-2 text-text-secondary">
           <MapPin size={14} />
           <span>
             {device.city}, {device.address}
           </span>
+        </div>
+        <div className="flex items-center gap-2 text-text-secondary">
+          <Wifi size={14} />
+          <span>{device.ip_address}</span>
+        </div>
+        <div className="text-text-secondary">
+          <span className="font-medium">Type:</span> {device.type}
         </div>
       </div>
     </Link>

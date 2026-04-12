@@ -29,12 +29,11 @@ export const DevicesTab = ({ devices, loading, getStatusText }: DevicesTabProps)
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="section-title">My Devices</h3>
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-xl font-semibold text-text-primary">My Devices</h3>
         <Link
           to="/devices"
-          className="btn btn-ghost btn-sm"
-          style={{ color: 'var(--mc-color)' }}
+          className="text-primary-600 hover:text-primary-700 font-medium text-sm"
         >
           View All Devices →
         </Link>

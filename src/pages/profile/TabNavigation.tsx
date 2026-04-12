@@ -16,39 +16,24 @@ export const TabNavigation = ({ activeTab, onTabChange, deviceCount }: TabNaviga
   ];
 
   return (
-    <div style={{ borderBottom: '1px solid var(--border-secondary)' }}>
-      <nav style={{ display: 'flex', gap: '1rem', padding: '0 1.5rem' }}>
-        {tabs.map(({ id, label, icon: Icon }) => {
-          const isActive = activeTab === id;
-          return (
-            <button
-              key={id}
-              onClick={() => onTabChange(id)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                padding: '1rem 0.5rem',
-                background: 'transparent',
-                border: 'none',
-                borderBottom: isActive ? '2px solid var(--mc-color)' : '2px solid transparent',
-                color: isActive ? 'var(--mc-color)' : 'var(--text-secondary)',
-                fontWeight: isActive ? 600 : 500,
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-              }}
-              onMouseEnter={(e) => {
-                if (!isActive) e.currentTarget.style.color = 'var(--text-primary)';
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive) e.currentTarget.style.color = 'var(--text-secondary)';
-              }}
-            >
+    <div className="border-b border-border-primary">
+      <nav className="flex gap-4 px-6">
+        {tabs.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            onClick={() => onTabChange(id)}
+            className={`py-4 px-4 border-b-2 font-medium transition-colors ${
+              activeTab === id
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            <div className="flex items-center gap-2">
               <Icon size={18} />
               {label}
-            </button>
-          );
-        })}
+            </div>
+          </button>
+        ))}
       </nav>
     </div>
   );

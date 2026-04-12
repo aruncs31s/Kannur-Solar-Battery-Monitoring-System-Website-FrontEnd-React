@@ -35,6 +35,9 @@ import { GenerateDeviceTokenUseCase } from '../usecases/devices/GenerateDeviceTo
 import { GetDeviceTypeUseCase } from '../usecases/devices/GetDeviceTypeUseCase';
 import { UpdateDeviceUseCase } from '../usecases/devices/UpdateDeviceUseCase';
 import { RemoveConnectedDeviceUseCase } from '../usecases/devices/RemoveConnectedDeviceUseCase';
+import { GetDeviceOwnershipUseCase } from '../usecases/devices/GetDeviceOwnershipUseCase';
+import { TransferDeviceOwnershipUseCase } from '../usecases/devices/TransferDeviceOwnershipUseCase';
+import { SetDeviceVisibilityUseCase } from '../usecases/devices/SetDeviceVisibilityUseCase';
 import { GetConnectedDevicesUseCase } from '../usecases/devices/GetConnectedDevicesUseCase';
 import { AddConnectedDeviceUseCase } from '../usecases/devices/AddConnectedDeviceUseCase';
 import { CreateAndConnectDeviceUseCase } from '../usecases/devices/CreateAndConnectDeviceUseCase';
@@ -179,8 +182,20 @@ class DIContainer {
     return new GenerateDeviceTokenUseCase(this.deviceRepository);
   }
 
-  getRemoveConnectedDeviceUseCase() {
+  getRemoveConnectedDeviceUseCase(): RemoveConnectedDeviceUseCase {
     return new RemoveConnectedDeviceUseCase(this.deviceRepository);
+  }
+
+  getGetDeviceOwnershipUseCase(): GetDeviceOwnershipUseCase {
+    return new GetDeviceOwnershipUseCase(this.deviceRepository);
+  }
+
+  getTransferDeviceOwnershipUseCase(): TransferDeviceOwnershipUseCase {
+    return new TransferDeviceOwnershipUseCase(this.deviceRepository);
+  }
+
+  getSetDeviceVisibilityUseCase(): SetDeviceVisibilityUseCase {
+    return new SetDeviceVisibilityUseCase(this.deviceRepository);
   }
 
   getGetConnectedDevicesUseCase() {
