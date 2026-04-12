@@ -30,7 +30,7 @@ export const Dashboard = () => {
   } = useDashboardData();
 
   const handleViewDevice = useCallback((deviceId: number) => {
-    navigate(`/devices/${deviceId}`);
+    navigate(`/solar-devices/${deviceId}`);
   }, [navigate]);
 
   const handleViewAllDevices = useCallback(() => {

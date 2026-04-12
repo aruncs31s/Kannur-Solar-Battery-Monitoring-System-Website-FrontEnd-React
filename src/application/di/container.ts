@@ -34,6 +34,7 @@ import { GetMicrocontrollerStatsUseCase } from '../usecases/devices/GetMicrocont
 import { GenerateDeviceTokenUseCase } from '../usecases/devices/GenerateDeviceTokenUseCase';
 import { GetDeviceTypeUseCase } from '../usecases/devices/GetDeviceTypeUseCase';
 import { UpdateDeviceUseCase } from '../usecases/devices/UpdateDeviceUseCase';
+import { DeleteDeviceUseCase } from '../usecases/devices/DeleteDeviceUseCase';
 import { RemoveConnectedDeviceUseCase } from '../usecases/devices/RemoveConnectedDeviceUseCase';
 import { GetDeviceOwnershipUseCase } from '../usecases/devices/GetDeviceOwnershipUseCase';
 import { TransferDeviceOwnershipUseCase } from '../usecases/devices/TransferDeviceOwnershipUseCase';
@@ -220,6 +221,10 @@ class DIContainer {
 
   getUpdateDeviceUseCase() {
     return new UpdateDeviceUseCase(this.deviceRepository);
+  }
+
+  getDeleteDeviceUseCase() {
+    return new DeleteDeviceUseCase(this.deviceRepository);
   }
 
   getControlDeviceUseCase() {

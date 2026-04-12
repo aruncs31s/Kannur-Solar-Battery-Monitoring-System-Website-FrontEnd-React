@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Navigation } from './Navigation';
+import { Link } from 'react-router-dom';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -7,7 +8,7 @@ interface LayoutProps {
 
 export const Layout = ({ children }: LayoutProps) => {
   return (
-    <div className="flex flex-col min-h-screen bg-background-primary">
+    <div className="relative flex flex-col min-h-screen bg-background-primary">
       <Navigation />
       
       <motion.main
@@ -15,12 +16,12 @@ export const Layout = ({ children }: LayoutProps) => {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.3 }}
-        className="relative flex-1 max-w-7xl w-full mx-auto px-4 py-6 custom-scrollbar"
+        className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 py-6 md:py-8 custom-scrollbar"
       >
         {children}
       </motion.main>
       
-      <footer className="relative bg-surface-secondary text-text-secondary py-8 mt-auto border-t border-border-primary">
+      <footer className="relative z-10 py-10 mt-auto border-t border-border-primary bg-gradient-to-b from-surface-secondary to-surface-primary text-text-secondary">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
             <div>
@@ -30,9 +31,9 @@ export const Layout = ({ children }: LayoutProps) => {
             <div>
               <h3 className="font-bold text-lg mb-2 text-text-primary">Quick Links</h3>
               <ul className="space-y-1 text-sm text-text-tertiary">
-                <li><a href="/devices" className="hover:text-text-accent transition-colors">Devices</a></li>
-                <li><a href="/readings" className="hover:text-text-accent transition-colors">Readings</a></li>
-                <li><a href="/audit" className="hover:text-text-accent transition-colors">Audit Logs</a></li>
+                <li><Link to="/devices" className="hover:text-text-accent transition-colors">Devices</Link></li>
+                <li><Link to="/readings" className="hover:text-text-accent transition-colors">Readings</Link></li>
+                <li><Link to="/audit" className="hover:text-text-accent transition-colors">Audit Logs</Link></li>
               </ul>
             </div>
             <div>

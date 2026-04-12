@@ -117,7 +117,10 @@ export const SolarDeviceDetail = () => {
             </div>
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <Button variant="secondary" size="sm" leftIcon={<Settings size={14} />} onClick={() => navigate(`/devices/${id}`)}>
+            <Button variant="secondary" size="sm" leftIcon={<Settings size={14} />} onClick={() => navigate(`/devices/${id}/settings`)}>
+              Settings
+            </Button>
+            <Button variant="secondary" size="sm" leftIcon={<Activity size={14} />} onClick={() => navigate(`/devices/${id}`)}>
               Full Details
             </Button>
             <Button variant="ghost" size="sm" leftIcon={<RefreshCw size={14} />} onClick={refresh}>

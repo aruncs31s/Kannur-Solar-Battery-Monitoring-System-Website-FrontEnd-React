@@ -34,6 +34,8 @@ import { SolarDeviceDetail } from "./pages/solar-devices/SolarDeviceDetail";
 import { NotificationsPage } from "./pages/notifications/NotificationsPage";
 import { UsersPage } from "./pages/users/UsersPage";
 import { TransferHistoryPage } from "./pages/transfer-history/TransferHistoryPage";
+import { DeviceSettings } from "./pages/device-settings/DeviceSettings";
+import { Home } from "./pages/home/Home";
 
 function App() {
   const { initAuth } = useAuthStore();
@@ -58,8 +60,9 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/" element={<Home />} />
         <Route
-          path="/"
+          path="/dashboard"
           element={
             <ProtectedRoute>
               <Layout>
@@ -134,6 +137,16 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <DeviceStateHistory />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/devices/:id/settings"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <DeviceSettings />
               </Layout>
             </ProtectedRoute>
           }

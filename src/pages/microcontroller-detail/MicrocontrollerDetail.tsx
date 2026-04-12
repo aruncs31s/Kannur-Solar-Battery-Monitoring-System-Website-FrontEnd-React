@@ -485,7 +485,6 @@ export const MCDeviceDetail = () => {
         <span className="badge badge-micro"><Cpu size={10} /> Microcontroller</span>
       </div>
 
-      {/* Original Header */}
       <DeviceHeader
         device={device}
         deviceOnline={deviceOnline}
@@ -493,6 +492,7 @@ export const MCDeviceDetail = () => {
         onGenerateToken={generateToken}
         onBack={() => navigate('/devices')}
         onUpdate={openUpdateModal}
+        onSettings={() => navigate(`/devices/${id}/settings`)}
       />
 
       {/* Control Message */}

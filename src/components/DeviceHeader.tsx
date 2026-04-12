@@ -28,6 +28,7 @@ interface DeviceHeaderProps {
   onGenerateToken: () => void;
   onBack: () => void;
   onUpdate: () => void;
+  onSettings?: () => void;
 }
 
 const formatMetric = (value: number | null | undefined, unit: string) => {
@@ -46,7 +47,8 @@ export const DeviceHeader = ({
   latestReading,
   onGenerateToken,
   onBack,
-  onUpdate
+  onUpdate,
+  onSettings
 }: DeviceHeaderProps) => {
   const getStatusType = (stateId: number, isOnline: boolean): 'active' | 'inactive' | 'maintenance' | 'decommissioned' | 'unknown' | 'online' => {
     if (isOnline) {
@@ -96,6 +98,13 @@ export const DeviceHeader = ({
           >
             <Activity size={14} />
             Generate Token
+          </button>
+          <button
+            onClick={onSettings}
+            className="btn btn-secondary btn-sm"
+          >
+            <Settings size={14} />
+            Settings
           </button>
           <button
             onClick={onBack}

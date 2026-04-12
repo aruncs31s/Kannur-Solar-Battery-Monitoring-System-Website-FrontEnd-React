@@ -32,7 +32,7 @@ export const useLoginForm = () => {
       if (response?.token) {
         setToken(response.token, response.refresh_token);
         setSuccess('Login successful!');
-        window.location.href = '/';
+        window.location.href = '/dashboard';
       } else {
         setError('No token received from server');
       }

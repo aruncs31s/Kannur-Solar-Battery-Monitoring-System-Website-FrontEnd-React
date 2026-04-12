@@ -19,8 +19,8 @@ export const DeviceControlPanel = ({
   if (!canControl) return null;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Control Panel</h2>
+    <div className="bg-surface-secondary border border-border-primary rounded-lg p-6 shadow-sm transition-shadow hover:shadow-md">
+      <h2 className="text-xl font-semibold text-text-primary mb-4">Control Panel</h2>
       <div className="grid grid-cols-2 gap-4">
         <button
           onClick={() => onControl(DEVICE_ACTIONS.TURN_ON)}
@@ -55,7 +55,7 @@ export const DeviceControlPanel = ({
         </button>
       </div>
 
-      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="mt-4 pt-4 border-t border-border-primary">
         <button
           onClick={onGenerateToken}
           className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"

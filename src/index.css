@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -232,6 +232,11 @@
     --radius-lg: 14px;
     --radius-xl: 18px;
     --radius-2xl: 24px;
+
+    /* Typography */
+    --font-body: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-heading: 'Sora', 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
   }
 
   .dark {
@@ -439,18 +444,48 @@
 
   body {
     margin: 0;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background-color: var(--bg-primary);
-    background-image: radial-gradient(circle at 10% 10%, rgba(136, 192, 208, 0.1), transparent 35%), radial-gradient(circle at 90% 15%, rgba(94, 129, 172, 0.12), transparent 30%);
+    background-image:
+      radial-gradient(circle at 8% 10%, rgba(136, 192, 208, 0.12), transparent 32%),
+      radial-gradient(circle at 92% 12%, rgba(94, 129, 172, 0.15), transparent 28%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0));
     color: var(--text-primary);
-    font-size: 14px;
+    font-size: 15px;
     line-height: 1.6;
+    min-height: 100vh;
+    position: relative;
   }
 
   code, pre, .font-mono {
-    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-family: var(--font-mono);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.015em;
+  }
+
+  #root {
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(to right, rgba(94, 129, 172, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(94, 129, 172, 0.04) 1px, transparent 1px);
+    background-size: 32px 32px;
+    mask-image: radial-gradient(circle at center, black, transparent 80%);
+    z-index: 0;
+    opacity: 0.45;
   }
 
   * {
@@ -501,6 +536,12 @@
     border-top: 1px solid var(--border-secondary);
     background: var(--surface-secondary);
     border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  }
+
+  .glass-panel {
+    background: color-mix(in srgb, var(--surface-primary) 74%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border-primary) 84%, transparent);
+    backdrop-filter: blur(10px);
   }
 
   /* ===== BUTTON SYSTEM ===== */

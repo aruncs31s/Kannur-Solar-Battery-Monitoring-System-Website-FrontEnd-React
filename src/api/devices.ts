@@ -110,6 +110,10 @@ export const devicesAPI = {
     return await container.getUpdateDeviceUseCase().execute(deviceId, data);
   },
 
+  deleteDevice: async (deviceId: number): Promise<void> => {
+    return await container.getDeleteDeviceUseCase().execute(deviceId);
+  },
+
   controlDevice: async (deviceId: number, action: number): Promise<{ success: boolean; message: string }> => {
     return await container.getControlDeviceUseCase().execute(deviceId, action);
   },

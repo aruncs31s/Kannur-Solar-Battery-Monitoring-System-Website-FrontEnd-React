@@ -29,17 +29,17 @@ export const Navigation = () => {
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout, user } = useAuthStore();
+  const { logout, user, isAuthenticated } = useAuthStore();
   const { isDark, toggleTheme } = useThemeStore();
   const { query, setQuery } = useSearchStore();
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/');
   };
 
   const navItems: NavItem[] = [
-    { name: 'Dashboard',        path: '/',                    icon: <LayoutDashboard size={15} /> },
+    { name: 'Dashboard',        path: '/dashboard',           icon: <LayoutDashboard size={15} /> },
     { name: 'Solar Devices',    path: '/solar-devices',       icon: <Sun size={15} /> },
     { name: 'Locations',        path: '/locations',           icon: <MapPin size={15} /> },
     { name: 'Map',              path: '/map',                 icon: <Map size={15} /> },
@@ -86,7 +86,7 @@ export const Navigation = () => {
   const moreNavItems = filteredNavItems.slice(4);
 
   const isActivePath = (path: string) => {
-    if (path === '/') return location.pathname === '/';
+    if (path === '/dashboard') return location.pathname === '/dashboard';
     return location.pathname.startsWith(path);
   };
 
@@ -104,7 +104,7 @@ export const Navigation = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: 60 }}>
 
           {/* Logo */}
-          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', textDecoration: 'none' }}>
+          <Link to={isAuthenticated ? '/dashboard' : '/'} style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', textDecoration: 'none' }}>
             <div style={{ padding: '0.45rem', background: 'var(--solar-bg)', borderRadius: 'var(--radius-md)', color: 'var(--solar-color)' }}>
               <Zap size={20} />
             </div>

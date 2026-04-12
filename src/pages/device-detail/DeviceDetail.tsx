@@ -97,7 +97,8 @@ export const DeviceDetail = () => {
   const latestReading = getLatestReading();
   const averages = getAverages();
   const deviceOnline = isDeviceOnline();
-  const canControl = !!(deviceType?.features?.can_control);
+  const resolvedDeviceType = deviceType || deviceTypes.find((type) => type.name === device?.type) || null;
+  const canControl = !!(resolvedDeviceType?.features?.can_control);
 
   return (
     <div className="space-y-6">
@@ -109,12 +110,26 @@ export const DeviceDetail = () => {
         >
           <ArrowLeft size={14} /> Back to Devices
         </button>
-        <h1 className="text-3xl font-extrabold text-text-primary tracking-tight">{device.name}</h1>
-        <div className="flex items-center gap-2 mt-1">
-          <span className="text-text-secondary font-medium">{device.type}</span>
-          <span className="text-text-muted opacity-40">&bull;</span>
-          <span className="text-text-tertiary flex items-center gap-1">
-            <MapPin size={12} /> {device.city}</span>
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-extrabold text-text-primary tracking-tight flex items-center gap-2">{device.name}</h1>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-text-secondary font-medium">{device.type}</span>
+              <span className="text-text-muted opacity-40">&bull;</span>
+              <span className="text-text-tertiary flex items-center gap-1">
+                <MapPin size={12} /> {device.city}
+              </span>
+            </div>
+          </div>
+          {(canEditOwnership || (canControl)) && (
+            <button 
+              onClick={() => navigate(`/devices/${id}/settings`)}
+              className="flex items-center gap-2 px-4 py-2 bg-surface-secondary hover:bg-surface-tertiary border border-border-primary text-text-primary rounded-lg transition-colors font-medium text-sm shadow-sm"
+            >
+              <Settings size={16} className="text-text-secondary" />
+              Settings
+            </button>
+          )}
         </div>
       </div>
 

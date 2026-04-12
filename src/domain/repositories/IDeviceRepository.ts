@@ -90,6 +90,13 @@ export interface IDeviceRepository {
   updateDevice(deviceId: number, data: UpdateDeviceDTO): Promise<DeviceResponseDTO>;
 
   /**
+   * Permanently deletes a device from the system.
+   * @param deviceId The ID of the device to delete.
+   * @returns A promise that resolves when the device is successfully deleted.
+   */
+  deleteDevice(deviceId: number): Promise<void>;
+
+  /**
    * Sends a control command/action to a device (e.g., reboot, toggle relay).
    * @param deviceId The ID of the device receiving the action.
    * @param action The numeric action ID.

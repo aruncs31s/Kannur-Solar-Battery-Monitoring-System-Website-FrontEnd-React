@@ -133,6 +133,10 @@ export class DeviceRepository implements IDeviceRepository {
     return this.mapToDeviceResponseDTO(dto);
   }
 
+  async deleteDevice(deviceId: number): Promise<void> {
+    await httpClient.delete(`/devices/${deviceId}`);
+  }
+
   async controlDevice(deviceId: number, action: number): Promise<{ success: boolean; message: string }> {
     const response = await httpClient.post<{ success: boolean; message: string }>(
       `/devices/${deviceId}/control`,
