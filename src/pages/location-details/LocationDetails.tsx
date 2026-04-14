@@ -163,7 +163,7 @@ export const LocationDetails = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 mb-6"
+            className="card mb-6"
           >
             <button
               onClick={toggleReadingsSection}
@@ -208,7 +208,7 @@ export const LocationDetails = () => {
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="bg-gray-50 dark:bg-gray-700 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-600"
+                      className="bg-surface-secondary rounded-xl p-6 border border-border-primary"
                     >
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">7-Day Trends</h3>
                       <ResponsiveContainer width="100%" height={400}>

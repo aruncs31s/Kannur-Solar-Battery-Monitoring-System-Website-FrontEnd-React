@@ -8,7 +8,7 @@ export const ApiError = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
-                className="max-w-md w-full bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 text-center"
+                className="max-w-md w-full card p-8 text-center"
             >
                 <div className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 p-4 rounded-full inline-block mb-6">
                     <ServerCrash size={48} />

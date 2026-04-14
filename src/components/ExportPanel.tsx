@@ -64,7 +64,7 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 p-4 space-y-3">
+        <div className="absolute right-0 mt-2 w-80 bg-surface-primary border border-border-primary rounded-xl shadow-xl z-50 p-4 space-y-3">
           {/* Format selection */}
           <div>
             <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-1">

@@ -16,6 +16,8 @@ import {
   Wifi,
 } from 'lucide-react';
 
+// TODO: Applay SOLID, like seperate the domain logic to a custom hook and keep this component focused on presentation and user interactions only. This will make the code cleaner and more maintainable in the long run.
+
 export const MyMicrocontrollers = () => {
   const [microcontrollers, setMicrocontrollers] = useState<MicrocontrollerDTO[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,7 +42,7 @@ export const MyMicrocontrollers = () => {
   const fetchMicrocontrollers = async () => {
     setLoading(true);
     try {
-      const data = await devicesAPI.getMicrocontrollers();
+      const data = await devicesAPI.getMyMicrocontrollers();
       // Sort microcontrollers by ID in descending order (newest first)
       const sortedMicrocontrollers = data.sort((a, b) => b.id - a.id);
       setMicrocontrollers(sortedMicrocontrollers);

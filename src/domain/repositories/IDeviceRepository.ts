@@ -67,6 +67,13 @@ export interface IDeviceRepository {
    */
   getMicrocontrollerStats(): Promise<MicrocontrollerStats>;
 
+
+  /**
+   * Lists microcontrollers that are specifically owned by or assigned to the current authenticated user.
+   * @returns A promise resolving to an array of the user's microcontroller details.
+   */
+  getMyMicrocontrollers(): Promise<MicrocontrollerDTO[]>;
+
   /**
    * Generates a new unique access token for a device to authenticate with the backend.
    * @param deviceId The ID of the device to generate a token for.

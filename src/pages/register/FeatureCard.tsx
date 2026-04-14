@@ -28,7 +28,7 @@ export const FeatureCard = ({
       animate={{ y: 0, opacity: 1 }}
       transition={{ delay }}
       whileHover={{ y: -4, scale: 1.02 }}
-      className="relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-100 dark:border-gray-700"
+      className="relative overflow-hidden card p-6 hover:shadow-2xl transition-all duration-300"
     >
       <div
         className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${gradientFrom} ${gradientTo} opacity-10 rounded-full blur-2xl`}

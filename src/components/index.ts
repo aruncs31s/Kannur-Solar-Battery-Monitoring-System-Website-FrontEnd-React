@@ -14,6 +14,7 @@ export { LoadingState } from './LoadingState';
 export { PageHeader } from './PageHeader';
 export { PageHeaderWithBack } from './PageHeaderWithBack';
 export { Section } from './Section';
+export { DeviceSection } from './DeviceSection';
 export { Modal } from './Modal';
 export { Tabs } from './Tabs';
 export { SearchBar } from './SearchBar';

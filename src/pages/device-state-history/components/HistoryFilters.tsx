@@ -17,8 +17,16 @@ export const HistoryFilters = ({
   onStatesChange,
   onClearFilters,
 }: HistoryFiltersProps) => {
+  const stateOptions = [
+    { id: 1, label: 'Active' },
+    { id: 2, label: 'Inactive' },
+    { id: 3, label: 'Maintenance' },
+    { id: 4, label: 'Decommissioned' },
+    { id: 5, label: 'Initialized' },
+  ];
+
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-4">
+    <div className="card p-6 space-y-4">
       <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
         Filters
       </h2>
@@ -53,23 +61,23 @@ export const HistoryFilters = ({
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Device States
         </label>
-        <div className="flex gap-4">
-          {[0, 1].map((state) => (
-            <label key={state} className="flex items-center gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {stateOptions.map((state) => (
+            <label key={state.id} className="flex items-center gap-2">
               <input
                 type="checkbox"
-                checked={selectedStates.includes(state)}
+                checked={selectedStates.includes(state.id)}
                 onChange={(e) => {
                   if (e.target.checked) {
-                    onStatesChange([...selectedStates, state]);
+                    onStatesChange([...selectedStates, state.id]);
                   } else {
-                    onStatesChange(selectedStates.filter((s) => s !== state));
+                    onStatesChange(selectedStates.filter((s) => s !== state.id));
                   }
                 }}
                 className="w-4 h-4"
               />
               <span className="text-gray-700 dark:text-gray-300">
-                {state === 1 ? 'Active' : 'Inactive'}
+                {state.label}
               </span>
             </label>
           ))}

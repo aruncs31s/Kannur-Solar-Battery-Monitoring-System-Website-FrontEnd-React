@@ -99,7 +99,7 @@ export const Locations = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer p-6 border border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-600"
+              className="card card-interactive p-6"
               onClick={() => navigate(`/locations/${location.id}/devices`)}
             >
               <div className="flex justify-between items-start mb-4">

@@ -32,7 +32,7 @@ export const Codegen = ({
       </div>
 
       <div className="grid grid-cols-1 gap-4 mt-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+        <div className="bg-surface-secondary rounded-lg p-4 border border-border-secondary">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-2 h-2 rounded-full bg-blue-500"></div>
             <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Step 1</p>
@@ -40,7 +40,7 @@ export const Codegen = ({
           <p className="text-xs text-gray-600 dark:text-gray-400">Generate device token using the control panel</p>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+        <div className="bg-surface-secondary rounded-lg p-4 border border-border-secondary">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-2 h-2 rounded-full bg-green-500"></div>
             <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Step 2</p>
@@ -48,7 +48,7 @@ export const Codegen = ({
           <p className="text-xs text-gray-600 dark:text-gray-400">Configure WiFi and network settings</p>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+        <div className="bg-surface-secondary rounded-lg p-4 border border-border-secondary">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-2 h-2 rounded-full bg-purple-500"></div>
             <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Step 3</p>

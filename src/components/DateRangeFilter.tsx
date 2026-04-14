@@ -22,7 +22,7 @@ export const DateRangeFilter = ({
   onSetLast30Days,
 }: DateRangeFilterProps) => {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+    <div className="card p-6">
       <div className="flex items-center gap-4 flex-wrap">
         <div className="flex items-center gap-2">
           <Calendar className="text-primary-500" size={20} />

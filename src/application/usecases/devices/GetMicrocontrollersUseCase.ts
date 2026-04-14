@@ -8,3 +8,11 @@ export class GetMicrocontrollersUseCase {
     return await this.deviceRepository.getMicrocontrollers();
   }
 }
+
+export class GetMyMicrocontrollersUseCase {
+  constructor(private deviceRepository: IDeviceRepository) {}
+
+  async execute(): Promise<MicrocontrollerDTO[]> {
+    return await this.deviceRepository.getMyMicrocontrollers();
+  }
+}

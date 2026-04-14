@@ -89,7 +89,7 @@ export const DailyBreakdownCharts = ({
         {getDailyBreakdown().map((day) => (
           <div
             key={day.date}
-            className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
+            className="card card-interactive p-6 hover:scale-105"
             onClick={() => onDaySelect(day.date)}
           >
             <div className="flex items-center justify-between mb-4">

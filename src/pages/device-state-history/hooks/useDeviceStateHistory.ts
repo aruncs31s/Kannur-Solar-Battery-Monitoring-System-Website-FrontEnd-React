@@ -1,9 +1,26 @@
 import { useState, useEffect } from 'react';
+import { devicesAPI } from '../../../api/devices';
+import { DeviceStateHistoryFilters } from '../../../domain/entities/Device';
 
 export interface DeviceStateRecord {
   timestamp: number;
   state: number;
+  stateName: string;
+  action: string;
+  changedBy: string;
 }
+
+const mapStateNameToId = (stateName: string): number => {
+  const normalized = stateName.toLowerCase();
+
+  if (normalized.includes('inactive')) return 2;
+  if (normalized.includes('active')) return 1;
+  if (normalized.includes('maintenance')) return 3;
+  if (normalized.includes('decommission')) return 4;
+  if (normalized.includes('initial')) return 5;
+
+  return 0;
+};
 
 export const useDeviceStateHistory = (deviceId?: string) => {
   const [history, setHistory] = useState<DeviceStateRecord[]>([]);
@@ -19,12 +36,38 @@ export const useDeviceStateHistory = (deviceId?: string) => {
 
     const fetchHistory = async () => {
       setLoading(true);
+      setError('');
+
       try {
-        // TODO: Implement API call to fetch device state history
-        // const response = await devicesAPI.getStateHistory(deviceId, fromDate, toDate);
-        // setHistory(response);
-        setHistory([]);
-        setDeviceName('Device');
+        const filters: DeviceStateHistoryFilters = {};
+
+        if (fromDate) {
+          filters.fromDate = fromDate.split('T')[0];
+        }
+
+        if (toDate) {
+          filters.toDate = toDate.split('T')[0];
+        }
+
+        if (selectedStates.length > 0) {
+          filters.states = selectedStates;
+        }
+
+        const [historyResponse, deviceResponse] = await Promise.all([
+          devicesAPI.getDeviceStateHistory(deviceId, Object.keys(filters).length > 0 ? filters : undefined),
+          devicesAPI.getDevice(deviceId).catch(() => null),
+        ]);
+
+        const mappedHistory: DeviceStateRecord[] = (historyResponse.history || []).map((entry) => ({
+          timestamp: Math.floor(new Date(entry.changed_at).getTime() / 1000),
+          state: mapStateNameToId(entry.state_name),
+          stateName: entry.state_name || 'Unknown',
+          action: entry.action_caused || 'N/A',
+          changedBy: entry.changed_by || 'System',
+        }));
+
+        setHistory(mappedHistory);
+        setDeviceName(deviceResponse?.device?.name || `Device #${deviceId}`);
       } catch (err: any) {
         setError(
           err.response?.data?.error || 'Failed to load device state history'

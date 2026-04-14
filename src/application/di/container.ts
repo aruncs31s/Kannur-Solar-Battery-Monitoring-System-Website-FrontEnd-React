@@ -29,7 +29,7 @@ import { DownloadFirmwareUseCase } from '../usecases/devices/DownloadFirmwareUse
 import { GetDeviceStateHistoryUseCase } from '../usecases/devices/GetDeviceStateHistoryUseCase';
 import { SearchDevicesUseCase } from '../usecases/devices/SearchDevicesUseCase';
 import { SearchMicrocontrollersUseCase } from '../usecases/devices/SearchMicrocontrollersUseCase';
-import { GetMicrocontrollersUseCase } from '../usecases/devices/GetMicrocontrollersUseCase';
+import { GetMicrocontrollersUseCase,GetMyMicrocontrollersUseCase } from '../usecases/devices/GetMicrocontrollersUseCase';
 import { GetMicrocontrollerStatsUseCase } from '../usecases/devices/GetMicrocontrollerStatsUseCase';
 import { GenerateDeviceTokenUseCase } from '../usecases/devices/GenerateDeviceTokenUseCase';
 import { GetDeviceTypeUseCase } from '../usecases/devices/GetDeviceTypeUseCase';
@@ -173,6 +173,9 @@ class DIContainer {
 
   getGetMicrocontrollersUseCase() {
     return new GetMicrocontrollersUseCase(this.deviceRepository);
+  }
+  getGetMyMicrocontrollersUseCase() {
+    return new GetMyMicrocontrollersUseCase(this.deviceRepository);
   }
 
   getGetMicrocontrollerStatsUseCase() {

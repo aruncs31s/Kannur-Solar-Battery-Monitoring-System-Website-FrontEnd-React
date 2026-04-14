@@ -89,8 +89,12 @@ export interface DeviceResponseDTO {
   address: string;
   city: string;
   status: string;
-  device_state: number;
-  hardware_type?: number;
+  hardware_type?: string;
+}
+export interface MinimalDeviceDTO{
+  id : number;
+  name : string;
+  type : string;
 }
 
 /**

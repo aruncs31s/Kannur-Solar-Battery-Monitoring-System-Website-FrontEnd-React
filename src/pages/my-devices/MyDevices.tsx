@@ -1,17 +1,19 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { useSearchStore } from "../../store/searchStore";
-import { AddSolarDeviceModal } from "../../components/AddSolarDeviceModal";
-import { SolarDevicesSection } from "../../components/SolarDevicesSection";
+import { AddDeviceModal } from "../../components/AddDeviceModal";
+import { DeviceSection } from "../../components/DeviceSection";
 import { FormError, FormSuccess } from "../../components/FormComponents";
 import { QuickActions } from "../../components/QuickActions";
 import { PageHeader } from "../../components/PageHeader";
 import { MyDevicesStats } from "./components/MyDevicesStats";
 import { useMyDevicesData } from "./hooks/useMyDevicesData";
 
+
+
 export const MyDevices = () => {
   const { query: searchQuery } = useSearchStore();
-  const [showSolarModal, setShowSolarModal] = useState(false);
+  const [showAddDeviceModal, setShowAddDeviceModal] = useState(false);
   const [success, setSuccess] = useState("");
   const {
     loading,
@@ -20,6 +22,13 @@ export const MyDevices = () => {
     displayDevicesList,
     stats,
     fetchDevices,
+    currentPage,
+    setCurrentPage,
+    pageSize,
+    deviceTypes,
+    deviceTypesLoading,
+    selectedTypeId,
+    setSelectedTypeId,
   } = useMyDevicesData({ searchQuery });
 
   if (loading) {
@@ -37,38 +46,45 @@ export const MyDevices = () => {
     <div className="space-y-8">
       {/* Header */}
       <PageHeader
-        title="My Solar Devices"
-        description="Monitor and manage your solar battery monitoring devices"
+        title="My Devices"
+        description="Monitor and manage your devices across all hardware types"
       >
         <button
-          onClick={() => setShowSolarModal(true)}
+          onClick={() => setShowAddDeviceModal(true)}
           className="bg-success hover:opacity-90 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
         >
           <Plus size={20} />
-          Add Solar Device
+          Add Device
         </button>
       </PageHeader>
       {error && <FormError message={error} />}
       {success && <FormSuccess message={success} />}
       <MyDevicesStats stats={stats} />
-      {/* Solar Devices Grid */}
-      <SolarDevicesSection
+      {/* Devices Grid */}
+      <DeviceSection
         devices={displayDevicesList}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
         title={
-          searchQuery ? `Search Results for "${searchQuery}"` : "My Solar Devices"
+          searchQuery ? `Search Results for "${searchQuery}"` : "My Devices"
         }
         showViewAllLink={false}
-        pageSize={6}
+        pageSize={pageSize}
+        typeFilters={deviceTypes}
+        selectedTypeId={selectedTypeId}
+        onTypeChange={setSelectedTypeId}
+        filterLoading={deviceTypesLoading}
       />
       {/* Quick Actions */}
       <QuickActions />
 
-      {/* Add Solar Device Modal */}
-      <AddSolarDeviceModal
-        isOpen={showSolarModal}
-        onClose={() => setShowSolarModal(false)}
+      {/* Add Device Modal */}
+      <AddDeviceModal
+        isOpen={showAddDeviceModal}
+        onClose={() => setShowAddDeviceModal(false)}
         onDeviceAdded={() => {
-          fetchDevices(); // Refetch to maintain sorted order
+          setCurrentPage(1);
+          fetchDevices();
         }}
         onError={setError}
         onSuccess={(message) => setSuccess(message)}

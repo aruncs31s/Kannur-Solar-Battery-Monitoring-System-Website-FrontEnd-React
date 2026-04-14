@@ -98,6 +98,9 @@ export const devicesAPI = {
     return await container.getGetMicrocontrollersUseCase().execute();
   },
 
+  getMyMicrocontrollers: async (): Promise<MicrocontrollerDTO[]> => {
+    return await container.getGetMyMicrocontrollersUseCase().execute();
+  },
   getMicrocontrollerStats: async (): Promise<MicrocontrollerStats> => {
     return await container.getGetMicrocontrollerStatsUseCase().execute();
   },

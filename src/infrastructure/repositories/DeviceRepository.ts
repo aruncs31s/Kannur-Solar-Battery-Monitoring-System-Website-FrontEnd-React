@@ -98,7 +98,10 @@ export class DeviceRepository implements IDeviceRepository {
     const response = await httpClient.get<{ devices: MicrocontrollerDTO[] }>('/devices/microcontrollers');
     return response.devices;
   }
-
+async getMyMicrocontrollers(): Promise<MicrocontrollerDTO[]> {
+    const response = await httpClient.get<{ devices: MicrocontrollerDTO[] }>('/devices/microcontrollers/my');
+    return response.devices;
+  }
   async getMicrocontrollerStats(): Promise<MicrocontrollerStats> {
     const response = await httpClient.get<{ stats: MicrocontrollerStats }>('/devices/microcontrollers/stats');
     return response.stats;

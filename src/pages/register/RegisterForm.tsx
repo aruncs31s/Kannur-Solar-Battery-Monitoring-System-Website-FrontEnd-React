@@ -24,7 +24,7 @@ export const RegisterForm = () => {
       initial={{ x: -30, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ delay: 0.4 }}
-      className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 border border-gray-100 dark:border-gray-700"
+      className="card shadow-2xl p-8"
     >
       <div className="text-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">

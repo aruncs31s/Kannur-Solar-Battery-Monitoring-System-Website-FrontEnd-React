@@ -1,4 +1,4 @@
-import { Battery, CheckCircle, Package, Zap } from "lucide-react";
+import { Cpu, Package, Sun, Waves } from "lucide-react";
 import { StatsCard } from "../../../components/Cards";
 import { MyDevicesStats as MyDevicesStatsModel } from "../hooks/useMyDevicesData";
 
@@ -11,33 +11,32 @@ export const MyDevicesStats = ({ stats }: MyDevicesStatsProps) => {
     <div className="space-y-6 pb-8">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
-          title="Solar Devices"
+          title="Total Devices"
           value={stats.totalDevices}
           icon={<Package size={28} />}
           color="blue"
-          subtitle="Solar chargers connected"
+          subtitle="All assigned devices"
         />
         <StatsCard
-          title="Active Devices"
-          value={stats.activeDevices}
-          icon={<CheckCircle size={28} />}
+          title="Solar Devices"
+          value={stats.solarDevices}
+          icon={<Sun size={28} />}
           color="green"
-          subtitle="Currently online"
-          trend={stats.activeDevices > 0 ? 5 : 0}
+          subtitle="Solar monitoring units"
         />
         <StatsCard
-          title="Avg Battery Voltage"
-          value={`${stats.averageVoltage.toFixed(1)}V`}
-          icon={<Zap size={28} />}
-          color="purple"
-          subtitle="Average across devices"
+          title="Sensors"
+          value={stats.sensorDevices}
+          icon={<Waves size={28} />}
+          color="yellow"
+          subtitle="Sensor category devices"
         />
         <StatsCard
-          title="Total Power"
-          value={`${stats.totalPower.toFixed(1)}W`}
-          icon={<Battery size={28} />}
+          title="Microcontrollers"
+          value={stats.microcontrollers}
+          icon={<Cpu size={28} />}
           color="indigo"
-          subtitle="Current output"
+          subtitle="Controllers and gateways"
         />
       </div>
     </div>

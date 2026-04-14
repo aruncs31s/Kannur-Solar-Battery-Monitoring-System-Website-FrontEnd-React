@@ -20,7 +20,7 @@ export const Layout = ({ children }: LayoutProps) => {
       >
         {children}
       </motion.main>
-      
+{/*       
       <footer className="relative z-10 py-10 mt-auto border-t border-border-primary bg-gradient-to-b from-surface-secondary to-surface-primary text-text-secondary">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
@@ -48,7 +48,7 @@ export const Layout = ({ children }: LayoutProps) => {
             <p className="text-sm text-text-tertiary">&copy; 2026 Solar Battery Monitoring System. All rights reserved.</p>
           </div>
         </div>
-      </footer>
+      </footer> */}
 
       <style>{`
         @keyframes blob {
