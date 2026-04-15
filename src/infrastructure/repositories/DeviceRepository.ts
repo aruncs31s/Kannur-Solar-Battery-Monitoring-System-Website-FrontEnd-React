@@ -1,12 +1,18 @@
 import { IDeviceRepository } from '../../domain/repositories/IDeviceRepository';
-import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO, MicrocontrollerDTO, CreateSensorDeviceDTO, SolarDeviceView, DeviceStateHistoryResponse, DeviceStateHistoryFilters, CreateDeviceTypeDTO, DeviceState, CreateDeviceStateDTO, UpdateDeviceStateDTO, DeviceStatus, ConnectedDeviceDTO, CreateConnectedDeviceDTO, MainStatsDTO, DeviceOwnership, TransferOwnershipDTO } from '../../domain/entities/Device';
 import { DeviceTokenResponse, MicrocontrollerStats } from '../../api/devices';
 import { ProgressiveReadingsResponse, ProgressiveReadingsDTO, ReadingResponseDTO } from '../../domain/entities/Reading';
 import { httpClient } from '../http/HttpClient';
+import { ConnectedDeviceDTO, CreateConnectedDeviceDTO, CreateDeviceDTO, CreateDeviceStateDTO, CreateDeviceTypeDTO, CreateSensorDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, DeviceState, DeviceStateHistoryFilters, DeviceStateHistoryResponse, DeviceTypeDTO, UpdateDeviceDTO,UpdateDeviceStateDTO } from '../../application/types/devices/device';
+import { MainStatsDTO } from '../../application/types/devices/stats';
+import { MicrocontrollerDTO } from '../../application/types/devices/microcontroller_device';
+import { DeviceOwnership, TransferOwnershipDTO } from '../../application/types/devices/ownership';
+import { SolarDeviceView } from '../../application/types/devices/solar_device';
+import { DeviceStatus } from '../../domain/entities/Device';
 
 export class DeviceRepository implements IDeviceRepository {
   private mapToDeviceResponseDTO(dto: any): DeviceResponseDTO {
-    const stateId = dto.current_state || dto.device_state || dto.deviceState || 0;
+    const stateId = dto.status || dto.current_state || dto.device_state || dto.deviceState || 0;
+    const numericStatus = typeof stateId === 'number' ? stateId : parseInt(stateId as string) || 0;
     return {
       id: dto.id,
       name: dto.name || '',
@@ -17,20 +23,9 @@ export class DeviceRepository implements IDeviceRepository {
       version_id: dto.version_id || dto.versionId || 0,
       address: dto.address || '',
       city: dto.city || '',
-      status: dto.status || this.mapStateToStatus(stateId),
-      device_state: stateId,
+      status: numericStatus,
+      device_state: numericStatus,
     };
-  }
-
-  private mapStateToStatus(stateId: number): DeviceStatus {
-    const states: { [key: number]: DeviceStatus } = {
-      1: 'active',
-      2: 'inactive',
-      3: 'maintenance',
-      4: 'decommissioned',
-      5: 'active',
-    };
-    return states[stateId] || 'unknown';
   }
 
   async getAll(): Promise<DeviceResponseDTO[]> {

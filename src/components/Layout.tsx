@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
 import { Navigation } from './Navigation';
-import { Link } from 'react-router-dom';
 
 interface LayoutProps {
   children: React.ReactNode;

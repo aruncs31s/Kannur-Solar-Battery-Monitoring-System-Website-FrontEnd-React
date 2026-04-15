@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useDevicesStore } from '../../../store/devicesStore';
 import { devicesAPI } from '../../../api/devices';
+import { MainStatsDTO } from '../../../application/types/devices/stats';
 import { useSearchStore } from '../../../store/searchStore';
 
 export const useDevicesData = () => {
   const { devices, setDevices } = useDevicesStore();
+  const [deviceStats, setDeviceStats] = useState<MainStatsDTO | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -16,6 +18,7 @@ export const useDevicesData = () => {
   useEffect(() => {
     fetchDevices();
     fetchDeviceTypes();
+    fetchDeviceStats();
   }, []);
 
   const handleSearch = async (query: string) => {
@@ -49,6 +52,18 @@ export const useDevicesData = () => {
     }
   };
 
+  const fetchDeviceStats = async () => {
+    try {
+      const response = await devicesAPI.getMainStats();
+      setDeviceStats(response);
+      console.log('Fetched device statistics:', response);
+      setError('');
+    } catch (err: any) {
+      console.error('Failed to fetch device statistics:', err);
+      setError('Failed to fetch device statistics');
+    }
+  };
+
   const fetchDeviceTypes = async () => {
     try {
       const types = await devicesAPI.getDeviceTypes();
@@ -61,6 +76,7 @@ export const useDevicesData = () => {
   const handleDeviceAdded = (newDevice: any) => {
     setDevices([...devices, newDevice]);
     fetchDevices(); // Refresh to get updated data
+    fetchDeviceStats();
   };
 
   const activeDevicesCount = devices.filter(d => d.device_state === 1).length;
@@ -78,6 +94,7 @@ export const useDevicesData = () => {
     showAddModal,
     setShowAddModal,
     handleDeviceAdded,
-    activeDevicesCount
+    activeDevicesCount,
+    deviceStats,
   };
 };

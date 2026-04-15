@@ -1,11 +1,11 @@
 import { AlertCircle, CheckCircle, AlertTriangle, Settings, XCircle, HelpCircle, TrendingUp, TrendingDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { memo } from 'react';
+import { DEVICE_STATE_MAPPING, DeviceStatus } from '../domain/entities/Device';
 
 // Status Cards Shown above
 interface StatusBadgeProps {
-  // status: 'active' | 'inactive' | 'error' | 'maintenance' | 'decommissioned' | 'unknown' | 'online';
-  status: string;
+  status: DeviceStatus | number;
 }
 
 export const StatusBadge = memo(({ status }: StatusBadgeProps) => {
@@ -54,7 +54,8 @@ export const StatusBadge = memo(({ status }: StatusBadgeProps) => {
     },
   };
 
-  const normalizedStatus = (status?.toLowerCase() || 'unknown') as keyof typeof configs;
+  const displayStatus = typeof status === 'number' ? DEVICE_STATE_MAPPING[status] || 'unknown' : status || 'unknown';
+  const normalizedStatus = (typeof displayStatus === 'string' ? displayStatus.toLowerCase() : 'unknown') as keyof typeof configs;
   const config = configs[normalizedStatus] || configs.unknown;
   const Icon = config.icon;
 
@@ -67,7 +68,7 @@ export const StatusBadge = memo(({ status }: StatusBadgeProps) => {
       }`}
     >
       <Icon size={16} />
-      <span className="capitalize">{status}</span>
+      <span className="capitalize">{displayStatus}</span>
     </motion.div>
   );
 });

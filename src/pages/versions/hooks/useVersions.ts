@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { versionsAPI } from '../../../api/versions';
 import { devicesAPI } from '../../../api/devices';
 import { Version, Feature } from '../../../domain/entities/Version';
-import { Device } from '../../../domain/entities/Device';
+import { DeviceWithVersionDTO } from '../../../domain/entities/Device';
 
 const normalizeVersion = (version: any): Version => ({
   id: version.ID || version.id,
@@ -25,9 +25,9 @@ const normalizeFeature = (feature: any): Feature => ({
 
 export const useVersions = () => {
   const [versions, setVersions] = useState<Version[]>([]);
-  const [devices, setDevices] = useState<Device[]>([]);
+  const [devices, setDevices] = useState<DeviceWithVersionDTO[]>([]);
   const [features, setFeatures] = useState<Feature[]>([]);
-  const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
+  const [selectedDevice, setSelectedDevice] = useState<DeviceWithVersionDTO | null>(null);
   const [selectedVersion, setSelectedVersion] = useState<Version | null>(null);
   const [error, setError] = useState('');
 
@@ -57,7 +57,10 @@ export const useVersions = () => {
         devicesAPI.getAllDevices()
       ]);
       setVersions(versionsResponse.map(normalizeVersion));
-      setDevices(devicesResponse);
+      setDevices(devicesResponse.map((device) => ({
+        ...device,
+        version_id: device.version_id ?? 0,
+      })));
       setError('');
     } catch (err) {
       setError('Failed to fetch data');

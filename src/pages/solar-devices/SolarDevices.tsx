@@ -7,7 +7,7 @@ import {
   Zap, TrendingUp, Filter, RefreshCw, AlertCircle
 } from 'lucide-react';
 import { httpClient } from '../../infrastructure/http/HttpClient';
-import { DeviceResponseDTO, DEVICE_STATE_MAPPING } from '../../domain/entities/Device';
+import { DeviceResponseDTO } from '../../domain/entities/Device';
 import { DeviceStateBadge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { AddSolarDeviceModal } from '../../components/AddSolarDeviceModal';
@@ -40,7 +40,7 @@ export const SolarDevices = () => {
     try {
       const response = await httpClient.get<{ devices: any[] }>('/devices/solar');
       const mapped: DeviceResponseDTO[] = (response.devices || []).map((d: any) => {
-        const stateId = d.device_state || d.current_state || 0;
+        const stateId = d.status || d.device_state || d.current_state || 0;
         return {
           id: d.id,
           name: d.name || '',
@@ -51,8 +51,8 @@ export const SolarDevices = () => {
           version_id: d.version_id || 0,
           address: d.address || '',
           city: d.city || '',
-          device_state: stateId,
-          status: d.status || DEVICE_STATE_MAPPING[stateId] || 'unknown',
+          status: typeof stateId === 'number' ? stateId : parseInt(stateId) || 0,
+          device_state: typeof stateId === 'number' ? stateId : parseInt(stateId) || 0,
           hardware_type: d.hardware_type || 4,
         };
       });
@@ -66,18 +66,18 @@ export const SolarDevices = () => {
 
   const filtered = devices.filter(d => {
     const matchSearch = d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      d.city.toLowerCase().includes(searchQuery.toLowerCase());
+      (d.city || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchState =
       filterState === 'all' ? true :
-      filterState === 'active' ? d.device_state === 1 :
-      d.device_state !== 1;
+      filterState === 'active' ? d.status === 1 :
+      d.status !== 1;
     return matchSearch && matchState;
   });
 
   const stats = {
     total: devices.length,
-    active: devices.filter(d => d.device_state === 1).length,
-    inactive: devices.filter(d => d.device_state !== 1).length,
+    active: devices.filter(d => d.status === 1).length,
+    inactive: devices.filter(d => d.status !== 1).length,
   };
 
   return (
@@ -219,7 +219,7 @@ interface SolarDeviceCardProps {
 }
 
 const SolarDeviceCard = ({ device, index, onClick }: SolarDeviceCardProps) => {
-  const isActive = device.device_state === 1;
+  const isActive = device.status === 1;
 
   return (
     <motion.div
@@ -253,7 +253,7 @@ const SolarDeviceCard = ({ device, index, onClick }: SolarDeviceCardProps) => {
               </p>
             </div>
           </div>
-          <DeviceStateBadge state={device.device_state} />
+          <DeviceStateBadge state={device.status} />
         </div>
 
         {/* Info rows */}

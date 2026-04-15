@@ -1,10 +1,10 @@
-import { StatsCard } from '../../components/Cards';
 import { AllDevicesSection } from '../../components/AllDevicesSection';
-import { Package, CheckCircle, Zap, Battery, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { FormError, FormSuccess } from '../../components/FormComponents';
 import { AdvancedDeviceAddModal } from '../../components/AdvancedDeviceAddModal';
 import { PageHeader } from '../../components/PageHeader';
 import { useDevicesData } from './hooks/useDevicesData';
+import { DevicesStats } from './components/DevicesStats';
 
 export const Devices = () => {
   const {
@@ -20,7 +20,7 @@ export const Devices = () => {
     showAddModal,
     setShowAddModal,
     handleDeviceAdded,
-    activeDevicesCount
+    deviceStats,
   } = useDevicesData();
 
   if (loading) {
@@ -50,15 +50,12 @@ export const Devices = () => {
       {error && <FormError message={error} />}
       {success && <FormSuccess message={success} />}
 
-      {/* Statistics Cards */}
-      <div className="space-y-6 pb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatsCard title="Total Devices" value={devices.length} icon={<Package size={28} />} color="blue" subtitle="Connected devices" />
-          <StatsCard title="Active Devices" value={activeDevicesCount} icon={<CheckCircle size={28} />} color="green" subtitle="Currently online" trend={activeDevicesCount > 0 ? 5 : 0} />
-          <StatsCard title="Avg Voltage" value="0V" icon={<Zap size={28} />} color="purple" subtitle="System average" />
-          <StatsCard title="Total Power" value="0W" icon={<Battery size={28} />} color="indigo" subtitle="Current output" />
-        </div>
-      </div>
+      <DevicesStats
+        totalDevices={deviceStats?.total_devices || 0}
+        activeDevicesCount={deviceStats?.active_devices || 0}
+        avgVoltage={deviceStats ? `${deviceStats.avg_voltage}V` : '0V'}
+        totalPower={deviceStats ? `${deviceStats.avg_power}W` : '0W'}
+      />
 
       {/* Devices List */}
       <AllDevicesSection 

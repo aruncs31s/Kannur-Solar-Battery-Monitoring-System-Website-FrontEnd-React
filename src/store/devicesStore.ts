@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { DeviceResponseDTO } from '../domain/entities/Device';
+import { DeviceResponseDTO } from '../application/types/devices/device';
 
 interface DevicesStore {
   devices: DeviceResponseDTO[];

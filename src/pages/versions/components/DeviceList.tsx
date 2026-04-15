@@ -1,12 +1,12 @@
 import { Package, ChevronRight } from 'lucide-react';
-import { Device } from '../../../domain/entities/Device';
+import { DeviceWithVersionDTO } from '../../../domain/entities/Device';
 import { Version } from '../../../domain/entities/Version';
 
 interface DeviceListProps {
-  devices: Device[];
+  devices: DeviceWithVersionDTO[];
   versions: Version[];
-  selectedDevice: Device | null;
-  onDeviceSelect: (device: Device) => void;
+  selectedDevice: DeviceWithVersionDTO | null;
+  onDeviceSelect: (device: DeviceWithVersionDTO) => void;
 }
 
 export const DeviceList = ({ devices, versions, selectedDevice, onDeviceSelect }: DeviceListProps) => {

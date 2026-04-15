@@ -4,7 +4,6 @@ import { useDeviceStateHistory } from './hooks/useDeviceStateHistory';
 import { HistoryHeader } from './components/HistoryHeader';
 import { HistoryFilters } from './components/HistoryFilters';
 import { HistoryList } from './components/HistoryList';
-import { StateHistory3D } from './components/StateHistory3D';
 
 export const DeviceStateHistory = () => {
   const { id } = useParams<{ id: string }>();
