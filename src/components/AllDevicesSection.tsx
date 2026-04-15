@@ -64,8 +64,9 @@ export const AllDevicesSection = ({ devices, showGenerateToken = false, maxDevic
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {devices.slice(0, maxDevices).map((device, idx) => (
             <motion.div key={device.id} initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: idx * 0.05 }} whileHover={{ y: -4, scale: 1.02 }}>
-              <div className="border border-border-primary rounded-2xl p-5 hover:shadow-2xl hover:border-primary-500 transition-all bg-surface-secondary">
-                <div className="flex justify-between items-start mb-4">
+              <div className="relative overflow-hidden bg-surface-primary rounded-2xl p-6 shadow-xl shadow-primary-200/20 hover:shadow-2xl transition-all duration-300 border border-border-primary">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary-200 to-primary-400 opacity-10 rounded-full blur-2xl" />
+                <div className="relative flex justify-between items-start mb-4">
                   <div className="flex-1">
                     <Link to={`/devices/${device.id}`} className="block">
                       <h3 className="font-bold text-lg text-text-primary mb-1">{device.name}</h3>
@@ -75,7 +76,7 @@ export const AllDevicesSection = ({ devices, showGenerateToken = false, maxDevic
                   
                   <StatusBadge status={device.status} />
                 </div>
-                <div className="space-y-2.5 text-sm text-text-secondary">
+                <div className="relative space-y-2.5 text-sm text-text-secondary">
                   <div className="flex items-center gap-2 bg-surface-tertiary rounded-lg px-3 py-2">
                     <MapPin size={16} className="text-text-muted" />
                     <span className="font-medium">{device.address || 'Not specified'}</span>
