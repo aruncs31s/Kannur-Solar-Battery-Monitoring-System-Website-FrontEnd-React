@@ -6,7 +6,7 @@ import { ConnectedDeviceDTO, CreateConnectedDeviceDTO, CreateDeviceDTO, CreateDe
 import { MainStatsDTO } from '../../application/types/devices/stats';
 import { MicrocontrollerDTO } from '../../application/types/devices/microcontroller_device';
 import { DeviceOwnership, TransferOwnershipDTO } from '../../application/types/devices/ownership';
-import { SolarDeviceView } from '../../application/types/devices/solar_device';
+import { SolarDeviceWithType } from '../../application/types/devices/solar_device';
 import { DeviceStatus } from '../../domain/entities/Device';
 
 export class DeviceRepository implements IDeviceRepository {
@@ -205,7 +205,7 @@ async getMyMicrocontrollers(): Promise<MicrocontrollerDTO[]> {
     return this.mapToDeviceResponseDTO(response);
   }
 
-  async getMySolarDevices(): Promise<SolarDeviceView[]> {
+  async getMySolarDevices(): Promise<SolarDeviceWithType[]> {
     const response = await httpClient.get<{ devices: any[] }>('/devices/solar/my');
     return response.devices || [];
   }
@@ -265,7 +265,7 @@ async getMyMicrocontrollers(): Promise<MicrocontrollerDTO[]> {
     return await httpClient.put(`/devices/states/${id}`, data);
   }
 
-  async getDevicesByLocation(_locationId: number): Promise<SolarDeviceView[]> {
+  async getDevicesByLocation(_locationId: number): Promise<SolarDeviceWithType[]> {
     const response = await httpClient.get<{ devices: any[] }>('/devices/solar');
     return response.devices.map(dto => ({
       id: dto.id,

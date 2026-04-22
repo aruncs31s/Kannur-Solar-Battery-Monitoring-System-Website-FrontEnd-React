@@ -1,4 +1,4 @@
-import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO, MicrocontrollerDTO, CreateSensorDeviceDTO, SolarDeviceView, DeviceStateHistoryResponse, DeviceStateHistoryFilters, CreateDeviceTypeDTO, DeviceState, CreateDeviceStateDTO, UpdateDeviceStateDTO, ConnectedDeviceDTO, CreateConnectedDeviceDTO, MainStatsDTO, DeviceOwnership, TransferOwnershipDTO } from '../entities/Device';
+import { CreateDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, UpdateDeviceDTO, DeviceTypeDTO, MicrocontrollerDTO, CreateSensorDeviceDTO, SolarDeviceWithType, DeviceStateHistoryResponse, DeviceStateHistoryFilters, CreateDeviceTypeDTO, DeviceState, CreateDeviceStateDTO, UpdateDeviceStateDTO, ConnectedDeviceDTO, CreateConnectedDeviceDTO, MainStatsDTO, DeviceOwnership, TransferOwnershipDTO } from '../entities/Device';
 import { DeviceTokenResponse, MicrocontrollerStats } from '../../api/devices';
 import { ProgressiveReadingsResponse } from '../entities/Reading';
 
@@ -202,7 +202,7 @@ export interface IDeviceRepository {
    * Retrieves all solar devices owned by the current authenticated user.
    * @returns A promise resolving to an array of solar device view objects.
    */
-  getMySolarDevices(): Promise<SolarDeviceView[]>;
+  getMySolarDevices(): Promise<SolarDeviceWithType[]>;
 
   /**
    * Retrieves full details for a single device.
@@ -281,5 +281,5 @@ export interface IDeviceRepository {
    * @param locationId The numeric ID of the location.
    * @returns A promise resolving to an array of solar devices in that location.
    */
-  getDevicesByLocation(locationId: number): Promise<SolarDeviceView[]>;
+  getDevicesByLocation(locationId: number): Promise<SolarDeviceWithType[]>;
 }

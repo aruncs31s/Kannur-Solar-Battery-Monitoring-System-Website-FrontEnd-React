@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Battery, Zap, MapPin, Wifi, Sun } from 'lucide-react';
-import { SolarDeviceView } from '../domain/entities/Device';
+import { SolarDeviceWithType } from '../domain/entities/Device';
 
 interface SolarDeviceCardProps {
-  device: SolarDeviceView;
+  device: SolarDeviceWithType;
   index?: number;
 }
 

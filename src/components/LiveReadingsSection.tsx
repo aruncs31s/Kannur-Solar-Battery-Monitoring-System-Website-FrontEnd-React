@@ -3,12 +3,12 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Activity, AlertCircle, Zap, TrendingUp, Battery, Clock } from 'lucide-react';
-import { SolarDeviceView } from '../domain/entities/Device';
+import { SolarDeviceWithType } from '../domain/entities/Device';
 import { Section } from './Section';
 import { Reading, ReadingAverages } from '../domain/entities/Reading';
 
 interface LiveReadingsSectionProps {
-  devices: SolarDeviceView[];
+  devices: SolarDeviceWithType[];
   readings: Reading[];
   averages: ReadingAverages | null;
   lastReadingTime: string | null;

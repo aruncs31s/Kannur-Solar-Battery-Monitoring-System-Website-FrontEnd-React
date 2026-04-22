@@ -4,7 +4,7 @@ import { ConnectedDeviceDTO, DeviceResponseDTO } from "./device";
 /**
  * Aggregated view of a solar device including real-time reading data.
  */
-export interface SolarDeviceView {
+export interface SolarDeviceWithType {
   id: number;
   name: string;
   /** Real-time charging current in Amperes */

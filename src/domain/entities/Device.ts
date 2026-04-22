@@ -139,7 +139,7 @@ export type { IDeviceTypesRepository } from '../repositories/IDeviceTypesReposit
 export type { MainStatsDTO } from '../../application/types/devices/stats';
 export type { MicrocontrollerDTO } from '../../application/types/devices/microcontroller_device';
 export type { DeviceOwnership, TransferOwnershipDTO } from '../../application/types/devices/ownership';
-export type { SolarDeviceView, SolarDeviceDetailDTO } from '../../application/types/devices/solar_device';
+export type { SolarDeviceWithType, SolarDeviceDetailDTO } from '../../application/types/devices/solar_device';
 
 
 

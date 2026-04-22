@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Sun, TrendingUp } from 'lucide-react';
 import { Section } from './Section';
 import { SolarDeviceCard } from './SolarDeviceCard';
-import { SolarDeviceView } from '../domain/entities/Device';
+import { SolarDeviceWithType } from '../domain/entities/Device';
 import { ListWithTotalCount } from '../application/types/api';
 
 interface SolarDevicesSectionProps {
-  devices: ListWithTotalCount<SolarDeviceView>;
+  devices: ListWithTotalCount<SolarDeviceWithType>;
   pageSize?: number;
   title?: string;
   showViewAllLink?: boolean;

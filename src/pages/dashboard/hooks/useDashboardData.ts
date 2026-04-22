@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { devicesAPI } from '../../../api/devices';
 import { readingsAPI } from '../../../api/readings';
 import { container } from '../../../application/di/container';
-import { DeviceResponseDTO, MainStatsDTO, SolarDeviceView } from '../../../domain/entities/Device';
+import { DeviceResponseDTO, MainStatsDTO, SolarDeviceWithType } from '../../../domain/entities/Device';
 import { Reading, ProgressiveReadingsResponse } from '../../../domain/entities/Reading';
 import { useDevicesStore } from '../../../store/devicesStore';
 import { limitArraySize } from '../../../utils/performanceConfig';
@@ -30,7 +30,7 @@ export interface DashboardAlert {
 
 export interface DashboardDataSource {
   getAllDevices: () => Promise<DeviceResponseDTO[]>;
-  getSolarDevices: () => Promise<SolarDeviceView[]>;
+  getSolarDevices: () => Promise<SolarDeviceWithType[]>;
   getRecentDevices: () => Promise<DeviceResponseDTO[]>;
   getOfflineDevices: () => Promise<DeviceResponseDTO[]>;
   getProgressiveReadings: (deviceId: number) => Promise<ProgressiveReadingsResponse>;
@@ -50,7 +50,7 @@ const defaultDataSource: DashboardDataSource = {
 
 export const useDashboardData = (dataSource: DashboardDataSource = defaultDataSource) => {
   const { devices, setDevices, setLoading, setError } = useDevicesStore();
-  const [solarDevices, setSolarDevices] = useState<SolarDeviceView[]>([]);
+  const [solarDevices, setSolarDevices] = useState<SolarDeviceWithType[]>([]);
   const [readings, setReadings] = useState<Reading[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
   const [recentDevices, setRecentDevices] = useState<DeviceResponseDTO[]>([]);
