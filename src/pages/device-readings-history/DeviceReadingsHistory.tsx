@@ -195,7 +195,8 @@ export const DeviceReadingsHistory = () => {
         startDate: startDate,
         endDate: endDate,
         interval: interval,
-        count: count
+        count: count,
+        timezone: 'UTC'
       });
       
       // Sort by timestamp descending (newest first)
@@ -259,13 +260,13 @@ export const DeviceReadingsHistory = () => {
       nextDay.setDate(nextDay.getDate() + 1);
       
       console.log('Fetching readings for date:', dateStr);
-      console.log('Date range:', selectedDateObj.toISOString().split('T')[0], 'to', nextDay.toISOString().split('T')[0]);
+      console.log('Date range:', selectedDateObj.toISOString(), 'to', nextDay.toISOString());
       
       const dayReadings = await readingsAPI.getByDateRange({
         deviceId: id!,
-        startDate: selectedDateObj.toISOString().split('T')[0],
-        endDate: nextDay.toISOString().split('T')[0]
-        // Remove interval and count for now to test
+        startDate: selectedDateObj.toISOString(),
+        endDate: nextDay.toISOString(),
+        timezone: 'UTC'
       });
       
       console.log('Received readings:', dayReadings);

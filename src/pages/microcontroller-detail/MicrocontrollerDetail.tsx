@@ -178,7 +178,8 @@ export const MCDeviceDetail = () => {
         data = await readingsAPI.getByDateRange({
           deviceId: id,
           startDate: startDate,
-          endDate: endDate
+          endDate: endDate,
+          timezone: 'UTC'
         });
         console.log('Received readings:', data.length);
       } else {
@@ -201,11 +202,12 @@ export const MCDeviceDetail = () => {
       const last7DaysStart = new Date();
       last7DaysStart.setDate(last7DaysStart.getDate() - 7);
       
-      console.log('Fetching breakdown data from:', last7DaysStart.toISOString().split('T')[0], 'to:', last7DaysEnd.toISOString().split('T')[0]);
+      console.log('Fetching breakdown data from:', last7DaysStart.toISOString(), 'to:', last7DaysEnd.toISOString());
       const breakdownData = await readingsAPI.getByDateRange({
         deviceId: id,
-        startDate: last7DaysStart.toISOString().split('T')[0],
-        endDate: last7DaysEnd.toISOString().split('T')[0]
+        startDate: last7DaysStart.toISOString(),
+        endDate: last7DaysEnd.toISOString(),
+        timezone: 'UTC'
       });
       console.log('Breakdown data (last 7 days):', breakdownData.length);
       if (breakdownData.length > 0) {

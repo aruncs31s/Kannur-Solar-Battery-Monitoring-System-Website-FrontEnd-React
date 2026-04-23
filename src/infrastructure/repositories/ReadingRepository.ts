@@ -22,6 +22,7 @@ export class ReadingRepository implements IReadingRepository {
     const params = new URLSearchParams();
     if (filters.startDate) params.append('start_date', filters.startDate);
     if (filters.endDate) params.append('end_date', filters.endDate);
+    if (filters.timezone) params.append('timezone', filters.timezone);
     
     const response = await httpClient.get<{ readings: any[]; stats?: any }>(
       `/devices/${filters.deviceId}/readings/range?${params.toString()}`
