@@ -422,31 +422,16 @@ export const useDeviceDetailData = (id: string | undefined) => {
     };
   };
 
-  const getAggregateChartData = () => {
+  const getBucketizedData = (readingsToBucket: Reading[]) => {
     const hourlyData: { [hour: number]: { voltage: number; current: number; power: number; count: number } } = {};
     
     for (let i = 0; i < 24; i++) {
       hourlyData[i] = { voltage: 0, current: 0, power: 0, count: 0 };
     }
     
-    const today = new Date().toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-
-    allReadings.forEach(reading => {
-      const readingDate = new Date(reading.timestamp).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
-      
-      if (readingDate === today) {
-        const hour = new Date(reading.timestamp).getHours();
-        if (!hourlyData[hour]) {
-          hourlyData[hour] = { voltage: 0, current: 0, power: 0, count: 0 };
-        }
+    readingsToBucket.forEach(reading => {
+      const hour = new Date(reading.timestamp).getHours();
+      if (hourlyData[hour] !== undefined) {
         hourlyData[hour].voltage += reading.voltage ?? 0;
         hourlyData[hour].current += reading.current ?? 0;
         hourlyData[hour].power += reading.power ?? 0;
@@ -460,13 +445,32 @@ export const useDeviceDetailData = (id: string | undefined) => {
       return h > 12 ? `${h - 12} PM` : `${h} AM`;
     };
 
-    const chartData = Object.entries(hourlyData).map(([hour, data]) => ({
+    return Object.entries(hourlyData).map(([hour, data]) => ({
       time: formatHour12(parseInt(hour)),
       voltage: data.count > 0 ? data.voltage / data.count : 0,
       current: data.count > 0 ? data.current / data.count : 0,
       power: data.count > 0 ? data.power / data.count : 0,
       hour: parseInt(hour)
     })).sort((a, b) => a.hour - b.hour);
+  };
+
+  const getAggregateChartData = () => {
+    const today = new Date().toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+
+    const todaysReadings = allReadings.filter(reading => {
+      const readingDate = new Date(reading.timestamp).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+      return readingDate === today;
+    });
+
+    const chartData = getBucketizedData(todaysReadings);
 
     if (selectedMetric !== 'all') {
       const avgValue = selectedMetric === 'voltage' ? getAverages().voltage :
@@ -506,14 +510,7 @@ export const useDeviceDetailData = (id: string | undefined) => {
       result.push({
         date: dateString,
         readings: dayReadings.sort((a, b) => a.timestamp - b.timestamp),
-        chartData: dayReadings
-          .sort((a, b) => a.timestamp - b.timestamp)
-          .map(r => ({
-            time: new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            voltage: r.voltage ?? 0,
-            current: r.current ?? 0,
-            power: r.power ?? 0
-          })),
+        chartData: getBucketizedData(dayReadings),
         avgVoltage: dayReadings.length > 0 ? dayReadings.reduce((sum, r) => sum + (r.voltage ?? 0), 0) / dayReadings.length : 0,
         avgCurrent: dayReadings.length > 0 ? dayReadings.reduce((sum, r) => sum + (r.current ?? 0), 0) / dayReadings.length : 0,
         avgPower: dayReadings.length > 0 ? dayReadings.reduce((sum, r) => sum + (r.power ?? 0), 0) / dayReadings.length : 0,
