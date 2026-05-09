@@ -2,7 +2,7 @@ import { IDeviceRepository } from '../../domain/repositories/IDeviceRepository';
 import { DeviceTokenResponse, MicrocontrollerStats } from '../../api/devices';
 import { ProgressiveReadingsResponse, ProgressiveReadingsDTO, ReadingResponseDTO } from '../../domain/entities/Reading';
 import { httpClient } from '../http/HttpClient';
-import { ConnectedDeviceDTO, CreateConnectedDeviceDTO, CreateDeviceDTO, CreateDeviceStateDTO, CreateDeviceTypeDTO, CreateSensorDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, DeviceState, DeviceStateHistoryFilters, DeviceStateHistoryResponse, DeviceTypeDTO, UpdateDeviceDTO,UpdateDeviceStateDTO } from '../../application/types/devices/device';
+import { ConnectedDeviceDTO, CreateConnectedDeviceDTO, CreateDeviceDTO, CreateDeviceStateDTO, CreateDeviceTypeDTO, CreateSensorDeviceDTO, CreateSolarDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, DeviceState, DeviceStateHistoryFilters, DeviceStateHistoryResponse, DeviceTypeDTO, UpdateDeviceDTO, UpdateDeviceStateDTO } from '../../application/types/devices/device';
 import { MainStatsDTO } from '../../application/types/devices/stats';
 import { MicrocontrollerDTO } from '../../application/types/devices/microcontroller_device';
 import { DeviceOwnership, TransferOwnershipDTO } from '../../application/types/devices/ownership';
@@ -93,12 +93,12 @@ export class DeviceRepository implements IDeviceRepository {
     const response = await httpClient.get<{ devices: MicrocontrollerDTO[] }>('/devices/microcontrollers');
     return response.devices;
   }
-async getMyMicrocontrollers(): Promise<MicrocontrollerDTO[]> {
+  async getMyMicrocontrollers(): Promise<MicrocontrollerDTO[]> {
     const response = await httpClient.get<{ devices: MicrocontrollerDTO[] }>('/devices/microcontrollers/my');
     return response.devices;
   }
   async getMicrocontrollerStats(): Promise<MicrocontrollerStats> {
-    const response = await httpClient.get<{ stats: MicrocontrollerStats }>('/devices/microcontrollers/stats');
+    const response = await httpClient.get<{ stats: MicrocontrollerStats }>('/devices/microcontrollers/my/stats');
     return response.stats;
   }
 

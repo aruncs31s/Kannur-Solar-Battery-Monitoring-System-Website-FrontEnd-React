@@ -39,17 +39,17 @@ export const Navigation = () => {
   };
 
   const navItems: NavItem[] = [
-    { name: 'Dashboard',        path: '/dashboard',           icon: <LayoutDashboard size={15} /> },
-    { name: 'Solar Devices',    path: '/solar-devices',       icon: <Sun size={15} /> },
-    { name: 'Locations',        path: '/locations',           icon: <MapPin size={15} /> },
-    { name: 'Map',              path: '/map',                 icon: <Map size={15} /> },
+    { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={15} /> },
+    { name: 'Solar Devices', path: '/solar-devices', icon: <Sun size={15} /> },
+    { name: 'Locations', path: '/locations', icon: <MapPin size={15} /> },
+    { name: 'Map', path: '/map', icon: <Map size={15} /> },
     { name: 'Microcontrollers', path: '/my-microcontrollers', icon: <Cpu size={15} /> },
-    { name: 'My Devices',       path: '/my-devices',          icon: <Zap size={15} /> },
-    { name: 'All Devices',      path: '/devices',             icon: <Cpu size={15} /> },
-    { name: 'Readings',         path: '/readings',            icon: <Activity size={15} /> },
-    { name: 'Audit',            path: '/audit',               icon: <FileText size={15} /> },
-    { name: 'Users',            path: '/users',               icon: <Users size={15} />,     roles: ['admin'] },
-    { name: 'Admin',            path: '/admin',               icon: <Shield size={15} />,    roles: ['admin'] },
+    { name: 'My Devices', path: '/my-devices', icon: <Zap size={15} /> },
+    { name: 'All Devices', path: '/devices', icon: <Cpu size={15} />, roles: ['admin'] },
+    { name: 'Readings', path: '/readings', icon: <Activity size={15} /> },
+    { name: 'Audit', path: '/audit', icon: <FileText size={15} />, roles: ['admin'] },
+    { name: 'Users', path: '/users', icon: <Users size={15} />, roles: ['admin'] },
+    { name: 'Admin', path: '/admin', icon: <Shield size={15} />, roles: ['admin'] },
   ];
 
   const filteredNavItems = navItems.filter(item => {
@@ -359,7 +359,7 @@ export const Navigation = () => {
                   </motion.div>
                 ))}
                 <div style={{ paddingTop: '0.75rem', borderTop: '1px solid var(--border-secondary)', marginTop: '0.25rem', display: 'flex', gap: '0.5rem' }}>
-                  <Link 
+                  <Link
                     to="/profile"
                     onClick={() => setIsOpen(false)}
                     style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', background: 'var(--surface-secondary)', borderRadius: 'var(--radius-md)', textDecoration: 'none' }}

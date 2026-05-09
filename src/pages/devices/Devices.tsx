@@ -5,8 +5,21 @@ import { AdvancedDeviceAddModal } from '../../components/AdvancedDeviceAddModal'
 import { PageHeader } from '../../components/PageHeader';
 import { useDevicesData } from './hooks/useDevicesData';
 import { DevicesStats } from './components/DevicesStats';
+import { useAuthStore } from '../../store/authStore';
+import { useNavigate } from 'react-router-dom';
 
 export const Devices = () => {
+
+  // Get Current User
+  const user = useAuthStore((state) => state.user);
+  const navigate = useNavigate();
+
+  // Check if its an admin
+  const isAdmin = user?.isAdmin;
+
+  if (!isAdmin) {
+    navigate("/");
+  }
   const {
     devices,
     loading,
@@ -58,12 +71,12 @@ export const Devices = () => {
       />
 
       {/* Devices List */}
-      <AllDevicesSection 
-        devices={searchQuery ? searchResults : devices} 
-        showGenerateToken={true} 
-        title="All Devices" 
-        showViewAllLink={false} 
-        maxDevices={(searchQuery ? searchResults : devices).length} 
+      <AllDevicesSection
+        devices={searchQuery ? searchResults : devices}
+        showGenerateToken={true}
+        title="All Devices"
+        showViewAllLink={false}
+        maxDevices={(searchQuery ? searchResults : devices).length}
       />
 
       {/* Add Device Modal */}

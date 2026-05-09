@@ -8,7 +8,7 @@ import { Dashboard } from "./pages/dashboard/Dashboard";
 import { Devices } from "./pages/devices/Devices";
 import { MyDevices } from "./pages/my-devices/MyDevices";
 import { MyMicrocontrollers } from "./pages/my-microcontrollers/MyMicrocontrollers";
-import { DeviceDetail } from "./pages/device-detail/DeviceDetail";
+
 import { DeviceReadingsHistory } from "./pages/device-readings-history/DeviceReadingsHistory";
 import { DeviceStateHistory } from "./pages/device-state-history/DeviceStateHistory";
 import { AllReadings } from "./pages/all-readings/AllReadings";
@@ -26,7 +26,7 @@ import { Versions } from "./pages/versions/Versions";
 import { LocationDetails } from "./pages/location-details/LocationDetails";
 import { Layout } from "./components/Layout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import { MCDeviceDetail } from "./pages/microcontroller-detail/MicrocontrollerDetail";
+import { SmartDeviceDetail } from "./pages/device-detail/SmartDeviceDetail";
 import { NotFound } from "./pages/not-found/NotFound";
 import { ApiError } from "./pages/api-error/ApiError";
 import { SolarDevices } from "./pages/solar-devices/SolarDevices";
@@ -106,17 +106,7 @@ function App() {
           element={
             <ProtectedRoute>
               <Layout>
-                <DeviceDetail />
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/devices/mc/:id"
-          element={
-            <ProtectedRoute>
-              <Layout>
-                <MCDeviceDetail />
+                <SmartDeviceDetail />
               </Layout>
             </ProtectedRoute>
           }

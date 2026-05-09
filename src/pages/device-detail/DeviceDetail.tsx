@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { Activity, TrendingUp, X, Settings, MapPin, ArrowLeft, Zap, Cpu } from 'lucide-react';
+import { Activity, TrendingUp, X, Settings, MapPin, ArrowLeft, Zap, Cpu, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
 import { StatusBadge } from '../../components/Cards';
@@ -12,6 +12,11 @@ import { DeviceOwnershipCard } from './components/DeviceOwnershipCard';
 import { TransferOwnershipModal } from '../../components/TransferOwnershipModal';
 import { useDeviceDetailData } from './hooks/useDeviceDetailData';
 import { useAuthStore } from '../../store/authStore';
+import { useVoltageRangeConfig, getVoltageStatus } from './hooks/useVoltageRangeConfig';
+import { VoltageRangeConfigModal } from './components/VoltageRangeConfigModal';
+import { VoltageBatteryStatus } from './components/VoltageBatteryStatus';
+import { useChartAxisConfig } from './hooks/useChartAxisConfig';
+import { ChartAxisControls } from './components/ChartAxisControls';
 
 export const DeviceDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -78,6 +83,28 @@ export const DeviceDetail = () => {
   const { user: currentUser } = useAuthStore();
   const canEditOwnership = currentUser?.role === 'admin' || (device && ownership && parseInt(currentUser?.id || '0') === ownership.owner_id);
 
+  // Voltage range configuration (persisted in localStorage per device)
+  const {
+    config: voltageConfig,
+    showConfigModal: showVoltageModal,
+    setShowConfigModal: setShowVoltageModal,
+    saveConfig: saveVoltageConfig,
+    resetConfig: resetVoltageConfig,
+  } = useVoltageRangeConfig(id);
+
+  // Chart axis range configuration (persisted in localStorage per device)
+  const {
+    axisConfig,
+    showAxisPanel,
+    setShowAxisPanel,
+    setMetricRange,
+    resetMetricRange,
+    resetAll: resetAxisAll,
+    computeSuggestedRange,
+    getYDomain,
+    getAllYDomain,
+  } = useChartAxisConfig(id);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -100,7 +127,14 @@ export const DeviceDetail = () => {
   const resolvedDeviceType = deviceType || deviceTypes.find((type) => type.name === device?.type) || null;
   const canControl = !!(resolvedDeviceType?.features?.can_control);
 
+  // Voltage alert derived from config
+  const latestVoltage = latestReading?.voltage ?? null;
+  const voltageStatus = getVoltageStatus(latestVoltage, voltageConfig);
+  const showVoltageAlert = voltageConfig.alertsEnabled && latestVoltage != null &&
+    (voltageStatus === 'low' || voltageStatus === 'critical');
+
   return (
+    <>
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-1">
@@ -140,6 +174,33 @@ export const DeviceDetail = () => {
         </div>
       )}
 
+      {/* Voltage Alert Banner */}
+      {showVoltageAlert && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-semibold ${
+            voltageStatus === 'critical'
+              ? 'bg-error/10 border-error/40 text-error'
+              : 'bg-warning/10 border-warning/40 text-warning'
+          }`}
+        >
+          <AlertTriangle size={16} className="shrink-0" />
+          <span>
+            {voltageStatus === 'critical'
+              ? `⚡ Critical voltage detected: ${latestVoltage?.toFixed(2)}V — below ${voltageConfig.criticalVoltage}V threshold for "${voltageConfig.label}"`
+              : `⚠ Low voltage detected: ${latestVoltage?.toFixed(2)}V — below ${voltageConfig.lowVoltage}V threshold for "${voltageConfig.label}"`
+            }
+          </span>
+          <button
+            onClick={() => setShowVoltageModal(true)}
+            className="ml-auto text-xs underline underline-offset-2 opacity-80 hover:opacity-100 shrink-0"
+          >
+            Configure ranges
+          </button>
+        </motion.div>
+      )}
+
       {/* Token Modal (reusable component) */}
       <DeviceTokenModal
         isOpen={showTokenModal}
@@ -156,6 +217,15 @@ export const DeviceDetail = () => {
         onFormChange={setUpdateForm}
         deviceTypes={deviceTypes}
         message={updateMessage}
+      />
+
+      {/* Voltage Range Configuration Modal */}
+      <VoltageRangeConfigModal
+        isOpen={showVoltageModal}
+        onClose={() => setShowVoltageModal(false)}
+        config={voltageConfig}
+        onSave={saveVoltageConfig}
+        onReset={resetVoltageConfig}
       />
 
       {/* Add Connected Device Modal */}
@@ -493,6 +563,12 @@ export const DeviceDetail = () => {
                         <span className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Voltage</span>
                         <span className="text-2xl font-bold text-nord-10">{(latestReading.voltage ?? 0).toFixed(2)}V</span>
                       </div>
+                      {/* Battery status bar */}
+                      <VoltageBatteryStatus
+                        voltage={latestReading.voltage}
+                        config={voltageConfig}
+                        onConfigClick={() => setShowVoltageModal(true)}
+                      />
                       <div className="flex items-center justify-between p-3 bg-surface-secondary rounded-lg border border-border-secondary">
                         <span className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Current</span>
                         <span className="text-2xl font-bold text-success">{(latestReading.current ?? 0).toFixed(2)}A</span>
@@ -598,8 +674,8 @@ export const DeviceDetail = () => {
 
       {/* Main Aggregate Chart */}
       {(readings.length > 0 || allReadings.length > 0) && (
-        <div className="card shadow-sm p-6 overflow-hidden">
-          <div className="flex items-center justify-between mb-8">
+        <div className="card shadow-sm p-6 overflow-hidden space-y-5">
+          <div className="flex items-center justify-between">
             <div>
               <h2 className="section-title text-2xl">
                 {selectedDay ? `Detailed View - ${selectedDay}` : 'Aggregate Performance Chart'}
@@ -621,6 +697,20 @@ export const DeviceDetail = () => {
               </button>
             )}
           </div>
+
+          {/* Axis range controls */}
+          <ChartAxisControls
+            isOpen={showAxisPanel}
+            onToggle={() => setShowAxisPanel(!showAxisPanel)}
+            axisConfig={axisConfig}
+            onMetricRangeChange={setMetricRange}
+            onResetMetric={resetMetricRange}
+            onResetAll={resetAxisAll}
+            chartData={selectedDay ? getDetailedChartData() : getAggregateChartData()}
+            onSuggest={computeSuggestedRange}
+            selectedMetric={selectedMetric}
+          />
+
           <ResponsiveContainer width="100%" height={400}>
             <AreaChart data={selectedDay ? getDetailedChartData() : getAggregateChartData()}>
               <defs>
@@ -639,7 +729,16 @@ export const DeviceDetail = () => {
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border-secondary)" opacity={0.6} />
               <XAxis dataKey="time" stroke="var(--text-muted)" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
-              <YAxis stroke="var(--text-muted)" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
+              <YAxis
+                stroke="var(--text-muted)"
+                tick={{ fill: 'var(--text-muted)', fontSize: 11 }}
+                domain={
+                  selectedMetric === 'all'
+                    ? getAllYDomain() ?? ['auto', 'auto']
+                    : getYDomain(selectedMetric) ?? ['auto', 'auto']
+                }
+                allowDataOverflow
+              />
               <Tooltip
                 contentStyle={{
                   backgroundColor: 'var(--surface-primary)',
@@ -755,5 +854,6 @@ export const DeviceDetail = () => {
       />
 
     </div>
+    </>
   );
 };
