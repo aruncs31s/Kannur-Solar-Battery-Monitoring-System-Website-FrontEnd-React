@@ -36,6 +36,7 @@ import { UsersPage } from "./pages/users/UsersPage";
 import { TransferHistoryPage } from "./pages/transfer-history/TransferHistoryPage";
 import { DeviceSettings } from "./pages/device-settings/DeviceSettings";
 import { Home } from "./pages/home/Home";
+import { BatteryMonitor } from "./pages/battery-monitor/BatteryMonitor";
 
 function App() {
   const { initAuth } = useAuthStore();
@@ -335,6 +336,18 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <TransferHistoryPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Battery Monitor — standalone voltage report */}
+        <Route
+          path="/battery-monitor"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <BatteryMonitor />
               </Layout>
             </ProtectedRoute>
           }

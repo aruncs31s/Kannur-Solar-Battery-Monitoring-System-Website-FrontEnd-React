@@ -109,18 +109,17 @@ export const ChartAxisControls = ({
       {/* Toggle header */}
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between px-4 py-3 hover:bg-surface-tertiary transition-colors group"
+        className="flex items-center px-4 py-3 hover:bg-surface-tertiary transition-colors group"
       >
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-3">
           <SlidersHorizontal
             size={15}
             className="text-text-secondary group-hover:text-text-primary transition-colors"
           />
-          <span className="text-sm font-semibold text-text-primary">Axis Controls</span>
           {customCount > 0 && (
             <span className="flex items-center gap-1 bg-nord-10/20 text-nord-10 text-[10px] font-bold px-2 py-0.5 rounded-full">
               <CheckCircle2 size={10} />
-              {customCount} custom
+              {customCount} 
             </span>
           )}
         </div>

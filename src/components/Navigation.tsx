@@ -2,7 +2,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   Menu, X, LogOut, User, Moon, Sun, Zap, ChevronDown,
   LayoutDashboard, Cpu, MapPin, Map,
-  Shield, FileText, Activity, Bell, Users
+  Shield, FileText, Activity, Bell, Users, Battery
 } from 'lucide-react';
 
 import { useState, useEffect } from 'react';
@@ -47,6 +47,7 @@ export const Navigation = () => {
     { name: 'My Devices', path: '/my-devices', icon: <Zap size={15} /> },
     { name: 'All Devices', path: '/devices', icon: <Cpu size={15} />, roles: ['admin'] },
     { name: 'Readings', path: '/readings', icon: <Activity size={15} /> },
+    { name: 'Battery Monitor', path: '/battery-monitor', icon: <Battery size={15} /> },
     { name: 'Audit', path: '/audit', icon: <FileText size={15} />, roles: ['admin'] },
     { name: 'Users', path: '/users', icon: <Users size={15} />, roles: ['admin'] },
     { name: 'Admin', path: '/admin', icon: <Shield size={15} />, roles: ['admin'] },

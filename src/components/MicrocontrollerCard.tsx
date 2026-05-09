@@ -19,7 +19,7 @@ export const MicrocontrollerCard = ({ device, index = 0 }: MicrocontrollerCardPr
       transition={{ delay: index * 0.04, duration: 0.35, ease: 'easeOut' }}
       whileHover={{ y: -2 }}
       className="card card-interactive group"
-      onClick={() => navigate(`/devices/mc/${device.id}`)}
+      onClick={() => navigate(`/devices/${device.id}`)}
     >
       <div style={{ padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {/* Header */}
