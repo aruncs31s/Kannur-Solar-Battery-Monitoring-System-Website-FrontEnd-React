@@ -7,6 +7,8 @@ import { AlertCircle, MapPin, Search, ChevronLeft, ChevronRight, Zap } from 'luc
 import { useThemeStore } from '../../store/themeStore';
 import { DeviceStateBadge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
+import './MapView.scss';
+
 
 
 

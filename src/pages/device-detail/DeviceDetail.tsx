@@ -17,6 +17,8 @@ import { VoltageRangeConfigModal } from './components/VoltageRangeConfigModal';
 import { VoltageBatteryStatus } from './components/VoltageBatteryStatus';
 import { useChartAxisConfig } from './hooks/useChartAxisConfig';
 import { ChartAxisControls } from './components/ChartAxisControls';
+import './DeviceDetail.scss';
+
 
 export const DeviceDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -103,6 +105,7 @@ export const DeviceDetail = () => {
     computeSuggestedRange,
     getYDomain,
     getAllYDomain,
+    getYTicks,
   } = useChartAxisConfig(id);
 
   if (loading) {
@@ -694,7 +697,7 @@ export const DeviceDetail = () => {
                 onMetricRangeChange={setMetricRange}
                 onResetMetric={resetMetricRange}
                 onResetAll={resetAxisAll}
-                chartData={selectedDay ? getDetailedChartData() : getAggregateChartData()}
+                chartData={(selectedDay ? getDetailedChartData() : getAggregateChartData()) as any}
                 onSuggest={computeSuggestedRange}
                 selectedMetric={selectedMetric}
               />
@@ -712,7 +715,10 @@ export const DeviceDetail = () => {
 
 
             <ResponsiveContainer width="100%" height={400}>
-              <AreaChart data={selectedDay ? getDetailedChartData() : getAggregateChartData()}>
+              <AreaChart
+                data={selectedDay ? getDetailedChartData() : getAggregateChartData()}
+                margin={{ top: 10, right: 30, left: 45, bottom: 20 }}
+              >
                 <defs>
                   <linearGradient id="colorVoltage" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#5E81AC" stopOpacity={0.8} />
@@ -728,7 +734,12 @@ export const DeviceDetail = () => {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-secondary)" opacity={0.6} />
-                <XAxis dataKey="time" stroke="var(--text-muted)" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
+                <XAxis
+                  dataKey="time"
+                  stroke="var(--text-muted)"
+                  tick={{ fill: 'var(--text-muted)', fontSize: 11 }}
+                  label={{ value: 'Time', position: 'insideBottomRight', offset: -5, fill: 'var(--text-muted)', fontSize: 11, fontWeight: 500 }}
+                />
                 <YAxis
                   stroke="var(--text-muted)"
                   tick={{ fill: 'var(--text-muted)', fontSize: 11 }}
@@ -737,7 +748,21 @@ export const DeviceDetail = () => {
                       ? getAllYDomain() ?? ['auto', 'auto']
                       : getYDomain(selectedMetric) ?? ['auto', 'auto']
                   }
+                  ticks={
+                    selectedMetric !== 'all'
+                      ? getYTicks(selectedMetric)
+                      : undefined
+                  }
                   allowDataOverflow
+                  label={{
+                    value: selectedMetric === 'all' ? 'Voltage / Current / Power' : selectedMetric.charAt(0).toUpperCase() + selectedMetric.slice(1),
+                    angle: -90,
+                    position: 'insideLeft',
+                    fill: 'var(--text-muted)',
+                    fontSize: 11,
+                    fontWeight: 500,
+                    style: { textAnchor: 'middle' }
+                  }}
                 />
                 <Tooltip
                   contentStyle={{
@@ -751,13 +776,13 @@ export const DeviceDetail = () => {
                 />
                 <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '12px' }} />
                 {(selectedMetric === 'all' || selectedMetric === 'voltage') && (
-                  <Area type="monotone" dataKey="voltage" stroke="#5E81AC" strokeWidth={2} fillOpacity={1} fill="url(#colorVoltage)" name="Voltage (V)" dot={false} />
+                  <Area type="monotone" dataKey="voltage" stroke="#5E81AC" strokeWidth={2} fillOpacity={1} fill="url(#colorVoltage)" name="Voltage (V)" dot={false} connectNulls={true} />
                 )}
                 {(selectedMetric === 'all' || selectedMetric === 'current') && (
-                  <Area type="monotone" dataKey="current" stroke="#A3BE8C" strokeWidth={2} fillOpacity={1} fill="url(#colorCurrent)" name="Current (A)" dot={false} />
+                  <Area type="monotone" dataKey="current" stroke="#A3BE8C" strokeWidth={2} fillOpacity={1} fill="url(#colorCurrent)" name="Current (A)" dot={false} connectNulls={true} />
                 )}
                 {(selectedMetric === 'all' || selectedMetric === 'power') && (
-                  <Area type="monotone" dataKey="power" stroke="#B48EAD" strokeWidth={2} fillOpacity={1} fill="url(#colorPower)" name="Power (W)" dot={false} />
+                  <Area type="monotone" dataKey="power" stroke="#B48EAD" strokeWidth={2} fillOpacity={1} fill="url(#colorPower)" name="Power (W)" dot={false} connectNulls={true} />
                 )}
                 {selectedMetric !== 'all' && (
                   <Line
@@ -768,7 +793,7 @@ export const DeviceDetail = () => {
                     strokeDasharray="5 5"
                     dot={false}
                     name={`Avg ${selectedMetric === 'voltage' ? 'Voltage' : selectedMetric === 'current' ? 'Current' : 'Power'}`}
-                    connectNulls={false}
+                    connectNulls={true}
                   />
                 )}
               </AreaChart>
@@ -803,10 +828,22 @@ export const DeviceDetail = () => {
                     </div>
                   </div>
                   <ResponsiveContainer width="100%" height={200}>
-                    <LineChart data={day.chartData}>
+                    <LineChart
+                      data={day.chartData} margin={{ top: 5, right: 5, left: 0, bottom: 15 }}
+
+                    >
                       <CartesianGrid strokeDasharray="3 3" stroke="var(--border-primary)" />
-                      <XAxis dataKey="time" stroke="var(--text-tertiary)" tick={{ fill: 'var(--text-tertiary)', fontSize: 10 }} />
-                      <YAxis stroke="var(--text-tertiary)" tick={{ fill: 'var(--text-tertiary)', fontSize: 10 }} />
+                      <XAxis
+                        dataKey="time"
+                        stroke="var(--text-tertiary)"
+                        tick={{ fill: 'var(--text-tertiary)', fontSize: 10 }}
+                        label={{ value: 'Time', position: 'insideBottomRight', offset: -5, fill: 'var(--text-tertiary)', fontSize: 9 }}
+                      />
+                      <YAxis
+                        stroke="var(--text-tertiary)"
+                        tick={{ fill: 'var(--text-tertiary)', fontSize: 10 }}
+                        label={{ value: 'Voltage', angle: -90, position: 'insideLeft', fill: 'var(--text-tertiary)', fontSize: 9, style: { textAnchor: 'middle' } }}
+                      />
                       <Tooltip
                         contentStyle={{
                           backgroundColor: 'var(--surface-primary)',
@@ -817,9 +854,9 @@ export const DeviceDetail = () => {
                           fontSize: '12px'
                         }}
                       />
-                      <Line type="monotone" dataKey="voltage" stroke="#5E81AC" strokeWidth={2} dot={false} name="V" />
-                      <Line type="monotone" dataKey="current" stroke="#A3BE8C" strokeWidth={2} dot={false} name="A" />
-                      <Line type="monotone" dataKey="power" stroke="#B48EAD" strokeWidth={2} dot={false} name="W" />
+                      <Line type="monotone" dataKey="voltage" stroke="#5E81AC" strokeWidth={2} dot={false} name="V" connectNulls={true} />
+                      <Line type="monotone" dataKey="current" stroke="#A3BE8C" strokeWidth={2} dot={false} name="A" connectNulls={true} />
+                      <Line type="monotone" dataKey="power" stroke="#B48EAD" strokeWidth={2} dot={false} name="W" connectNulls={true} />
                     </LineChart>
                   </ResponsiveContainer>
                 </motion.div>

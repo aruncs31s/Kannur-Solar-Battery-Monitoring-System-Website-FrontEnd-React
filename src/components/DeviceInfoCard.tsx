@@ -72,11 +72,11 @@ export const DeviceInfoCard = ({
           </div>
           <div>
             <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Firmware</span>
-            <p style={{ color: 'var(--text-primary)', fontWeight: 600, marginTop: '0.4rem' }}>v{device.firmware_version}</p>
+            <p style={{ color: 'var(--text-primary)', fontWeight: 600, marginTop: '0.4rem' }}>v{"0.0.10"}</p>
           </div>
           <div>
             <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Location</span>
-            <p style={{ color: 'var(--text-primary)', fontWeight: 600, marginTop: '0.4rem' }}>{device.city}</p>
+            <p style={{ color: 'var(--text-primary)', fontWeight: 600, marginTop: '0.4rem' }}>{"3_5_25_4"}</p>
           </div>
         </div>
 

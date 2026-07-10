@@ -3,6 +3,7 @@ import { useState, useCallback } from 'react';
 export interface AxisRange {
   yMin: number | 'auto';
   yMax: number | 'auto';
+  yStep: number | 'auto';
 }
 
 export interface ChartAxisConfig {
@@ -16,9 +17,9 @@ export interface ChartAxisConfig {
 const STORAGE_KEY_PREFIX = 'chart_axis_config_device_';
 
 const DEFAULT_CONFIG: ChartAxisConfig = {
-  voltage: { yMin: 'auto', yMax: 'auto' },
-  current: { yMin: 'auto', yMax: 'auto' },
-  power:   { yMin: 'auto', yMax: 'auto' },
+  voltage: { yMin: 'auto', yMax: 'auto', yStep: 'auto' },
+  current: { yMin: 'auto', yMax: 'auto', yStep: 'auto' },
+  power:   { yMin: 'auto', yMax: 'auto', yStep: 'auto' },
   activeMetric: 'voltage',
 };
 
@@ -61,7 +62,7 @@ export const useChartAxisConfig = (deviceId: string | undefined) => {
 
   const resetMetricRange = useCallback(
     (metric: 'voltage' | 'current' | 'power') => {
-      setMetricRange(metric, { yMin: 'auto', yMax: 'auto' });
+      setMetricRange(metric, { yMin: 'auto', yMax: 'auto', yStep: 'auto' });
     },
     [setMetricRange]
   );
@@ -138,6 +139,33 @@ export const useChartAxisConfig = (deviceId: string | undefined) => {
     ];
   }, [axisConfig]);
 
+  /**
+   * Compute exact ticks array for YAxis if yMin, yMax, and yStep are all explicitly set.
+   * Otherwise returns undefined (let recharts handle ticks automatically).
+   */
+  const getYTicks = useCallback(
+    (metric: 'voltage' | 'current' | 'power'): number[] | undefined => {
+      const r = axisConfig[metric];
+      if (r.yMin !== 'auto' && r.yMax !== 'auto' && r.yStep !== 'auto') {
+        const min = r.yMin;
+        const max = r.yMax;
+        const step = r.yStep;
+        if (step <= 0 || max <= min) return undefined;
+
+        // Prevent infinite loops / too many ticks
+        if ((max - min) / step > 100) return undefined;
+
+        const ticks: number[] = [];
+        for (let i = min; i <= max + 0.0001; i += step) {
+          ticks.push(Number(i.toFixed(3)));
+        }
+        return ticks;
+      }
+      return undefined;
+    },
+    [axisConfig]
+  );
+
   return {
     axisConfig,
     showAxisPanel,
@@ -149,5 +177,6 @@ export const useChartAxisConfig = (deviceId: string | undefined) => {
     computeSuggestedRange,
     getYDomain,
     getAllYDomain,
+    getYTicks,
   };
 };

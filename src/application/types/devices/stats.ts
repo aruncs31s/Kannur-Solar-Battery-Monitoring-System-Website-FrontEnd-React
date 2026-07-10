@@ -13,3 +13,11 @@ export interface MainStatsDTO {
   /** System-wide average power output */
   avg_power: number;
 }
+
+export interface MicrocontrollerStats {
+  total_microcontrollers: number;
+  online_microcontrollers: number;
+  offline_microcontrollers: number;
+  latest_version: string;
+}
+

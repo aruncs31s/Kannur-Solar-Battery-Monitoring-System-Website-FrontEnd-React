@@ -105,16 +105,21 @@ export const DailyBreakdownCharts = ({
               </div>
             </div>
             <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={day.chartData}>
+              <LineChart 
+                data={day.chartData}
+                margin={{ top: 5, right: 10, left: 25, bottom: 15 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-primary)" />
-                <XAxis
+                 <XAxis
                   dataKey="time"
                   stroke="var(--text-tertiary)"
                   tick={{ fill: 'var(--text-tertiary)', fontSize: 10 }}
+                  label={{ value: 'Time', position: 'insideBottomRight', offset: -5, fill: 'var(--text-tertiary)', fontSize: 9 }}
                 />
                 <YAxis
                   stroke="var(--text-tertiary)"
                   tick={{ fill: 'var(--text-tertiary)', fontSize: 10 }}
+                  label={{ value: 'Voltage', angle: -90, position: 'insideLeft', fill: 'var(--text-tertiary)', fontSize: 9, style: { textAnchor: 'middle' } }}
                 />
                 <Tooltip
                   contentStyle={{

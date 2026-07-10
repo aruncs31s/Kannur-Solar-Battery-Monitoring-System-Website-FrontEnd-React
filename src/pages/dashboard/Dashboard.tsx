@@ -9,6 +9,8 @@ import { Clock } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { DashboardStats } from './components/DashboardStats';
 import { useDashboardData } from './hooks/useDashboardData';
+import './Dashboard.scss';
+
 
 export const Dashboard = () => {
   const navigate = useNavigate();

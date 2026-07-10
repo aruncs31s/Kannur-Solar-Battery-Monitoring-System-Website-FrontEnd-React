@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom';
-import { Database, UserCheck, Cpu, CircuitBoard } from 'lucide-react';
+import { Database, UserCheck, Cpu, CircuitBoard, Shield } from 'lucide-react';
 
 export const ManagementModules = () => {
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-text-primary">Management Modules</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
         <Link
           to="/admin/devices"
           className="bg-surface-primary rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 border border-border-primary cursor-pointer group"
@@ -34,6 +34,22 @@ export const ManagementModules = () => {
             </div>
             <div className="bg-purple-500/10 text-purple-500 p-3 rounded-xl group-hover:bg-purple-500/20 transition-colors">
               <UserCheck size={32} />
+            </div>
+          </div>
+        </Link>
+
+        <Link
+          to="/admin/permissions"
+          className="bg-surface-primary rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 border border-border-primary cursor-pointer group"
+        >
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <p className="text-text-tertiary text-sm font-medium mb-2">Permission Management</p>
+              <p className="text-2xl font-bold text-text-primary mb-1">Manage Access</p>
+              <p className="text-xs text-text-secondary">Control system roles and API permissions</p>
+            </div>
+            <div className="bg-red-500/10 text-red-500 p-3 rounded-xl group-hover:bg-red-500/20 transition-colors">
+              <Shield size={32} />
             </div>
           </div>
         </Link>

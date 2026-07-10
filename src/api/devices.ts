@@ -1,45 +1,13 @@
 import { container } from '../application/di/container';
 import { CreateDeviceDTO, CreateSolarDeviceDTO, CreateSensorDeviceDTO, DeviceResponseDTO, DeviceSearchResultDTO, SolarDeviceWithType, MicrocontrollerDTO, DeviceStateHistoryResponse, DeviceStateHistoryFilters, CreateDeviceTypeDTO, UpdateDeviceDTO, DeviceState, CreateDeviceStateDTO, UpdateDeviceStateDTO, ConnectedDeviceDTO, CreateConnectedDeviceDTO, MainStatsDTO, DeviceOwnership, TransferOwnershipDTO } from '../domain/entities/Device';
 import { DeviceTypeDTO } from '../domain/entities/Device';
+import { DeviceTokenResponse, FirmwareBuildConfig, FirmwareBuildResponse, FirmwareBuildStatus } from '../application/types/devices/device';
+import { MicrocontrollerStats } from '../application/types/devices/stats';
 
-export interface DeviceTokenResponse {
-  token: string;
-  user_id: number;
-  device_id: number;
-}
+export type { DeviceTokenResponse, FirmwareBuildConfig, FirmwareBuildResponse, FirmwareBuildStatus, MicrocontrollerStats };
 
-export interface FirmwareBuildConfig {
-  device_id: number;
-  device_name: string;
-  ip: string;
-  host_ip: string;
-  host_ssid: string;
-  host_pass: string;
-  port: number;
-  token?: string;
-  build_tool?: 'platformio' | 'arduino';
-}
 
-export interface FirmwareBuildResponse {
-  build_id: string;
-  message: string;
-  status: 'queued' | 'building' | 'completed' | 'failed';
-}
 
-export interface FirmwareBuildStatus {
-  build_id: string;
-  status: 'queued' | 'building' | 'completed' | 'failed';
-  progress: number;
-  message: string;
-  download_url?: string;
-}
-
-export interface MicrocontrollerStats {
-  total_microcontrollers: number;
-  online_microcontrollers: number;
-  offline_microcontrollers: number;
-  latest_version: string;
-}
 
 export const devicesAPI = {
   getAllDevices: async (): Promise<DeviceResponseDTO[]> => {

@@ -36,6 +36,8 @@ interface ChartAxisControlsProps {
   ) => { min: number; max: number };
   /** Which metric is currently selected in the main chart filter */
   selectedMetric: 'all' | 'voltage' | 'current' | 'power';
+  timeDivision?: '1h' | '30m' | '15m';
+  onTimeDivisionChange?: (division: '1h' | '30m' | '15m') => void;
 }
 
 interface NumericInputProps {
@@ -79,6 +81,8 @@ export const ChartAxisControls = ({
   chartData,
   onSuggest,
   selectedMetric,
+  timeDivision,
+  onTimeDivisionChange,
 }: ChartAxisControlsProps) => {
   // Default the active tab to the currently filtered metric (if not 'all')
   const defaultTab =
@@ -92,11 +96,11 @@ export const ChartAxisControls = ({
 
   const currentTab = METRIC_TABS.find((t) => t.key === activeTab)!;
   const currentRange = axisConfig[activeTab];
-  const isCustom = currentRange.yMin !== 'auto' || currentRange.yMax !== 'auto';
+  const isCustom = currentRange.yMin !== 'auto' || currentRange.yMax !== 'auto' || currentRange.yStep !== 'auto';
 
   // Check how many metrics have custom ranges
   const customCount = METRIC_TABS.filter(
-    (t) => axisConfig[t.key].yMin !== 'auto' || axisConfig[t.key].yMax !== 'auto'
+    (t) => axisConfig[t.key].yMin !== 'auto' || axisConfig[t.key].yMax !== 'auto' || axisConfig[t.key].yStep !== 'auto'
   ).length;
 
   const applySuggestion = () => {
@@ -152,12 +156,47 @@ export const ChartAxisControls = ({
             className="overflow-hidden"
           >
             <div className="px-4 pb-4 space-y-4 border-t border-border-secondary">
+              
+              {/* Time Division Tabs */}
+              {onTimeDivisionChange && (
+                <div className="flex flex-col gap-2 pt-4">
+                  <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
+                    Time Interval
+                  </span>
+                  <div className="flex gap-1.5">
+                    {(['1h', '30m', '15m'] as const).map((div) => (
+                      <button
+                        key={div}
+                        onClick={() => onTimeDivisionChange(div)}
+                        className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
+                          timeDivision === div
+                            ? 'border-transparent text-white shadow-sm'
+                            : 'border-border-primary bg-surface-primary text-text-secondary hover:text-text-primary'
+                        }`}
+                        style={
+                          timeDivision === div
+                            ? { backgroundColor: 'var(--text-accent)' }
+                            : {}
+                        }
+                      >
+                        {div === '1h' ? 'Hourly' : div === '30m' ? '30 Min' : '15 Min'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Metric tabs */}
-              <div className="flex gap-1.5 pt-4">
+              <div className="flex flex-col gap-2 pt-2">
+                <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
+                  Select Metric to Configure
+                </span>
+                <div className="flex gap-1.5">
                 {METRIC_TABS.map((tab) => {
                   const hasCustom =
                     axisConfig[tab.key].yMin !== 'auto' ||
-                    axisConfig[tab.key].yMax !== 'auto';
+                    axisConfig[tab.key].yMax !== 'auto' ||
+                    axisConfig[tab.key].yStep !== 'auto';
                   return (
                     <button
                       key={tab.key}
@@ -183,6 +222,7 @@ export const ChartAxisControls = ({
                   );
                 })}
               </div>
+            </div>
 
               {/* Y-axis range inputs */}
               <div className="space-y-3">
@@ -204,7 +244,7 @@ export const ChartAxisControls = ({
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
                       Min {currentTab.unit}
@@ -225,6 +265,17 @@ export const ChartAxisControls = ({
                       placeholder="Auto"
                       color={currentTab.color}
                       onChange={(v) => onMetricRangeChange(activeTab, { yMax: v })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
+                      Step {currentTab.unit}
+                    </label>
+                    <NumericInput
+                      value={currentRange.yStep}
+                      placeholder="Auto"
+                      color={currentTab.color}
+                      onChange={(v) => onMetricRangeChange(activeTab, { yStep: v })}
                     />
                   </div>
                 </div>

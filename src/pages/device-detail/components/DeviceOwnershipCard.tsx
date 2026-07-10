@@ -36,7 +36,7 @@ export const DeviceOwnershipCard = ({
   if (!ownership) return null;
 
   return (
-    <div className="card shadow-md border-primary-500/10 hover:shadow-lg transition-all duration-300">
+    <div className="card">
       <div className="card-header border-b border-border-primary/50 pb-4">
         <h2 className="section-title flex items-center gap-2">
           <Lock size={18} className="text-primary-500" />

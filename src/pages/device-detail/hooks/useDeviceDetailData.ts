@@ -74,6 +74,7 @@ export const useDeviceDetailData = (id: string | undefined) => {
   const [allReadings, setAllReadings] = useState<Reading[]>([]);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [selectedMetric, setSelectedMetric] = useState<'all' | 'voltage' | 'current' | 'power'>('all');
+  const [timeDivision, setTimeDivision] = useState<'1h' | '30m' | '15m'>('1h');
 
   useEffect(() => {
     let isMounted = true;
@@ -422,36 +423,64 @@ export const useDeviceDetailData = (id: string | undefined) => {
     };
   };
 
-  const getBucketizedData = (readingsToBucket: Reading[]) => {
-    const hourlyData: { [hour: number]: { voltage: number; current: number; power: number; count: number } } = {};
+  const getBucketizedData = (readingsToBucket: Reading[], division: '1h' | '30m' | '15m' = timeDivision) => {
+    const bucketsCount = division === '1h' ? 24 : division === '30m' ? 48 : 96;
+    const bucketData: { [key: number]: { voltage: number; current: number; power: number; count: number } } = {};
     
-    for (let i = 0; i < 24; i++) {
-      hourlyData[i] = { voltage: 0, current: 0, power: 0, count: 0 };
+    for (let i = 0; i < bucketsCount; i++) {
+      bucketData[i] = { voltage: 0, current: 0, power: 0, count: 0 };
     }
     
     readingsToBucket.forEach(reading => {
-      const hour = new Date(reading.timestamp).getHours();
-      if (hourlyData[hour] !== undefined) {
-        hourlyData[hour].voltage += reading.voltage ?? 0;
-        hourlyData[hour].current += reading.current ?? 0;
-        hourlyData[hour].power += reading.power ?? 0;
-        hourlyData[hour].count += 1;
+      const d = new Date(reading.timestamp);
+      const hour = d.getHours();
+      const minute = d.getMinutes();
+      
+      let bucketIndex = hour;
+      if (division === '30m') {
+          bucketIndex = hour * 2 + (minute >= 30 ? 1 : 0);
+      } else if (division === '15m') {
+          bucketIndex = hour * 4 + Math.floor(minute / 15);
+      }
+      
+      if (bucketData[bucketIndex] !== undefined) {
+        bucketData[bucketIndex].voltage += reading.voltage ?? 0;
+        bucketData[bucketIndex].current += reading.current ?? 0;
+        bucketData[bucketIndex].power += reading.power ?? 0;
+        bucketData[bucketIndex].count += 1;
       }
     });
     
-    const formatHour12 = (h: number) => {
-      if (h === 0) return '12 AM';
-      if (h === 12) return '12 PM';
-      return h > 12 ? `${h - 12} PM` : `${h} AM`;
+    const formatTime = (bucketIndex: number) => {
+      let h = bucketIndex;
+      let m = 0;
+      if (division === '30m') {
+          h = Math.floor(bucketIndex / 2);
+          m = (bucketIndex % 2) * 30;
+      } else if (division === '15m') {
+          h = Math.floor(bucketIndex / 4);
+          m = (bucketIndex % 4) * 15;
+      }
+      
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      const displayH = h % 12 === 0 ? 12 : h % 12;
+      
+      if (division === '1h') {
+           return `${displayH} ${ampm}`;
+      }
+      return `${displayH}:${m.toString().padStart(2, '0')} ${ampm}`;
     };
 
-    return Object.entries(hourlyData).map(([hour, data]) => ({
-      time: formatHour12(parseInt(hour)),
-      voltage: data.count > 0 ? data.voltage / data.count : 0,
-      current: data.count > 0 ? data.current / data.count : 0,
-      power: data.count > 0 ? data.power / data.count : 0,
-      hour: parseInt(hour)
-    })).sort((a, b) => a.hour - b.hour);
+    return Object.entries(bucketData).map(([bIndexStr, data]) => {
+      const bIndex = parseInt(bIndexStr);
+      return {
+        time: formatTime(bIndex),
+        voltage: data.count > 0 ? data.voltage / data.count : null,
+        current: data.count > 0 ? data.current / data.count : null,
+        power: data.count > 0 ? data.power / data.count : null,
+        hour: bIndex
+      };
+    }).sort((a, b) => a.hour - b.hour);
   };
 
   const getAggregateChartData = () => {
@@ -510,7 +539,7 @@ export const useDeviceDetailData = (id: string | undefined) => {
       result.push({
         date: dateString,
         readings: dayReadings.sort((a, b) => a.timestamp - b.timestamp),
-        chartData: getBucketizedData(dayReadings),
+        chartData: getBucketizedData(dayReadings, '1h'), // Daily summary defaults to 1h
         avgVoltage: dayReadings.length > 0 ? dayReadings.reduce((sum, r) => sum + (r.voltage ?? 0), 0) / dayReadings.length : 0,
         avgCurrent: dayReadings.length > 0 ? dayReadings.reduce((sum, r) => sum + (r.current ?? 0), 0) / dayReadings.length : 0,
         avgPower: dayReadings.length > 0 ? dayReadings.reduce((sum, r) => sum + (r.power ?? 0), 0) / dayReadings.length : 0,
@@ -570,6 +599,8 @@ export const useDeviceDetailData = (id: string | undefined) => {
     setSelectedDay,
     selectedMetric,
     setSelectedMetric,
+    timeDivision,
+    setTimeDivision,
     generateToken,
     closeTokenModal,
     openUpdateModal,

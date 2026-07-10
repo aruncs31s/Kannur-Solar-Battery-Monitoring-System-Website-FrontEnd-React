@@ -13,6 +13,8 @@ import { locationsAPI } from '../../api/locations';
 import { readingsAPI } from '../../api/readings';
 import { LocationResponseDTO, LocationDeviceDTO } from '../../domain/entities/Location';
 import { Reading } from '../../domain/entities/Reading';
+import './LocationDetails.scss';
+
 
 export const LocationDetails = () => {
   const { id } = useParams<{ id: string }>();

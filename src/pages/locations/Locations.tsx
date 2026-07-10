@@ -15,6 +15,8 @@ import { FormError, FormSuccess } from '../../components/FormComponents';
 import { Section } from '../../components/Section';
 import { LocationFormModal } from './components/LocationFormModal';
 import { useLocationsData } from './hooks/useLocationsData';
+import './Locations.scss';
+
 
 export const Locations = () => {
   const navigate = useNavigate();

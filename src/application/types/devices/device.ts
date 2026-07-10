@@ -222,3 +222,35 @@ export interface CreateConnectedDeviceDTO {
   ip_address?: string;
   mac_address?: string;
 }
+
+export interface DeviceTokenResponse {
+  token: string;
+  user_id: number;
+  device_id: number;
+}
+
+export interface FirmwareBuildConfig {
+  device_id: number;
+  device_name: string;
+  ip: string;
+  host_ip: string;
+  host_ssid: string;
+  host_pass: string;
+  port: number;
+  token?: string;
+  build_tool?: 'platformio' | 'arduino';
+}
+
+export interface FirmwareBuildResponse {
+  build_id: string;
+  message: string;
+  status: 'queued' | 'building' | 'completed' | 'failed';
+}
+
+export interface FirmwareBuildStatus {
+  build_id: string;
+  status: 'queued' | 'building' | 'completed' | 'failed';
+  progress: number;
+  message: string;
+  download_url?: string;
+}

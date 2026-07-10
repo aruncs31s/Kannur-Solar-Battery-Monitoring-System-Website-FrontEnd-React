@@ -50,6 +50,7 @@ export const Navigation = () => {
     { name: 'Battery Monitor', path: '/battery-monitor', icon: <Battery size={15} /> },
     { name: 'Audit', path: '/audit', icon: <FileText size={15} />, roles: ['admin'] },
     { name: 'Users', path: '/users', icon: <Users size={15} />, roles: ['admin'] },
+    { name: 'Permissions', path: '/admin/permissions', icon: <Shield size={15} />, roles: ['admin'] },
     { name: 'Admin', path: '/admin', icon: <Shield size={15} />, roles: ['admin'] },
   ];
 
@@ -111,11 +112,11 @@ export const Navigation = () => {
             </div>
             <div style={{ lineHeight: 1.15 }}>
               <div style={{ fontWeight: 800, fontSize: '0.9375rem', color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
-                Kannur Solar
+                Smart Kannur Battery Monitor
               </div>
-              <div style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', letterSpacing: '0.02em' }}>
+              {/* <div style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', letterSpacing: '0.02em' }}>
                 Battery Monitor
-              </div>
+              </div> */}
             </div>
           </Link>
 

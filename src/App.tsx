@@ -20,6 +20,7 @@ import { AdminDeviceManagement } from "./pages/admin/AdminDeviceManagement";
 import { AdminUserManagement } from "./pages/admin/AdminUserManagement";
 import { AdminDeviceTypeManagement } from "./pages/admin/AdminDeviceTypeManagement";
 import { AdminESPDeviceManagement } from "./pages/admin/AdminESPDeviceManagement";
+import { AdminPermissionManagement } from "./pages/admin/AdminPermissionManagement";
 import { AuditLogs } from "./pages/audit-logs/AuditLogs";
 import { Configuration } from "./pages/configuration/Configuration";
 import { Versions } from "./pages/versions/Versions";
@@ -249,6 +250,16 @@ function App() {
             <ProtectedRoute allowedRoles={["admin"]}>
               <Layout>
                 <AdminUserManagement />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/permissions"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <Layout>
+                <AdminPermissionManagement />
               </Layout>
             </ProtectedRoute>
           }

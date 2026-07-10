@@ -1,17 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Bell, Check, CheckCheck, RefreshCw, Info, AlertTriangle, ArrowRightLeft, Settings } from 'lucide-react';
 import { httpClient } from '../../infrastructure/http/HttpClient';
+import { Notification } from '../../application/types/notification';
 import { motion } from 'framer-motion';
+import './NotificationsPage.scss';
 
-interface Notification {
-  id: number;
-  user_id: number;
-  title: string;
-  message: string;
-  type: string;
-  read: boolean;
-  created_at: string;
-}
+
 
 const typeConfig: Record<string, { icon: React.ReactNode; color: string; label: string }> = {
   ownership_transfer: { icon: <ArrowRightLeft size={16} />, color: 'var(--primary-500)', label: 'Transfer' },
